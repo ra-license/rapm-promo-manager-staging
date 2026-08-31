@@ -6,6 +6,8 @@ Validated, scheduled promotional assets for client WordPress sites — built to 
 == What this solves ==
 Non-technical client staff upload promotional graphics that are often the wrong dimensions, the wrong file format, or too large to load quickly. This plugin makes that impossible: every image is checked against the exact pixel dimensions its placement needs before it's accepted, and automatically converted to WebP and compressed toward a file-size target — no one has to know what WebP is or how to make one. Only the crop/dimensions are ever a hard rejection (a wrong crop needs a human to fix, format doesn't).
 
+**What isn't caught automatically:** whether the image already has sale text/pricing/dates baked into the pixels, which would visibly clash with the Headline/Subheadline/Button Text fields below it once both render together. Detecting text inside an image needs OCR — a paid cloud API or a server binary this plugin deliberately doesn't depend on, since it'd be an external cost and a point of failure across every client host. Instead, the Add/Edit Asset form has a live preview showing the image and text overlay together exactly as they'll appear live, specifically so this is easy to catch by eye before publishing.
+
 == Adding an asset ==
 Use **Promo Manager > Add New Asset**. Don't use the native "Add New" screen under Promo Manager > All Assets — it's a bare title field on purpose (no image/format path exists there at all) and will redirect you to the real form automatically.
 

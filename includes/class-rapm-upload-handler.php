@@ -27,6 +27,21 @@ class RAPM_Upload_Handler {
 	}
 
 	/**
+	 * Loads the same CSS the live carousel uses, only on this one admin
+	 * screen, so the on-page preview (image + text overlay together) is a
+	 * pixel-accurate WYSIWYG of what actually ships — not a separate
+	 * approximation that could itself mislead someone into thinking a
+	 * clash is fine when it isn't.
+	 */
+	public static function enqueue_admin_assets() {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( 'rapm-add-asset' !== $page ) {
+			return;
+		}
+		wp_enqueue_style( 'rapm-hero-css', RAPM_URL . 'assets/css/rapm-hero.css', array(), RAPM_VERSION );
+	}
+
+	/**
 	 * Redirects the native "Add New" screen (which, with no 'thumbnail'/
 	 * 'editor' support declared, is just a bare title field) to this
 	 * validated form instead — the native screen has no useful path to
@@ -125,6 +140,9 @@ class RAPM_Upload_Handler {
 
 				<h2><?php esc_html_e( 'Images', 'rapm' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Each image is checked against its required size before it\'s accepted, then automatically converted to WebP and compressed — you don\'t need to convert anything yourself. Only choose a file here if you\'re adding one for the first time or replacing the current one.', 'rapm' ); ?></p>
+				<div class="notice notice-warning inline" style="margin:0 0 12px;padding:8px 12px;">
+					<p><strong><?php esc_html_e( 'Don\'t include sale text, dates, or pricing baked into the image itself', 'rapm' ); ?></strong> — <?php esc_html_e( 'enter that in the Headline/Subheadline/Button Text fields below instead. This plugin can\'t automatically detect text already on an image, so if both are present they\'ll visibly overlap. Use the live preview at the bottom of this page to check before saving.', 'rapm' ); ?></p>
+				</div>
 				<table class="form-table">
 					<tr>
 						<th><label for="rapm_image_desktop"><?php echo esc_html( $desktop_slot['label'] ); ?></label></th>
@@ -170,6 +188,53 @@ class RAPM_Upload_Handler {
 						<td><input type="text" id="rapm_cta_text" name="rapm_cta_text" value="<?php echo esc_attr( $m( '_rapm_cta_text', __( 'Shop Now', 'rapm' ) ) ); ?>" /></td>
 					</tr>
 				</table>
+
+				<h2><?php esc_html_e( 'Live Preview', 'rapm' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Exactly what this will look like live — updates as you type or choose a new image. This is the place to catch text on the image clashing with the fields above.', 'rapm' ); ?></p>
+				<div id="rapm-preview-wrap" style="max-width:600px;margin-bottom:24px;">
+					<div id="rapm-preview" class="rapm-hero" style="aspect-ratio:<?php echo esc_attr( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;background:#333;">
+						<div class="rapm-slide" style="width:100%;height:100%;">
+							<img id="rapm-preview-img" src="<?php echo $img_desktop ? esc_url( wp_get_attachment_image_url( $img_desktop, 'full' ) ) : ''; ?>" alt="" style="width:100%;height:100%;object-fit:cover;display:<?php echo $img_desktop ? 'block' : 'none'; ?>;" />
+							<div class="rapm-slide-copy">
+								<h2 class="rapm-headline" id="rapm-preview-headline"></h2>
+								<p class="rapm-subhead" id="rapm-preview-subhead"></p>
+								<span class="rapm-cta-btn" id="rapm-preview-cta"></span>
+							</div>
+						</div>
+					</div>
+					<p class="description" id="rapm-preview-empty" style="<?php echo $img_desktop ? 'display:none;' : ''; ?>"><?php esc_html_e( 'Choose a desktop image above to preview it here.', 'rapm' ); ?></p>
+				</div>
+				<script>
+					( function () {
+						var headlineInput = document.getElementById( 'rapm_headline' );
+						var subheadInput  = document.getElementById( 'rapm_subhead' );
+						var ctaInput      = document.getElementById( 'rapm_cta_text' );
+						var fileInput     = document.getElementById( 'rapm_image_desktop' );
+						var previewImg    = document.getElementById( 'rapm-preview-img' );
+						var previewEmpty  = document.getElementById( 'rapm-preview-empty' );
+
+						function setText( el, value ) {
+							el.textContent = value;
+							el.style.display = value ? '' : 'none';
+						}
+						function updateCopy() {
+							setText( document.getElementById( 'rapm-preview-headline' ), headlineInput.value );
+							setText( document.getElementById( 'rapm-preview-subhead' ), subheadInput.value );
+							setText( document.getElementById( 'rapm-preview-cta' ), ctaInput.value );
+						}
+						[ headlineInput, subheadInput, ctaInput ].forEach( function ( el ) {
+							el.addEventListener( 'input', updateCopy );
+						} );
+						updateCopy();
+
+						fileInput.addEventListener( 'change', function () {
+							if ( ! this.files || ! this.files[0] ) { return; }
+							previewImg.src = URL.createObjectURL( this.files[0] );
+							previewImg.style.display = 'block';
+							previewEmpty.style.display = 'none';
+						} );
+					} )();
+				</script>
 
 				<h2><?php esc_html_e( 'Link', 'rapm' ); ?></h2>
 				<table class="form-table">
