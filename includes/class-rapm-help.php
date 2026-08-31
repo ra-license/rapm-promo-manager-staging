@@ -58,6 +58,16 @@ class RAPM_Help {
 
 			<div class="rapm-help-note"><?php esc_html_e( 'Tip: You can always come back and change anything later. Just find your promotion in "All Assets" and click Edit.', 'rapm' ); ?></div>
 
+			<h2><?php esc_html_e( 'Types of Promotions', 'rapm' ); ?></h2>
+			<details>
+				<summary><?php esc_html_e( 'What\'s the difference between Hero, Fold Banner, Coupon, and Marquee?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Hero is the big slider at the top of a page. Fold Banner is a shorter strip meant to sit lower down. Coupon is a small card shown in a horizontal scrolling row alongside other coupons. Marquee is scrolling text only — no picture at all — good for a short announcement like "Free delivery this week."', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'How do I show a calendar of upcoming promotions?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Ask whoever manages the website to add [rapm_promotions_calendar] to a page. It automatically shows every promotion that has both a start date and an end date set — nothing else to configure. This is a calendar of your own promotions, separate from any community events calendar the site might also have.', 'rapm' ); ?></p>
+			</details>
+
 			<h2><?php esc_html_e( 'Pictures — Questions and Answers', 'rapm' ); ?></h2>
 
 			<details>

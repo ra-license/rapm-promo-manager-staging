@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RA Promo Manager
  * Description: Validated, scheduled promotional assets (hero banners and more) for client sites — enforces correct image dimensions/format/size on upload, schedules reliably even behind full-page caching, and links out to WordPress content, Elementor pages, or WooCommerce products/categories. Shortcode: [rapm_hero placement="default"].
- * Version: 1.6.0
+ * Version: 1.7.0
  * Author: RA Marketing
  * Text Domain: rapm
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RAPM_VERSION', '1.6.0' );
+define( 'RAPM_VERSION', '1.7.0' );
 define( 'RAPM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RAPM_URL', plugin_dir_url( __FILE__ ) );
 
@@ -26,6 +26,9 @@ require_once RAPM_DIR . 'includes/class-rapm-help.php';
 require_once RAPM_DIR . 'includes/class-rapm-link-source.php';
 require_once RAPM_DIR . 'includes/class-rapm-sync.php';
 require_once RAPM_DIR . 'includes/class-rapm-hero-carousel.php';
+require_once RAPM_DIR . 'includes/class-rapm-marquee.php';
+require_once RAPM_DIR . 'includes/class-rapm-coupon-book.php';
+require_once RAPM_DIR . 'includes/class-rapm-calendar.php';
 require_once RAPM_DIR . 'includes/class-rapm-curated-results.php';
 require_once RAPM_DIR . 'includes/class-rapm-elementor.php';
 
@@ -55,6 +58,7 @@ final class RAPM_Plugin {
 		add_action( 'admin_enqueue_scripts', array( 'RAPM_Upload_Handler', 'enqueue_admin_assets' ) );
 		add_action( 'admin_post_rapm_save_asset', array( 'RAPM_Upload_Handler', 'handle_save' ) );
 		add_action( 'wp_ajax_rapm_search_destination', array( 'RAPM_Destination', 'ajax_search' ) );
+		add_action( 'wp_ajax_rapm_import_skus', array( 'RAPM_Destination', 'ajax_import_skus' ) );
 
 		add_action( 'init', array( 'RAPM_Sync', 'schedule' ) );
 		add_action( RAPM_Sync::HOOK, array( 'RAPM_Sync', 'run' ) );
@@ -65,7 +69,13 @@ final class RAPM_Plugin {
 		add_shortcode( 'rapm_hero', array( 'RAPM_Hero_Carousel', 'shortcode_hero' ) );
 		add_shortcode( 'rapm_fold_banner', array( 'RAPM_Hero_Carousel', 'shortcode_fold_banner' ) );
 		add_shortcode( 'rapm_curated_results', array( 'RAPM_Curated_Results', 'shortcode' ) );
+		add_shortcode( 'rapm_marquee', array( 'RAPM_Marquee', 'shortcode' ) );
+		add_shortcode( 'rapm_coupon_book', array( 'RAPM_Coupon_Book', 'shortcode' ) );
+		add_shortcode( 'rapm_promotions_calendar', array( 'RAPM_Calendar', 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( 'RAPM_Hero_Carousel', 'enqueue' ) );
+		add_action( 'wp_enqueue_scripts', array( 'RAPM_Marquee', 'enqueue' ) );
+		add_action( 'wp_enqueue_scripts', array( 'RAPM_Coupon_Book', 'enqueue' ) );
+		add_action( 'wp_enqueue_scripts', array( 'RAPM_Calendar', 'enqueue' ) );
 		add_filter( 'rocket_delay_js_exclusions', array( 'RAPM_Hero_Carousel', 'exclude_from_rocket_delay' ) );
 
 		add_action( 'elementor/widgets/register', array( 'RAPM_Elementor', 'register_widgets' ) );

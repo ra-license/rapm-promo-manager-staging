@@ -187,6 +187,9 @@ class RAPM_Admin_Settings {
 				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
 					<tr><td><code>[rapm_curated_results]</code></td><td><?php esc_html_e( 'Put this on the one page set as "Curated Results Page" above. Renders whichever hand-picked product list + fill-in results a given asset\'s link points to — nothing to configure on the page itself.', 'rapm' ); ?></td></tr>
 				<?php endif; ?>
+				<tr><td><code>[rapm_marquee]</code></td><td><?php esc_html_e( 'A scrolling text ticker for the "default" placement — added under Add New Asset with "Type of Promotion" set to Marquee. No picture needed for this type.', 'rapm' ); ?></td></tr>
+				<tr><td><code>[rapm_coupon_book]</code></td><td><?php esc_html_e( 'A horizontal scrolling row of coupon cards for the "default" placement — added the same way with "Type of Promotion" set to Coupon.', 'rapm' ); ?></td></tr>
+				<tr><td><code>[rapm_promotions_calendar]</code></td><td><?php esc_html_e( 'A month calendar showing every promotion that has both a start and end date set, across all types. Add placement="..." or kind="..." to show only a specific one.', 'rapm' ); ?></td></tr>
 			</table>
 		</div>
 		<?php

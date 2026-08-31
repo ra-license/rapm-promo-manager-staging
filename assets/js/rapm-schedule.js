@@ -98,5 +98,35 @@
 		}, 60000 );
 	}
 
-	window.RAPM_Schedule = { init: init, isActive: isActive };
+	/**
+	 * A lighter-weight alternative to init() for display modes that aren't
+	 * a Swiper carousel (Marquee, Coupon Book) — just re-filters a list of
+	 * items by schedule and hands the active set to a callback, which
+	 * decides what to do with them (rebuild a scrolling track, just
+	 * show/hide cards, etc.). Same re-check cadence and reasoning as
+	 * init(): a full-page cache can only ever serve a static snapshot, so
+	 * "what's active" has to be decided here, in the visitor's own browser.
+	 *
+	 * @param {Element} container
+	 * @param {string} itemSelector
+	 * @param {function(Element[])} onChange  Called once immediately, then
+	 *   again only when the active set actually changes.
+	 */
+	function watch( container, itemSelector, onChange ) {
+		var allItems = Array.prototype.slice.call( container.querySelectorAll( itemSelector ) );
+		var lastActiveIds = null;
+
+		function apply() {
+			var active = allItems.filter( isActive );
+			var activeIds = active.map( function ( el, i ) { return el.getAttribute( 'data-rapm-key' ) || i; } ).join( ',' );
+			if ( activeIds === lastActiveIds ) { return; }
+			lastActiveIds = activeIds;
+			onChange( active );
+		}
+
+		apply();
+		setInterval( apply, 60000 );
+	}
+
+	window.RAPM_Schedule = { init: init, isActive: isActive, watch: watch };
 } )( window );

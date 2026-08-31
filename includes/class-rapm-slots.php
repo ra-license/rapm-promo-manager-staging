@@ -60,6 +60,21 @@ class RAPM_Slots {
 				'max_kb'                 => 200,
 				'format'                 => 'webp',
 			),
+			// A portrait card shown in a horizontal scrolling strip
+			// (the coupon book) rather than full-bleed — same shape on
+			// both desktop and mobile since it's always displayed at a
+			// small, fixed card size, not a full-width hero. No
+			// established industry convention exists for this either
+			// (same situation as fold_banner above), so this is a
+			// starting point, adjustable under Settings.
+			'coupon_card'         => array(
+				'label'                  => __( 'Coupon Card', 'rapm' ),
+				'width'                  => 600,
+				'height'                 => 750,
+				'aspect_ratio_tolerance' => 0.02,
+				'max_kb'                 => 150,
+				'format'                 => 'webp',
+			),
 		);
 	}
 
@@ -79,6 +94,24 @@ class RAPM_Slots {
 				'label'   => __( 'Fold Banner (shorter, near the fold)', 'rapm' ),
 				'desktop' => 'fold_banner_desktop',
 				'mobile'  => 'fold_banner_mobile',
+			),
+			// A single card slot reused for both desktop/mobile — same
+			// shape either way since it's always shown at a small, fixed
+			// card size (see coupon_card above), not a full-width hero.
+			'coupon'      => array(
+				'label'   => __( 'Coupon (card in a scrolling row)', 'rapm' ),
+				'desktop' => 'coupon_card',
+				'mobile'  => 'coupon_card',
+			),
+			// Text only — no image slots at all, so the Add/Edit Asset
+			// form skips the Images section entirely for this kind (see
+			// RAPM_Upload_Handler). 'desktop'/'mobile' are left null
+			// rather than omitted so every caller can check them the same
+			// way (`if ( $kind['desktop'] )`) instead of an isset() check.
+			'marquee'     => array(
+				'label'   => __( 'Marquee (scrolling text ticker)', 'rapm' ),
+				'desktop' => null,
+				'mobile'  => null,
 			),
 		);
 	}

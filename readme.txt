@@ -15,13 +15,13 @@ Non-technical client staff upload promotional graphics that are often the wrong 
 Use **Promo Manager > Add New Asset**. Don't use the native "Add New" screen under Promo Manager > All Assets — it's a bare title field on purpose (no image/format path exists there at all) and will redirect you to the real form automatically.
 
 Fill in:
-- **Kind** — Hero (the full-height carousel) or Fold Banner (a shorter strip meant to sit lower on the page, near the fold). Switches which image dimensions are required below.
+- **Kind** — Hero (the full-height carousel), Fold Banner (a shorter strip near the fold), Coupon (a card in a horizontal scrolling row), or Marquee (scrolling text only, no picture). Switches which image dimensions are required below (Marquee has none).
 - **Internal Name** — for your own reference in the admin list, not shown publicly.
 - **Placement** — which `[rapm_hero placement="..."]` or `[rapm_fold_banner placement="..."]` this belongs to (matched separately per Kind, so a "default" hero and a "default" fold banner don't mix). Leave as "default" unless the site needs more than one of the same Kind (e.g. a homepage hero and a separate category-page hero).
 - **Desktop/Mobile images** — upload whatever format/size you have, or choose "Use a link" to point at a file hosted elsewhere (a brand partner's site, a Google Drive share link set to "Anyone with the link"). Either way it's validated and converted automatically; a mismatch tells you the exact dimensions needed vs. what was found. A linked image is re-checked every hour and updated automatically if the source file changes — if the link ever breaks, the last picture that worked keeps showing and you're emailed once to fix it.
 - **Headline / Subheadline / Button Text** — real text rendered over the image, never part of the image file itself. This is what keeps it searchable and accessible, and lets you fix a typo without re-uploading anything.
 - **Text Alignment / Text Color / Text Style** — control how that text looks. The Live Preview updates as you change them.
-- **Link** — a plain web address, a page/post on this site, or (if WooCommerce is active) a specific product, a category, a brand, search results for some words, or a hand-picked list of SKUs with automatic fill-in. For anything other than a plain web address, start typing a name and pick from the matches — no ID numbers needed.
+- **Link** — a plain web address, a page/post on this site, or (if WooCommerce is active) a specific product, a category, a brand, search results for some words, or a hand-picked list of SKUs with automatic fill-in. For anything other than a plain web address, start typing a name and pick from the matches — no ID numbers needed. A hand-picked list can also be built by uploading a .csv file with a "SKU" column instead of searching one at a time; any SKUs not found on the site are reported back and downloadable as their own list.
 - **Schedule** — start/end date-time. Works correctly even behind a full-page cache plugin (WP Rocket etc.) — the schedule is checked in each visitor's own browser, not baked into a cached page, so nothing "freezes."
 
 == Displaying a carousel ==
@@ -31,16 +31,23 @@ Fill in:
 An Elementor widget ("Promo Carousel," under the Promo Manager category) wraps either shortcode via its own Kind control.
 `[rapm_curated_results]` — put this on one plain page, then set its address under Promo Manager > Settings > Curated Results Page. Every "hand-picked list" link on the site reuses this one page automatically.
 
+== Other display modes ==
+`[rapm_marquee]` — a scrolling text ticker (add assets with Kind set to Marquee — no picture needed for these).
+`[rapm_coupon_book]` — a horizontal scrolling row of coupon cards (Kind: Coupon).
+`[rapm_promotions_calendar]` — a month calendar of every promotion (any Kind) that has both a start and end date set. Add `placement="..."` or `kind="..."` to scope it. This is RA Promo Manager's own promotions calendar — a different thing from any separate community-events-calendar plugin the site might also run, and it has no public submission form; every promotion on it comes from the Add/Edit Asset admin form.
+Marquee, Coupon Book, and Calendar don't have their own Elementor widgets yet — use Elementor's own Shortcode widget with the shortcodes above in the meantime.
+
 == Image specs (defaults — adjustable under Promo Manager > Settings) ==
 - Hero Desktop: 1920x600px, WebP, under 300KB
 - Hero Mobile: 1080x1920px, WebP, under 300KB
 - Fold Banner Desktop: 1920x300px, WebP, under 200KB
 - Fold Banner Mobile: 1080x400px, WebP, under 200KB
+- Coupon Card: 600x750px, WebP, under 150KB (same size used for both desktop and mobile)
 
-The hero numbers were checked against real Core Web Vitals/LCP guidance, not picked arbitrarily. The fold banner numbers are a documented starting point, not an external standard — no established industry convention exists for this shape (checked directly) — adjust freely if a site's own data says otherwise. See CHANGELOG.md for the full research trail on both.
+The hero numbers were checked against real Core Web Vitals/LCP guidance, not picked arbitrarily. The fold banner and coupon card numbers are documented starting points, not external standards — no established industry convention exists for either shape (checked directly) — adjust freely if a site's own data says otherwise. See CHANGELOG.md for the full research trail.
 
 == Requirements ==
 PHP with either the Imagick extension (preferred) or GD's WebP support, for automatic format conversion. If a host has neither, the plugin will clearly say so and ask for a pre-converted .webp file instead of failing silently.
 
 == Roadmap ==
-This is Phase 1 of a larger plan (asset core + hero carousel + fold banner). Planned next: a coupon-book scroll-snap display, a marquee/ticker display, and a calendar display — all reading from the same validated asset/slot/scheduling core built here, not a separate system.
+Phase 1 (asset core + hero + fold banner) through the coupon book/marquee/calendar phase are all built. Not yet built: dedicated Elementor widgets for Marquee/Coupon Book/Calendar (shortcodes work today via Elementor's Shortcode widget).

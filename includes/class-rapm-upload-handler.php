@@ -98,8 +98,9 @@ class RAPM_Upload_Handler {
 			$kind_key = 'hero';
 		}
 		$kind         = RAPM_Slots::kind( $kind_key );
-		$desktop_slot = $slots[ $kind['desktop'] ];
-		$mobile_slot  = $slots[ $kind['mobile'] ];
+		$has_images   = (bool) $kind['desktop']; // false for text-only kinds (Marquee)
+		$desktop_slot = $has_images ? $slots[ $kind['desktop'] ] : null;
+		$mobile_slot  = $has_images ? $slots[ $kind['mobile'] ] : null;
 
 		$error_key = isset( $_GET['rapm_error'] ) ? sanitize_key( wp_unslash( $_GET['rapm_error'] ) ) : '';
 		?>
@@ -127,17 +128,29 @@ class RAPM_Upload_Handler {
 						<select id="rapm_kind_selector">
 							<?php
 							foreach ( $kinds as $key => $info ) :
-								$opt_desktop = $slots[ $info['desktop'] ];
-								$opt_mobile  = $slots[ $info['mobile'] ];
-								$opt_label   = sprintf(
-									/* translators: 1: kind label, 2: desktop width, 3: desktop height, 4: mobile width, 5: mobile height */
-									__( '%1$s — Desktop %2$dx%3$d, Mobile %4$dx%5$d', 'rapm' ),
-									$info['label'],
-									$opt_desktop['width'],
-									$opt_desktop['height'],
-									$opt_mobile['width'],
-									$opt_mobile['height']
-								);
+								if ( $info['desktop'] ) {
+									$opt_desktop = $slots[ $info['desktop'] ];
+									$opt_mobile  = $slots[ $info['mobile'] ];
+									$opt_label   = 'coupon_card' === $info['desktop']
+										? sprintf(
+											/* translators: 1: kind label, 2: card width, 3: card height */
+											__( '%1$s — %2$dx%3$d', 'rapm' ),
+											$info['label'],
+											$opt_desktop['width'],
+											$opt_desktop['height']
+										)
+										: sprintf(
+											/* translators: 1: kind label, 2: desktop width, 3: desktop height, 4: mobile width, 5: mobile height */
+											__( '%1$s — Desktop %2$dx%3$d, Mobile %4$dx%5$d', 'rapm' ),
+											$info['label'],
+											$opt_desktop['width'],
+											$opt_desktop['height'],
+											$opt_mobile['width'],
+											$opt_mobile['height']
+										);
+								} else {
+									$opt_label = $info['label'];
+								}
 								?>
 								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $kind_key, $key ); ?>><?php echo esc_html( $opt_label ); ?></option>
 							<?php endforeach; ?>
@@ -175,6 +188,7 @@ class RAPM_Upload_Handler {
 					</tr>
 				</table>
 
+				<?php if ( $has_images ) : ?>
 				<h2><?php esc_html_e( 'Images', 'rapm' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Upload whatever picture you have — any common format (JPG, PNG, whatever your phone or camera saves) is fine. This tool will automatically resize/convert it for you if needed, and will tell you clearly if it can\'t be used.', 'rapm' ); ?></p>
 				<table class="form-table">
@@ -253,7 +267,9 @@ class RAPM_Upload_Handler {
 						} );
 					} )();
 				</script>
+				<?php endif; // $has_images ?>
 
+				<?php if ( $has_images ) : ?>
 				<h2><?php esc_html_e( 'Sale Text', 'rapm' ); ?></h2>
 				<table class="form-table">
 					<tr>
@@ -271,6 +287,10 @@ class RAPM_Upload_Handler {
 						</td>
 					</tr>
 				</table>
+				<?php else : ?>
+				<h2><?php esc_html_e( 'Ticker Text', 'rapm' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'What should scroll across the ticker.', 'rapm' ); ?></p>
+				<?php endif; ?>
 
 				<div id="rapm-text-fields" <?php echo 'image' === $text_mode ? 'style="display:none;"' : ''; ?>>
 					<table class="form-table">
@@ -315,18 +335,22 @@ class RAPM_Upload_Handler {
 						</tr>
 					</table>
 				</div>
+				<?php if ( $has_images ) : ?>
 				<script>
 					( function () {
 						var typeFields = document.getElementById( 'rapm-text-fields' );
+						var modeType   = document.getElementById( 'rapm_text_mode_type' );
+						var modeImage  = document.getElementById( 'rapm_text_mode_image' );
 						function sync() {
-							var wantsTyped = document.getElementById( 'rapm_text_mode_type' ).checked;
-							typeFields.style.display = wantsTyped ? '' : 'none';
+							typeFields.style.display = modeType.checked ? '' : 'none';
 						}
-						document.getElementById( 'rapm_text_mode_type' ).addEventListener( 'change', sync );
-						document.getElementById( 'rapm_text_mode_image' ).addEventListener( 'change', sync );
+						modeType.addEventListener( 'change', sync );
+						modeImage.addEventListener( 'change', sync );
 					} )();
 				</script>
+				<?php endif; ?>
 
+				<?php if ( $has_images ) : ?>
 				<h2><?php esc_html_e( 'Live Preview', 'rapm' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'This shows exactly what visitors will see, updating as you type or choose a picture. If something looks off — text overlapping, hard to read, etc. — fix it here before saving.', 'rapm' ); ?></p>
 				<div id="rapm-preview-wrap" style="max-width:600px;margin-bottom:24px;">
@@ -384,6 +408,7 @@ class RAPM_Upload_Handler {
 						} );
 					} )();
 				</script>
+				<?php endif; // $has_images ?>
 
 				<h2><?php esc_html_e( 'Where It Goes When Clicked', 'rapm' ); ?></h2>
 				<?php $curated = RAPM_Destination::decode_curated_value( 'curated' === $dest_type ? $dest_value : '' ); ?>
@@ -427,6 +452,10 @@ class RAPM_Upload_Handler {
 							<p class="description"><?php esc_html_e( 'Click a result to add it. Add as many as you like — they\'ll show first, in the order you add them.', 'rapm' ); ?></p>
 							<ul id="rapm-curated-selected-list" style="list-style:none;margin:10px 0 0;padding:0;"></ul>
 							<textarea id="rapm_curated_skus" name="rapm_curated_skus" rows="3" class="large-text" style="display:none;"><?php echo esc_textarea( implode( "\n", $curated['skus'] ) ); ?></textarea>
+
+							<p class="description" style="margin-top:14px;"><?php esc_html_e( 'Have a lot of SKUs? Upload a spreadsheet instead of searching one at a time — save it as a .csv file with a column titled "SKU" containing the product SKUs.', 'rapm' ); ?></p>
+							<input type="file" id="rapm_curated_csv" accept=".csv" />
+							<p class="description" id="rapm-curated-csv-status"></p>
 							<p style="margin-top:16px;">
 								<label for="rapm_curated_fallback_type"><strong><?php esc_html_e( 'Then fill in the rest of the page with...', 'rapm' ); ?></strong></label><br />
 								<select id="rapm_curated_fallback_type" name="rapm_curated_fallback_type">
@@ -643,6 +672,62 @@ class RAPM_Upload_Handler {
 								}
 							} );
 						}
+
+						// Optional bulk path: a client's own spreadsheet of SKUs,
+						// with a "SKU" column, instead of searching one at a time.
+						var csvInput  = document.getElementById( 'rapm_curated_csv' );
+						var csvStatus = document.getElementById( 'rapm-curated-csv-status' );
+						csvInput.addEventListener( 'change', function () {
+							if ( ! this.files || ! this.files[0] ) { return; }
+							var formData = new FormData();
+							formData.append( 'action', 'rapm_import_skus' );
+							formData.append( 'nonce', searchNonce );
+							formData.append( 'file', this.files[0] );
+							csvStatus.textContent = <?php echo wp_json_encode( __( 'Reading file…', 'rapm' ) ); ?>;
+							fetch( ajaxUrl, { method: 'POST', body: formData } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+								csvInput.value = '';
+								if ( ! res.success ) {
+									csvStatus.textContent = res.data && res.data.message ? res.data.message : <?php echo wp_json_encode( __( 'Something went wrong reading that file.', 'rapm' ) ); ?>;
+									return;
+								}
+								res.data.found.forEach( function ( item ) { addProduct( item.sku, item.label, true ); } );
+
+								var parts = [];
+								if ( res.data.found.length ) {
+									parts.push( res.data.found.length + <?php echo wp_json_encode( ' ' . __( 'added.', 'rapm' ) ); ?> );
+								}
+								if ( res.data.not_found.length ) {
+									parts.push( res.data.not_found.length + <?php echo wp_json_encode( ' ' . __( "weren't found on this site.", 'rapm' ) ); ?> );
+								}
+								if ( res.data.truncated ) {
+									parts.push( <?php echo wp_json_encode( __( 'Only the first 2,000 rows were read — split larger files into smaller ones.', 'rapm' ) ); ?> );
+								}
+								csvStatus.textContent = parts.join( ' ' );
+
+								if ( res.data.not_found.length ) {
+									var link = document.createElement( 'a' );
+									link.href = '#';
+									link.textContent = <?php echo wp_json_encode( __( 'Download the list of SKUs that weren\'t found', 'rapm' ) ); ?>;
+									link.style.marginLeft = '6px';
+									link.addEventListener( 'click', function ( e ) {
+										e.preventDefault();
+										var csvContent = 'SKU\n' + res.data.not_found.join( '\n' );
+										var blob = new Blob( [ csvContent ], { type: 'text/csv' } );
+										var url = URL.createObjectURL( blob );
+										var a = document.createElement( 'a' );
+										a.href = url;
+										a.download = 'skus-not-found.csv';
+										document.body.appendChild( a );
+										a.click();
+										document.body.removeChild( a );
+										URL.revokeObjectURL( url );
+									} );
+									csvStatus.appendChild( link );
+								}
+							} ).catch( function () {
+								csvStatus.textContent = <?php echo wp_json_encode( __( 'Something went wrong reading that file.', 'rapm' ) ); ?>;
+							} );
+						} );
 					} )();
 				</script>
 
@@ -691,65 +776,77 @@ class RAPM_Upload_Handler {
 		if ( ! isset( $kinds[ $kind_key ] ) ) {
 			$kind_key = 'hero';
 		}
-		$kind = RAPM_Slots::kind( $kind_key );
+		$kind       = RAPM_Slots::kind( $kind_key );
+		$has_images = (bool) $kind['desktop'];
 
 		// Validate + convert images BEFORE touching the post itself, so a
 		// bad upload never leaves a half-saved asset behind.
 		$slots          = RAPM_Slots::all();
 		$new_desktop_id = null;
 		$new_mobile_id  = null;
-
-		$desktop_source = isset( $_POST['rapm_image_desktop_source'] ) && 'link' === $_POST['rapm_image_desktop_source'] ? 'link' : 'upload';
-		$mobile_source  = isset( $_POST['rapm_image_mobile_source'] ) && 'link' === $_POST['rapm_image_mobile_source'] ? 'link' : 'upload';
+		$desktop_source = 'upload';
+		$mobile_source  = 'upload';
 		$desktop_url    = '';
 		$mobile_url     = '';
 
-		if ( 'link' === $desktop_source ) {
-			$desktop_url = isset( $_POST['rapm_image_desktop_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_desktop_url'] ) ) : '';
-			if ( $desktop_url ) {
-				$result = RAPM_Link_Source::fetch_and_validate( $desktop_url, $slots[ $kind['desktop'] ], $asset_id ?: 0 );
+		if ( $has_images ) {
+			$desktop_source = isset( $_POST['rapm_image_desktop_source'] ) && 'link' === $_POST['rapm_image_desktop_source'] ? 'link' : 'upload';
+			$mobile_source  = isset( $_POST['rapm_image_mobile_source'] ) && 'link' === $_POST['rapm_image_mobile_source'] ? 'link' : 'upload';
+
+			if ( 'link' === $desktop_source ) {
+				$desktop_url = isset( $_POST['rapm_image_desktop_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_desktop_url'] ) ) : '';
+				if ( $desktop_url ) {
+					$result = RAPM_Link_Source::fetch_and_validate( $desktop_url, $slots[ $kind['desktop'] ], $asset_id ?: 0 );
+					if ( is_wp_error( $result ) ) {
+						self::fail( $back, $result->get_error_message() );
+					}
+					$new_desktop_id = $result;
+				}
+			} elseif ( ! empty( $_FILES['rapm_image_desktop']['tmp_name'] ) ) {
+				$result = self::process_upload( $_FILES['rapm_image_desktop'], $slots[ $kind['desktop'] ], $asset_id ?: 0 );
 				if ( is_wp_error( $result ) ) {
 					self::fail( $back, $result->get_error_message() );
 				}
 				$new_desktop_id = $result;
 			}
-		} elseif ( ! empty( $_FILES['rapm_image_desktop']['tmp_name'] ) ) {
-			$result = self::process_upload( $_FILES['rapm_image_desktop'], $slots[ $kind['desktop'] ], $asset_id ?: 0 );
-			if ( is_wp_error( $result ) ) {
-				self::fail( $back, $result->get_error_message() );
-			}
-			$new_desktop_id = $result;
-		}
 
-		if ( 'link' === $mobile_source ) {
-			$mobile_url = isset( $_POST['rapm_image_mobile_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_mobile_url'] ) ) : '';
-			if ( $mobile_url ) {
-				$result = RAPM_Link_Source::fetch_and_validate( $mobile_url, $slots[ $kind['mobile'] ], $asset_id ?: 0 );
+			if ( 'link' === $mobile_source ) {
+				$mobile_url = isset( $_POST['rapm_image_mobile_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_mobile_url'] ) ) : '';
+				if ( $mobile_url ) {
+					$result = RAPM_Link_Source::fetch_and_validate( $mobile_url, $slots[ $kind['mobile'] ], $asset_id ?: 0 );
+					if ( is_wp_error( $result ) ) {
+						self::fail( $back, $result->get_error_message() );
+					}
+					$new_mobile_id = $result;
+				}
+			} elseif ( ! empty( $_FILES['rapm_image_mobile']['tmp_name'] ) ) {
+				$result = self::process_upload( $_FILES['rapm_image_mobile'], $slots[ $kind['mobile'] ], $asset_id ?: 0 );
 				if ( is_wp_error( $result ) ) {
 					self::fail( $back, $result->get_error_message() );
 				}
 				$new_mobile_id = $result;
 			}
-		} elseif ( ! empty( $_FILES['rapm_image_mobile']['tmp_name'] ) ) {
-			$result = self::process_upload( $_FILES['rapm_image_mobile'], $slots[ $kind['mobile'] ], $asset_id ?: 0 );
-			if ( is_wp_error( $result ) ) {
-				self::fail( $back, $result->get_error_message() );
-			}
-			$new_mobile_id = $result;
-		}
 
-		// A desktop image is the one truly required piece — without it the
-		// carousel has nothing to show and silently skips this asset
-		// entirely (see RAPM_Hero_Carousel::render_slide()). Catch that
-		// here with a clear message rather than letting someone publish an
-		// asset that will never actually appear anywhere, with no error to
-		// explain why.
-		$has_desktop_image = $new_desktop_id || ( $is_edit && get_post_meta( $asset_id, '_rapm_image_desktop_id', true ) );
-		if ( ! $has_desktop_image ) {
-			$desktop_required_msg = 'link' === $desktop_source
-				? __( 'Please paste a link to a desktop picture — it\'s required for this asset to actually display anywhere.', 'rapm' )
-				: __( 'Please upload a desktop image — it\'s required for this asset to actually display anywhere.', 'rapm' );
-			self::fail( $back, $desktop_required_msg );
+			// A desktop image is the one truly required piece — without it
+			// the carousel has nothing to show and silently skips this
+			// asset entirely (see RAPM_Hero_Carousel::render_slide()).
+			// Catch that here with a clear message rather than letting
+			// someone publish an asset that will never actually appear
+			// anywhere, with no error to explain why.
+			$has_desktop_image = $new_desktop_id || ( $is_edit && get_post_meta( $asset_id, '_rapm_image_desktop_id', true ) );
+			if ( ! $has_desktop_image ) {
+				$desktop_required_msg = 'link' === $desktop_source
+					? __( 'Please paste a link to a desktop picture — it\'s required for this asset to actually display anywhere.', 'rapm' )
+					: __( 'Please upload a desktop image — it\'s required for this asset to actually display anywhere.', 'rapm' );
+				self::fail( $back, $desktop_required_msg );
+			}
+		} else {
+			// Text-only kind (Marquee) — the ticker text is what's
+			// required instead of an image.
+			$headline_check = isset( $_POST['rapm_headline'] ) ? trim( wp_unslash( $_POST['rapm_headline'] ) ) : '';
+			if ( '' === $headline_check ) {
+				self::fail( $back, __( 'Please enter the ticker text — it\'s required for this promotion to actually display anywhere.', 'rapm' ) );
+			}
 		}
 
 		if ( $is_edit ) {

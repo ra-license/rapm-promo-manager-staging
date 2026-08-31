@@ -4,6 +4,17 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.7.0
+
+**Feature: the three remaining display modes from the original project plan (Coupon Book, Marquee, Promotions Calendar), plus an optional bulk-SKU CSV importer.** These were scoped as later phases from the start ("not this build") rather than dropped, but that phasing wasn't kept visible enough as work progressed — this release closes that gap.
+
+- **Coupon** (new Kind): a small portrait card (600×750, WebP, under 150KB — same size for desktop/mobile since it's always shown small, not full-bleed) shown in a new `[rapm_coupon_book]` horizontal scroll-snap row. Plain CSS/JS, no slider library — reuses the existing image-validation pipeline and the same Text Alignment/Color/Style controls as every other kind.
+- **Marquee** (new Kind): scrolling text only, no picture required at all — the Add/Edit Asset form skips the whole Images section and the "does your picture already have text" question for this one Kind, and requires the ticker text instead. New `[rapm_marquee]` shortcode, pure CSS `@keyframes` scroll (no library), pauses on hover and respects `prefers-reduced-motion`.
+- **Promotions Calendar**: new `[rapm_promotions_calendar placement="..." kind="..."]` shortcode — a month-grid view of every promotion (any Kind) that has both a start and end date set, client-rendered from an embedded JSON payload for the same full-page-cache-safety reason as every other display mode here. Deliberately distinct from the separate Community Events Calendar plugin some client sites also run: this shows RA Promo Manager's own scheduled promotions, has no public submission path, and every item on it comes from the validated Add/Edit Asset admin form.
+- `RAPM_Schedule.watch()`: a new, lighter-weight sibling to the existing Swiper-specific `init()` in the shared scheduling script, for display modes (Marquee, Coupon Book) that don't use Swiper.
+- **CSV bulk-SKU import** for "hand-picked lists": upload a .csv file with a column titled "SKU" instead of searching for each product one at a time. Matched SKUs are added to the picker's selected-products list automatically; any SKU not found on the site is reported and downloadable as its own "SKUs not found" .csv, so a client can follow up on it rather than having it silently dropped. Capped at 2,000 rows per file, with that cap surfaced in the result rather than silently truncating.
+- **Known gap, not silently skipped**: Marquee, Coupon Book, and Calendar don't have dedicated Elementor widgets yet (unlike Hero/Fold Banner) — their shortcodes work today via Elementor's own Shortcode widget in the meantime.
+
 ## 1.6.0
 
 **Feature: text alignment/color/style controls, and a proper multi-select product picker for hand-picked lists.** Direct follow-up feedback on the earlier work in this session — several requested pieces hadn't actually been built yet (they were scoped as later phases in the original plan, not silently dropped, but that distinction wasn't surfaced clearly enough at the time).

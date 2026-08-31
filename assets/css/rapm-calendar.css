@@ -1,0 +1,95 @@
+.rapm-calendar {
+	max-width: 480px;
+}
+
+.rapm-calendar-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.rapm-calendar-title {
+	font-weight: 700;
+	font-size: 16px;
+}
+
+.rapm-calendar-prev,
+.rapm-calendar-next {
+	background: none;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	width: 28px;
+	height: 28px;
+	cursor: pointer;
+	font-size: 16px;
+	line-height: 1;
+}
+
+.rapm-calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 4px;
+}
+
+.rapm-calendar-weekday {
+	font-size: 11px;
+	text-transform: uppercase;
+	text-align: center;
+	color: #888;
+	padding-bottom: 4px;
+}
+
+.rapm-calendar-cell {
+	aspect-ratio: 1;
+	border: 1px solid #eee;
+	border-radius: 4px;
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	cursor: default;
+	font-size: 13px;
+	padding: 2px;
+	font-family: inherit;
+}
+
+.rapm-calendar-cell.is-empty {
+	border-color: transparent;
+	background: none;
+}
+
+.rapm-calendar-cell.has-promo {
+	cursor: pointer;
+	border-color: #b5651d;
+	background: #fdf3ea;
+}
+
+.rapm-calendar-cell.is-today .rapm-calendar-daynum {
+	font-weight: 700;
+	text-decoration: underline;
+}
+
+.rapm-calendar-dot {
+	font-size: 9px;
+	color: #b5651d;
+	margin-top: 2px;
+}
+
+.rapm-calendar-day-detail {
+	margin-top: 12px;
+	padding: 10px;
+	border: 1px solid #eee;
+	border-radius: 4px;
+}
+
+.rapm-calendar-day-detail ul {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.rapm-calendar-empty {
+	color: #888;
+	font-style: italic;
+}

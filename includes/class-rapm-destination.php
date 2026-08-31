@@ -275,6 +275,86 @@ class RAPM_Destination {
 		wp_send_json_success( array( 'results' => $results ) );
 	}
 
+	/**
+	 * Backs the "hand-picked list" form's optional CSV bulk-import — a
+	 * client's own spreadsheet of SKUs (a column titled "SKU") instead of
+	 * searching for each product one at a time. Every SKU is checked
+	 * against this site's actual catalog; a SKU that doesn't match any
+	 * product is reported back rather than silently dropped, so the client
+	 * can see exactly what wasn't found and follow up on it.
+	 */
+	public static function ajax_import_skus() {
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Not allowed.', 'rapm' ) ), 403 );
+		}
+		check_ajax_referer( 'rapm_search_destination', 'nonce' );
+
+		if ( empty( $_FILES['file']['tmp_name'] ) || ! empty( $_FILES['file']['error'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'That file didn\'t upload correctly — please try again.', 'rapm' ) ) );
+		}
+
+		if ( 'csv' !== strtolower( pathinfo( sanitize_file_name( $_FILES['file']['name'] ), PATHINFO_EXTENSION ) ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please upload a .csv file (a spreadsheet saved as "CSV").', 'rapm' ) ) );
+		}
+
+		$handle = fopen( $_FILES['file']['tmp_name'], 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
+		if ( ! $handle ) {
+			wp_send_json_error( array( 'message' => __( 'Could not read that file.', 'rapm' ) ) );
+		}
+
+		$header = fgetcsv( $handle );
+		if ( ! $header ) {
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+			wp_send_json_error( array( 'message' => __( 'That file looks empty.', 'rapm' ) ) );
+		}
+
+		$sku_col = null;
+		foreach ( $header as $i => $col ) {
+			if ( 'sku' === strtolower( trim( $col ) ) ) {
+				$sku_col = $i;
+				break;
+			}
+		}
+		if ( null === $sku_col ) {
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+			wp_send_json_error( array( 'message' => __( 'Couldn\'t find a column titled "SKU" in that file\'s first row.', 'rapm' ) ) );
+		}
+
+		$found     = array();
+		$not_found = array();
+		$seen      = array();
+		$row_count = 0;
+		$max_rows  = 2000;
+
+		while ( $row_count < $max_rows && ( $row = fgetcsv( $handle ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition
+			++$row_count;
+			if ( ! isset( $row[ $sku_col ] ) ) {
+				continue;
+			}
+			$sku = trim( $row[ $sku_col ] );
+			if ( '' === $sku || isset( $seen[ $sku ] ) ) {
+				continue;
+			}
+			$seen[ $sku ] = true;
+
+			$product_id = class_exists( 'WooCommerce' ) ? wc_get_product_id_by_sku( $sku ) : 0;
+			if ( $product_id ) {
+				$found[] = array( 'sku' => $sku, 'label' => get_the_title( $product_id ) );
+			} else {
+				$not_found[] = $sku;
+			}
+		}
+		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+
+		wp_send_json_success(
+			array(
+				'found'     => $found,
+				'not_found' => $not_found,
+				'truncated' => $row_count >= $max_rows,
+			)
+		);
+	}
+
 	private static function label_for( $type, $id ) {
 		if ( ! $id ) {
 			return '';
