@@ -4,6 +4,17 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.3.0
+
+**Feature: link a promotion to specific WooCommerce products, brands, or search results — pickable by name, not ID.** Prompted by the need to point a promotion at specific SKUs, a brand, or a category without asking a non-technical account manager to hunt down a numeric ID.
+
+- New destination types (shown only when WooCommerce is active): "A specific product," "A product category," "A specific brand" (only offered if this site's brand taxonomy actually exists — see Settings below), "Search results for some words," and "A hand-picked list of products (with more filled in automatically)."
+- **Search-as-you-type picker**, not raw ID entry. A new `wp_ajax_rapm_search_destination` endpoint (`RAPM_Destination::ajax_search()`) backs a plain type-a-name-see-matches field for the post/product/category/brand types — product search also matches an exact SKU first. Re-opening an existing asset resolves its saved ID back to a readable name automatically.
+- **New "hand-picked list" type**: paste specific SKUs (one per line), and optionally choose what fills in the rest of the results — nothing else, search words, a category, or a brand. Renders via a new `[rapm_curated_results]` shortcode using WooCommerce's own product-loop template, so it matches the rest of the shop's styling. Set once under Promo Manager > Settings > Curated Results Page; every "hand-picked list" link reuses that one page.
+- **Fast Simon compatibility, checked rather than assumed**: researched how Fast Simon's pinning and search actually work before building against it. Its merchandising/pinning is dashboard/API-only (no URL trigger), so it's already fully covered by the plain "specific link" type once a collection is pinned in Fast Simon's own dashboard — no separate integration needed. Its search results page location varies by site configuration (native `?s=` vs. a dedicated page), so the "search results" and fallback URL is now configurable per-site (Settings > Search Results Page) rather than hardcoded either way.
+- New Settings (Promo Manager > Settings > Product Linking, WooCommerce sites only): Curated Results Page, Brand Field Name (for sites using a legacy `pa_brand` attribute instead of WooCommerce's native Brands taxonomy), and Search Results Page.
+- **Fix, found while wiring this up:** the destination type selected in the form was being saved to the wrong postmeta key (`_rapm_dest_type` instead of `_rapm_destination_type`), so it was never actually being persisted — every asset's destination type silently fell back to its default on re-render. Destination *value* saving was also broken for non-URL types (always cast to an integer, which would have silently mangled a "search words" value). Both fixed as part of rebuilding this section.
+
 ## 1.2.0
 
 **Feature: plain-language guided form for non-technical uploaders.** Prompted directly by the concern that the people actually using this form day-to-day may have no idea what "image size," "file type," or web jargon in general means, and previous copy leaned on exactly that (e.g. explaining live text via "keeps it readable to... AI answer tools").

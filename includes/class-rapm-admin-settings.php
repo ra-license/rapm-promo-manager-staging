@@ -9,10 +9,25 @@ class RAPM_Admin_Settings {
 
 	public static function defaults() {
 		return array(
-			'slot_overrides'  => array(),
-			'default_autoplay'       => 0,
-			'default_autoplay_speed' => 7000,
-			'default_nav_style'      => 'both',
+			'slot_overrides'           => array(),
+			'default_autoplay'        => 0,
+			'default_autoplay_speed'  => 7000,
+			'default_nav_style'       => 'both',
+			'curated_results_page_url' => '',
+			// WooCommerce's own native Brands feature (added in WC 8.6)
+			// uses this taxonomy name; older sites/plugins commonly use
+			// the global attribute taxonomy pa_brand instead — sites on
+			// that older convention should set this accordingly.
+			'brand_taxonomy'          => 'product_brand',
+			// Empty = native WooCommerce search (?s=...&post_type=product).
+			// A site running Fast Simon in "Premium" mode replaces the
+			// native search page with its own dedicated one (confirmed:
+			// their own demo store uses /search-results?q=...) — set both
+			// fields below to route "search results for..." links there
+			// instead. Sites in Fast Simon "Basic" mode, or with no Fast
+			// Simon at all, should leave this blank.
+			'search_results_base_url'   => '',
+			'search_results_query_param' => 's',
 		);
 	}
 
@@ -47,6 +62,15 @@ class RAPM_Admin_Settings {
 		$out['default_nav_style']      = isset( $input['default_nav_style'] ) && in_array( $input['default_nav_style'], array( 'both', 'arrows', 'dots', 'none' ), true )
 			? $input['default_nav_style']
 			: $out['default_nav_style'];
+
+		$out['curated_results_page_url'] = isset( $input['curated_results_page_url'] ) ? esc_url_raw( $input['curated_results_page_url'] ) : '';
+		$out['brand_taxonomy']           = isset( $input['brand_taxonomy'] ) && '' !== trim( $input['brand_taxonomy'] )
+			? sanitize_key( $input['brand_taxonomy'] )
+			: $out['brand_taxonomy'];
+		$out['search_results_base_url']   = isset( $input['search_results_base_url'] ) ? esc_url_raw( $input['search_results_base_url'] ) : '';
+		$out['search_results_query_param'] = isset( $input['search_results_query_param'] ) && '' !== trim( $input['search_results_query_param'] )
+			? sanitize_key( $input['search_results_query_param'] )
+			: $out['search_results_query_param'];
 
 		$overrides = array();
 		if ( isset( $input['slot_overrides'] ) && is_array( $input['slot_overrides'] ) ) {
@@ -127,6 +151,31 @@ class RAPM_Admin_Settings {
 					</tr>
 				</table>
 
+				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
+					<h2><?php esc_html_e( 'Product Linking', 'rapm' ); ?></h2>
+					<p class="description"><?php esc_html_e( 'One-time setup so "A hand-picked list of products" links work on the Add/Edit Asset form. Not needed for the simpler "A specific product" / "A product category" / "Search results" links.', 'rapm' ); ?></p>
+					<table class="form-table">
+						<tr>
+							<th><label for="rapm_curated_page"><?php esc_html_e( 'Curated Results Page', 'rapm' ); ?></label></th>
+							<td><input type="url" class="regular-text" id="rapm_curated_page" name="<?php echo esc_attr( self::OPTION ); ?>[curated_results_page_url]" placeholder="https://yoursite.com/featured-products/" value="<?php echo esc_attr( $opts['curated_results_page_url'] ); ?>" />
+								<p class="description"><?php esc_html_e( 'Create one plain page with [rapm_curated_results] on it and paste its address here. This one page is reused automatically for every "hand-picked list" link — nothing else to set up per-promotion.', 'rapm' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="rapm_brand_tax"><?php esc_html_e( 'Brand Field Name', 'rapm' ); ?></label></th>
+							<td><input type="text" id="rapm_brand_tax" name="<?php echo esc_attr( self::OPTION ); ?>[brand_taxonomy]" value="<?php echo esc_attr( $opts['brand_taxonomy'] ); ?>" />
+								<p class="description"><?php esc_html_e( 'Only change this if "A specific brand" doesn\'t show up as a link option, or shows the wrong list of brands — it means this site stores brands differently than the default. Ask whoever manages the website if you\'re not sure.', 'rapm' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="rapm_search_base"><?php esc_html_e( 'Search Results Page', 'rapm' ); ?></label></th>
+							<td><input type="url" class="regular-text" id="rapm_search_base" name="<?php echo esc_attr( self::OPTION ); ?>[search_results_base_url]" placeholder="<?php esc_attr_e( 'Leave blank for the normal site search', 'rapm' ); ?>" value="<?php echo esc_attr( $opts['search_results_base_url'] ); ?>" />
+								<p class="description"><?php esc_html_e( 'Only fill this in if this site has a separate, dedicated search results page from a tool like Fast Simon (rather than using the normal WordPress search). Leave blank otherwise — that\'s the right setting for most sites.', 'rapm' ); ?></p>
+							</td>
+						</tr>
+					</table>
+				<?php endif; ?>
+
 				<?php submit_button(); ?>
 			</form>
 
@@ -135,6 +184,9 @@ class RAPM_Admin_Settings {
 				<tr><td><code>[rapm_hero]</code></td><td><?php esc_html_e( 'Full hero carousel for the "default" placement.', 'rapm' ); ?></td></tr>
 				<tr><td><code>[rapm_fold_banner]</code></td><td><?php esc_html_e( 'The shorter fold-banner carousel for the "default" placement — a separate kind of asset from the hero, added the same way under Promo > Add New Asset with "Kind" set to Fold Banner.', 'rapm' ); ?></td></tr>
 				<tr><td><code>[rapm_hero placement="category-living-room"]</code></td><td><?php esc_html_e( 'A separate carousel scoped to just that placement — set the same placement value when adding assets. Works the same way for [rapm_fold_banner].', 'rapm' ); ?></td></tr>
+				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
+					<tr><td><code>[rapm_curated_results]</code></td><td><?php esc_html_e( 'Put this on the one page set as "Curated Results Page" above. Renders whichever hand-picked product list + fill-in results a given asset\'s link points to — nothing to configure on the page itself.', 'rapm' ); ?></td></tr>
+				<?php endif; ?>
 			</table>
 		</div>
 		<?php

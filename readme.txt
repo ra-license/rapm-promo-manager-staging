@@ -17,7 +17,7 @@ Fill in:
 - **Placement** — which `[rapm_hero placement="..."]` or `[rapm_fold_banner placement="..."]` this belongs to (matched separately per Kind, so a "default" hero and a "default" fold banner don't mix). Leave as "default" unless the site needs more than one of the same Kind (e.g. a homepage hero and a separate category-page hero).
 - **Desktop/Mobile images** — upload whatever format/size you have; it's validated and converted automatically. A mismatch tells you the exact dimensions needed vs. what you uploaded.
 - **Headline / Subheadline / Button Text** — real text rendered over the image, never part of the image file itself. This is what keeps it searchable and accessible, and lets you fix a typo without re-uploading anything.
-- **Link** — a URL, a page/post on this site, or (if WooCommerce is active) a product or category.
+- **Link** — a plain web address, a page/post on this site, or (if WooCommerce is active) a specific product, a category, a brand, search results for some words, or a hand-picked list of SKUs with automatic fill-in. For anything other than a plain web address, start typing a name and pick from the matches — no ID numbers needed.
 - **Schedule** — start/end date-time. Works correctly even behind a full-page cache plugin (WP Rocket etc.) — the schedule is checked in each visitor's own browser, not baked into a cached page, so nothing "freezes."
 
 == Displaying a carousel ==
@@ -25,6 +25,7 @@ Fill in:
 `[rapm_fold_banner]` — the shorter fold-banner carousel, "default" placement.
 `[rapm_hero placement="category-living-room"]` — a separate carousel scoped to just that placement (works the same for `[rapm_fold_banner]`).
 An Elementor widget ("Promo Carousel," under the Promo Manager category) wraps either shortcode via its own Kind control.
+`[rapm_curated_results]` — put this on one plain page, then set its address under Promo Manager > Settings > Curated Results Page. Every "hand-picked list" link on the site reuses this one page automatically.
 
 == Image specs (defaults — adjustable under Promo Manager > Settings) ==
 - Hero Desktop: 1920x600px, WebP, under 300KB

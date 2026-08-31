@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RA Promo Manager
  * Description: Validated, scheduled promotional assets (hero banners and more) for client sites — enforces correct image dimensions/format/size on upload, schedules reliably even behind full-page caching, and links out to WordPress content, Elementor pages, or WooCommerce products/categories. Shortcode: [rapm_hero placement="default"].
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: RA Marketing
  * Text Domain: rapm
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RAPM_VERSION', '1.2.0' );
+define( 'RAPM_VERSION', '1.3.0' );
 define( 'RAPM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RAPM_URL', plugin_dir_url( __FILE__ ) );
 
@@ -23,6 +23,7 @@ require_once RAPM_DIR . 'includes/class-rapm-admin-settings.php';
 require_once RAPM_DIR . 'includes/class-rapm-upload-handler.php';
 require_once RAPM_DIR . 'includes/class-rapm-admin-list.php';
 require_once RAPM_DIR . 'includes/class-rapm-hero-carousel.php';
+require_once RAPM_DIR . 'includes/class-rapm-curated-results.php';
 require_once RAPM_DIR . 'includes/class-rapm-elementor.php';
 
 final class RAPM_Plugin {
@@ -49,12 +50,14 @@ final class RAPM_Plugin {
 		add_action( 'admin_init', array( 'RAPM_Upload_Handler', 'maybe_redirect_native_add_new' ) );
 		add_action( 'admin_enqueue_scripts', array( 'RAPM_Upload_Handler', 'enqueue_admin_assets' ) );
 		add_action( 'admin_post_rapm_save_asset', array( 'RAPM_Upload_Handler', 'handle_save' ) );
+		add_action( 'wp_ajax_rapm_search_destination', array( 'RAPM_Destination', 'ajax_search' ) );
 
 		add_action( 'admin_menu', array( 'RAPM_Admin_Settings', 'add_menu' ) );
 		add_action( 'admin_init', array( 'RAPM_Admin_Settings', 'register_settings' ) );
 
 		add_shortcode( 'rapm_hero', array( 'RAPM_Hero_Carousel', 'shortcode_hero' ) );
 		add_shortcode( 'rapm_fold_banner', array( 'RAPM_Hero_Carousel', 'shortcode_fold_banner' ) );
+		add_shortcode( 'rapm_curated_results', array( 'RAPM_Curated_Results', 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( 'RAPM_Hero_Carousel', 'enqueue' ) );
 		add_filter( 'rocket_delay_js_exclusions', array( 'RAPM_Hero_Carousel', 'exclude_from_rocket_delay' ) );
 

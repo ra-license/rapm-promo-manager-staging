@@ -97,6 +97,13 @@ class RAPM_Upload_Handler {
 		?>
 		<div class="wrap">
 			<h1><?php echo $is_edit ? esc_html__( 'Edit Promotional Asset', 'rapm' ) : esc_html__( 'Add New Promotional Asset', 'rapm' ); ?></h1>
+			<style>
+				.rapm-dest-picker-results { position: relative; }
+				.rapm-dest-picker-list { position: absolute; z-index: 10; margin: 0; padding: 4px 0; list-style: none; background: #fff; border: 1px solid #ccd0d4; box-shadow: 0 2px 6px rgba(0,0,0,.15); max-width: 25em; max-height: 16em; overflow-y: auto; }
+				.rapm-dest-picker-list li { padding: 6px 10px; cursor: pointer; }
+				.rapm-dest-picker-list li:hover { background: #f0f0f1; }
+				#rapm-dest-picker-current { font-weight: 600; }
+			</style>
 
 			<?php if ( $error_key ) : ?>
 				<div class="notice notice-error"><p><?php echo esc_html( wp_unslash( rawurldecode( $error_key ) ) ); ?></p></div>
@@ -269,6 +276,7 @@ class RAPM_Upload_Handler {
 				</script>
 
 				<h2><?php esc_html_e( 'Where It Goes When Clicked', 'rapm' ); ?></h2>
+				<?php $curated = RAPM_Destination::decode_curated_value( 'curated' === $dest_type ? $dest_value : '' ); ?>
 				<table class="form-table">
 					<tr>
 						<th><label for="rapm_dest_type"><?php esc_html_e( 'Send visitors to...', 'rapm' ); ?></label></th>
@@ -281,13 +289,141 @@ class RAPM_Upload_Handler {
 							<p class="description"><?php esc_html_e( 'If you\'re not sure which to pick, use "A specific link" — it\'s just a normal web address, like the ones in your browser\'s address bar.', 'rapm' ); ?></p>
 						</td>
 					</tr>
-					<tr>
-						<th><label for="rapm_dest_value"><?php esc_html_e( 'Address / ID', 'rapm' ); ?></label></th>
-						<td><input type="text" id="rapm_dest_value" name="rapm_dest_value" class="regular-text" value="<?php echo esc_attr( $dest_value ); ?>" placeholder="https://…" />
-							<p class="description"><?php esc_html_e( 'For "A specific link," paste the full web address (starting with https://). For the other options, ask whoever manages the website for the ID number — it\'s not something you can guess.', 'rapm' ); ?></p>
+					<tr class="rapm-dest-row" data-for="url">
+						<th><label for="rapm_dest_url"><?php esc_html_e( 'Web address', 'rapm' ); ?></label></th>
+						<td><input type="url" id="rapm_dest_url" class="regular-text rapm-dest-input" data-dest-type="url" value="<?php echo 'url' === $dest_type ? esc_attr( $dest_value ) : ''; ?>" placeholder="https://…" />
+							<p class="description"><?php esc_html_e( 'Paste the full web address, starting with https://', 'rapm' ); ?></p>
+						</td>
+					</tr>
+					<tr class="rapm-dest-row" data-for="post,wc_product,wc_category,wc_brand">
+						<th><label for="rapm_dest_picker"><?php esc_html_e( 'Start typing to search', 'rapm' ); ?></label></th>
+						<td>
+							<input type="text" id="rapm_dest_picker" class="regular-text" autocomplete="off" placeholder="<?php esc_attr_e( 'Start typing a name…', 'rapm' ); ?>" />
+							<div id="rapm-dest-picker-results" class="rapm-dest-picker-results"></div>
+							<p class="description" id="rapm-dest-picker-current"></p>
+						</td>
+					</tr>
+					<tr class="rapm-dest-row" data-for="search">
+						<th><label for="rapm_dest_search_words"><?php esc_html_e( 'Search words', 'rapm' ); ?></label></th>
+						<td><input type="text" id="rapm_dest_search_words" class="regular-text rapm-dest-input" data-dest-type="search" value="<?php echo 'search' === $dest_type ? esc_attr( $dest_value ) : ''; ?>" placeholder="<?php esc_attr_e( 'e.g. leather sectional', 'rapm' ); ?>" />
+							<p class="description"><?php esc_html_e( 'Whatever words a visitor would type into the site\'s search box.', 'rapm' ); ?></p>
+						</td>
+					</tr>
+					<tr class="rapm-dest-row" data-for="curated">
+						<th><label for="rapm_curated_skus"><?php esc_html_e( 'Specific product SKUs', 'rapm' ); ?></label></th>
+						<td>
+							<textarea id="rapm_curated_skus" name="rapm_curated_skus" rows="4" class="large-text" placeholder="<?php esc_attr_e( 'One SKU per line (or separate with commas)', 'rapm' ); ?>"><?php echo esc_textarea( implode( "\n", $curated['skus'] ) ); ?></textarea>
+							<p class="description"><?php esc_html_e( 'These exact products show first, in this order.', 'rapm' ); ?></p>
+							<p style="margin-top:16px;">
+								<label for="rapm_curated_fallback_type"><strong><?php esc_html_e( 'Then fill in the rest of the page with...', 'rapm' ); ?></strong></label><br />
+								<select id="rapm_curated_fallback_type" name="rapm_curated_fallback_type">
+									<option value="none" <?php selected( $curated['fallback_type'], 'none' ); ?>><?php esc_html_e( 'Nothing else — just the SKUs above', 'rapm' ); ?></option>
+									<option value="search" <?php selected( $curated['fallback_type'], 'search' ); ?>><?php esc_html_e( 'Search results for some words', 'rapm' ); ?></option>
+									<option value="category" <?php selected( $curated['fallback_type'], 'category' ); ?>><?php esc_html_e( 'A product category', 'rapm' ); ?></option>
+									<option value="brand" <?php selected( $curated['fallback_type'], 'brand' ); ?>><?php esc_html_e( 'A brand', 'rapm' ); ?></option>
+								</select>
+							</p>
+							<p>
+								<input type="text" id="rapm_curated_fallback_value" name="rapm_curated_fallback_value" class="regular-text" value="<?php echo esc_attr( $curated['fallback_value'] ); ?>" placeholder="<?php esc_attr_e( 'e.g. Living Room, or Ashley Furniture, or leather sofa — type it exactly as it appears on the site', 'rapm' ); ?>" />
+							</p>
 						</td>
 					</tr>
 				</table>
+				<input type="hidden" id="rapm_dest_value" name="rapm_dest_value" value="<?php echo in_array( $dest_type, array( 'post', 'wc_product', 'wc_category', 'wc_brand' ), true ) ? esc_attr( $dest_value ) : ''; ?>" />
+				<script>
+					( function () {
+						var destType     = document.getElementById( 'rapm_dest_type' );
+						var rows         = document.querySelectorAll( '.rapm-dest-row' );
+						var hiddenValue  = document.getElementById( 'rapm_dest_value' );
+						var picker       = document.getElementById( 'rapm_dest_picker' );
+						var resultsBox   = document.getElementById( 'rapm-dest-picker-results' );
+						var currentLabel = document.getElementById( 'rapm-dest-picker-current' );
+						var ajaxUrl      = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+						var searchNonce  = <?php echo wp_json_encode( wp_create_nonce( 'rapm_search_destination' ) ); ?>;
+						var pickerTypes  = [ 'post', 'wc_product', 'wc_category', 'wc_brand' ];
+						var debounceTimer;
+
+						function syncRows() {
+							var current = destType.value;
+							rows.forEach( function ( row ) {
+								var allowed = row.getAttribute( 'data-for' ).split( ',' );
+								row.style.display = allowed.indexOf( current ) === -1 ? 'none' : '';
+							} );
+						}
+
+						// The plain url/search-words fields and the picker all
+						// share one hidden field, since only one is ever visible
+						// (and thus meaningful) for a given destination type.
+						document.querySelectorAll( '.rapm-dest-input' ).forEach( function ( el ) {
+							el.addEventListener( 'input', function () {
+								if ( this.getAttribute( 'data-dest-type' ) === destType.value ) {
+									hiddenValue.value = this.value;
+								}
+							} );
+						} );
+						destType.addEventListener( 'change', function () {
+							syncRows();
+							var matching = document.querySelector( '.rapm-dest-input[data-dest-type="' + destType.value + '"]' );
+							hiddenValue.value = matching ? matching.value : '';
+							currentLabel.textContent = '';
+							picker.value = '';
+							resultsBox.innerHTML = '';
+						} );
+						syncRows();
+
+						function renderResults( results ) {
+							resultsBox.innerHTML = '';
+							if ( ! results.length ) {
+								return;
+							}
+							var list = document.createElement( 'ul' );
+							list.className = 'rapm-dest-picker-list';
+							results.forEach( function ( item ) {
+								var li = document.createElement( 'li' );
+								li.textContent = item.label;
+								li.addEventListener( 'click', function () {
+									hiddenValue.value = item.id;
+									picker.value = item.label;
+									currentLabel.textContent = <?php echo wp_json_encode( __( 'Selected: ', 'rapm' ) ); ?> + item.label;
+									resultsBox.innerHTML = '';
+								} );
+								list.appendChild( li );
+							} );
+							resultsBox.appendChild( list );
+						}
+
+						picker.addEventListener( 'input', function () {
+							var term = this.value.trim();
+							clearTimeout( debounceTimer );
+							if ( term.length < 2 ) {
+								resultsBox.innerHTML = '';
+								return;
+							}
+							debounceTimer = setTimeout( function () {
+								var url = ajaxUrl + '?action=rapm_search_destination&nonce=' + encodeURIComponent( searchNonce )
+									+ '&type=' + encodeURIComponent( destType.value ) + '&term=' + encodeURIComponent( term );
+								fetch( url ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+									if ( res.success ) {
+										renderResults( res.data.results );
+									}
+								} );
+							}, 300 );
+						} );
+
+						// On load, if editing an asset that already points at a
+						// picker-based destination, resolve its ID back to a
+						// readable name — only the ID is stored.
+						if ( pickerTypes.indexOf( destType.value ) !== -1 && hiddenValue.value ) {
+							var resolveUrl = ajaxUrl + '?action=rapm_search_destination&nonce=' + encodeURIComponent( searchNonce )
+								+ '&type=' + encodeURIComponent( destType.value ) + '&resolve_id=' + encodeURIComponent( hiddenValue.value );
+							fetch( resolveUrl ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+								if ( res.success && res.data.label ) {
+									currentLabel.textContent = <?php echo wp_json_encode( __( 'Currently: ', 'rapm' ) ); ?> + res.data.label;
+								}
+							} );
+						}
+					} )();
+				</script>
 
 				<h2><?php esc_html_e( 'When It Should Show', 'rapm' ); ?></h2>
 				<table class="form-table">
@@ -409,7 +545,6 @@ class RAPM_Upload_Handler {
 			'rapm_headline'     => 'sanitize_text_field',
 			'rapm_subhead'      => 'sanitize_text_field',
 			'rapm_cta_text'     => 'sanitize_text_field',
-			'rapm_dest_type'    => 'sanitize_key',
 			'rapm_starts_at'    => 'sanitize_text_field',
 			'rapm_ends_at'      => 'sanitize_text_field',
 		);
@@ -427,12 +562,33 @@ class RAPM_Upload_Handler {
 				update_post_meta( $asset_id, '_' . $field, call_user_func( $sanitizer, wp_unslash( $_POST[ $field ] ) ) );
 			}
 		}
-		if ( isset( $_POST['rapm_dest_value'] ) ) {
-			$dest_type = isset( $_POST['rapm_dest_type'] ) ? sanitize_key( wp_unslash( $_POST['rapm_dest_type'] ) ) : 'url';
-			$raw_value = wp_unslash( $_POST['rapm_dest_value'] );
-			$value     = 'url' === $dest_type ? esc_url_raw( $raw_value ) : absint( $raw_value );
-			update_post_meta( $asset_id, '_rapm_destination_value', $value );
+		$dest_type = isset( $_POST['rapm_dest_type'] ) ? sanitize_key( wp_unslash( $_POST['rapm_dest_type'] ) ) : 'url';
+		update_post_meta( $asset_id, '_rapm_destination_type', $dest_type );
+
+		switch ( $dest_type ) {
+			case 'url':
+				$dest_value = isset( $_POST['rapm_dest_value'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_dest_value'] ) ) : '';
+				break;
+			case 'search':
+				$dest_value = isset( $_POST['rapm_dest_value'] ) ? sanitize_text_field( wp_unslash( $_POST['rapm_dest_value'] ) ) : '';
+				break;
+			case 'post':
+			case 'wc_product':
+			case 'wc_category':
+			case 'wc_brand':
+				$dest_value = isset( $_POST['rapm_dest_value'] ) ? absint( $_POST['rapm_dest_value'] ) : 0;
+				break;
+			case 'curated':
+				$dest_value = RAPM_Destination::build_curated_value(
+					isset( $_POST['rapm_curated_skus'] ) ? wp_unslash( $_POST['rapm_curated_skus'] ) : '',
+					isset( $_POST['rapm_curated_fallback_type'] ) ? sanitize_key( wp_unslash( $_POST['rapm_curated_fallback_type'] ) ) : 'none',
+					isset( $_POST['rapm_curated_fallback_value'] ) ? wp_unslash( $_POST['rapm_curated_fallback_value'] ) : ''
+				);
+				break;
+			default:
+				$dest_value = '';
 		}
+		update_post_meta( $asset_id, '_rapm_destination_value', $dest_value );
 		if ( empty( get_post_meta( $asset_id, '_rapm_placement', true ) ) ) {
 			update_post_meta( $asset_id, '_rapm_placement', 'default' );
 		}
