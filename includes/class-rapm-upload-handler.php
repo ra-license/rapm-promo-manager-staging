@@ -59,6 +59,18 @@ class RAPM_Upload_Handler {
 		$img_desktop = (int) $m( '_rapm_image_desktop_id' );
 		$img_mobile  = (int) $m( '_rapm_image_mobile_id' );
 		$slots       = RAPM_Slots::all();
+		$kinds       = RAPM_Slots::kinds();
+
+		// The kind can come from the URL (switching it before any file is
+		// chosen, so the right dimensions show immediately) or from the
+		// asset being edited; defaults to 'hero'.
+		$kind_key = isset( $_GET['kind'] ) ? sanitize_key( wp_unslash( $_GET['kind'] ) ) : $m( '_rapm_kind', 'hero' );
+		if ( ! isset( $kinds[ $kind_key ] ) ) {
+			$kind_key = 'hero';
+		}
+		$kind         = RAPM_Slots::kind( $kind_key );
+		$desktop_slot = $slots[ $kind['desktop'] ];
+		$mobile_slot  = $slots[ $kind['mobile'] ];
 
 		$error_key = isset( $_GET['rapm_error'] ) ? sanitize_key( wp_unslash( $_GET['rapm_error'] ) ) : '';
 		?>
@@ -69,9 +81,31 @@ class RAPM_Upload_Handler {
 				<div class="notice notice-error"><p><?php echo esc_html( wp_unslash( rawurldecode( $error_key ) ) ); ?></p></div>
 			<?php endif; ?>
 
+			<table class="form-table" style="max-width:700px;">
+				<tr>
+					<th><label for="rapm_kind_selector"><?php esc_html_e( 'Kind', 'rapm' ); ?></label></th>
+					<td>
+						<select id="rapm_kind_selector">
+							<?php foreach ( $kinds as $key => $info ) : ?>
+								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $kind_key, $key ); ?>><?php echo esc_html( $info['label'] ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<p class="description"><?php esc_html_e( 'Which required image sizes apply below. Changing this reloads the page.', 'rapm' ); ?></p>
+					</td>
+				</tr>
+			</table>
+			<script>
+				document.getElementById( 'rapm_kind_selector' ).addEventListener( 'change', function () {
+					var url = new URL( window.location.href );
+					url.searchParams.set( 'kind', this.value );
+					window.location.href = url.toString();
+				} );
+			</script>
+
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 				<input type="hidden" name="action" value="rapm_save_asset" />
 				<input type="hidden" name="asset_id" value="<?php echo esc_attr( $asset_id ); ?>" />
+				<input type="hidden" name="rapm_kind" value="<?php echo esc_attr( $kind_key ); ?>" />
 				<?php wp_nonce_field( self::NONCE_ACTION, 'rapm_nonce' ); ?>
 
 				<table class="form-table">
@@ -84,7 +118,7 @@ class RAPM_Upload_Handler {
 					<tr>
 						<th><label for="rapm_placement"><?php esc_html_e( 'Placement', 'rapm' ); ?></label></th>
 						<td><input type="text" id="rapm_placement" name="rapm_placement" value="<?php echo esc_attr( $placement ); ?>" />
-							<p class="description"><?php esc_html_e( 'Which [rapm_hero placement="..."] this belongs to. Leave as "default" unless this site has more than one hero carousel (e.g. a homepage one and a separate category-page one).', 'rapm' ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'Which [rapm_hero placement="..."] or [rapm_fold_banner placement="..."] this belongs to (matched separately per Kind). Leave as "default" unless this site needs more than one %s.', 'rapm' ), strtolower( $kind['label'] ) ) ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -93,23 +127,23 @@ class RAPM_Upload_Handler {
 				<p class="description"><?php esc_html_e( 'Each image is checked against its required size before it\'s accepted, then automatically converted to WebP and compressed — you don\'t need to convert anything yourself. Only choose a file here if you\'re adding one for the first time or replacing the current one.', 'rapm' ); ?></p>
 				<table class="form-table">
 					<tr>
-						<th><label for="rapm_image_desktop"><?php echo esc_html( $slots['hero_desktop']['label'] ); ?></label></th>
+						<th><label for="rapm_image_desktop"><?php echo esc_html( $desktop_slot['label'] ); ?></label></th>
 						<td>
 							<?php if ( $img_desktop ) : ?>
 								<?php echo wp_get_attachment_image( $img_desktop, array( 240, 75 ), false, array( 'style' => 'display:block;margin-bottom:8px;border-radius:6px;object-fit:cover;' ) ); ?>
 							<?php endif; ?>
 							<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" />
-							<p class="description"><?php echo esc_html( sprintf( __( 'Needs to be %1$dx%2$d px. Any common image format is fine — it\'ll be converted to WebP automatically.', 'rapm' ), $slots['hero_desktop']['width'], $slots['hero_desktop']['height'] ) ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'Needs to be %1$dx%2$d px. Any common image format is fine — it\'ll be converted to WebP automatically.', 'rapm' ), $desktop_slot['width'], $desktop_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th><label for="rapm_image_mobile"><?php echo esc_html( $slots['hero_mobile']['label'] ); ?></label></th>
+						<th><label for="rapm_image_mobile"><?php echo esc_html( $mobile_slot['label'] ); ?></label></th>
 						<td>
 							<?php if ( $img_mobile ) : ?>
 								<?php echo wp_get_attachment_image( $img_mobile, array( 120, 213 ), false, array( 'style' => 'display:block;margin-bottom:8px;border-radius:6px;object-fit:cover;' ) ); ?>
 							<?php endif; ?>
 							<input type="file" id="rapm_image_mobile" name="rapm_image_mobile" accept="image/*" />
-							<p class="description"><?php echo esc_html( sprintf( __( 'Needs to be %1$dx%2$d px.', 'rapm' ), $slots['hero_mobile']['width'], $slots['hero_mobile']['height'] ) ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'Needs to be %1$dx%2$d px.', 'rapm' ), $mobile_slot['width'], $mobile_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
 					<tr>
@@ -197,21 +231,28 @@ class RAPM_Upload_Handler {
 			self::fail( $back, __( 'Please enter an internal name for this asset.', 'rapm' ) );
 		}
 
+		$kinds    = RAPM_Slots::kinds();
+		$kind_key = isset( $_POST['rapm_kind'] ) ? sanitize_key( wp_unslash( $_POST['rapm_kind'] ) ) : 'hero';
+		if ( ! isset( $kinds[ $kind_key ] ) ) {
+			$kind_key = 'hero';
+		}
+		$kind = RAPM_Slots::kind( $kind_key );
+
 		// Validate + convert images BEFORE touching the post itself, so a
 		// bad upload never leaves a half-saved asset behind.
-		$slots           = RAPM_Slots::all();
-		$new_desktop_id  = null;
-		$new_mobile_id   = null;
+		$slots          = RAPM_Slots::all();
+		$new_desktop_id = null;
+		$new_mobile_id  = null;
 
 		if ( ! empty( $_FILES['rapm_image_desktop']['tmp_name'] ) ) {
-			$result = self::process_upload( $_FILES['rapm_image_desktop'], $slots['hero_desktop'], $asset_id ?: 0 );
+			$result = self::process_upload( $_FILES['rapm_image_desktop'], $slots[ $kind['desktop'] ], $asset_id ?: 0 );
 			if ( is_wp_error( $result ) ) {
 				self::fail( $back, $result->get_error_message() );
 			}
 			$new_desktop_id = $result;
 		}
 		if ( ! empty( $_FILES['rapm_image_mobile']['tmp_name'] ) ) {
-			$result = self::process_upload( $_FILES['rapm_image_mobile'], $slots['hero_mobile'], $asset_id ?: 0 );
+			$result = self::process_upload( $_FILES['rapm_image_mobile'], $slots[ $kind['mobile'] ], $asset_id ?: 0 );
 			if ( is_wp_error( $result ) ) {
 				self::fail( $back, $result->get_error_message() );
 			}
@@ -247,6 +288,8 @@ class RAPM_Upload_Handler {
 		if ( null !== $new_mobile_id ) {
 			update_post_meta( $asset_id, '_rapm_image_mobile_id', $new_mobile_id );
 		}
+
+		update_post_meta( $asset_id, '_rapm_kind', $kind_key );
 
 		$meta_fields = array(
 			'rapm_placement'    => 'sanitize_title',

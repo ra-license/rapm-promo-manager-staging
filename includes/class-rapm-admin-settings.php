@@ -101,8 +101,8 @@ class RAPM_Admin_Settings {
 					</tbody>
 				</table>
 
-				<h2><?php esc_html_e( 'Hero Carousel Defaults', 'rapm' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Applied unless a specific [rapm_hero] shortcode overrides them with its own attributes. Auto-rotation is off by default — current UX research finds carousels perform best when they don\'t auto-advance past what a visitor is actually looking at.', 'rapm' ); ?></p>
+				<h2><?php esc_html_e( 'Carousel Defaults', 'rapm' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Applied to both [rapm_hero] and [rapm_fold_banner] unless a specific shortcode overrides them with its own attributes. Auto-rotation is off by default — current UX research finds carousels perform best when they don\'t auto-advance past what a visitor is actually looking at.', 'rapm' ); ?></p>
 				<table class="form-table">
 					<tr>
 						<th><?php esc_html_e( 'Autoplay', 'rapm' ); ?></th>
@@ -132,8 +132,9 @@ class RAPM_Admin_Settings {
 
 			<h2><?php esc_html_e( 'Shortcodes', 'rapm' ); ?></h2>
 			<table class="widefat striped" style="max-width:800px;">
-				<tr><td><code>[rapm_hero]</code></td><td><?php esc_html_e( 'Hero carousel for the "default" placement.', 'rapm' ); ?></td></tr>
-				<tr><td><code>[rapm_hero placement="category-living-room"]</code></td><td><?php esc_html_e( 'A separate hero carousel scoped to just that placement — set the same placement value when adding assets under Promo > Add New Asset.', 'rapm' ); ?></td></tr>
+				<tr><td><code>[rapm_hero]</code></td><td><?php esc_html_e( 'Full hero carousel for the "default" placement.', 'rapm' ); ?></td></tr>
+				<tr><td><code>[rapm_fold_banner]</code></td><td><?php esc_html_e( 'The shorter fold-banner carousel for the "default" placement — a separate kind of asset from the hero, added the same way under Promo > Add New Asset with "Kind" set to Fold Banner.', 'rapm' ); ?></td></tr>
+				<tr><td><code>[rapm_hero placement="category-living-room"]</code></td><td><?php esc_html_e( 'A separate carousel scoped to just that placement — set the same placement value when adding assets. Works the same way for [rapm_fold_banner].', 'rapm' ); ?></td></tr>
 			</table>
 		</div>
 		<?php

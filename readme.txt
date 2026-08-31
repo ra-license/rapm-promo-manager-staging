@@ -10,26 +10,30 @@ Non-technical client staff upload promotional graphics that are often the wrong 
 Use **Promo Manager > Add New Asset**. Don't use the native "Add New" screen under Promo Manager > All Assets — it's a bare title field on purpose (no image/format path exists there at all) and will redirect you to the real form automatically.
 
 Fill in:
+- **Kind** — Hero (the full-height carousel) or Fold Banner (a shorter strip meant to sit lower on the page, near the fold). Switches which image dimensions are required below.
 - **Internal Name** — for your own reference in the admin list, not shown publicly.
-- **Placement** — which `[rapm_hero placement="..."]` this belongs to. Leave as "default" unless the site needs more than one independent hero carousel (e.g. a homepage one and a separate category-page one).
+- **Placement** — which `[rapm_hero placement="..."]` or `[rapm_fold_banner placement="..."]` this belongs to (matched separately per Kind, so a "default" hero and a "default" fold banner don't mix). Leave as "default" unless the site needs more than one of the same Kind (e.g. a homepage hero and a separate category-page hero).
 - **Desktop/Mobile images** — upload whatever format/size you have; it's validated and converted automatically. A mismatch tells you the exact dimensions needed vs. what you uploaded.
 - **Headline / Subheadline / Button Text** — real text rendered over the image, never part of the image file itself. This is what keeps it searchable and accessible, and lets you fix a typo without re-uploading anything.
 - **Link** — a URL, a page/post on this site, or (if WooCommerce is active) a product or category.
 - **Schedule** — start/end date-time. Works correctly even behind a full-page cache plugin (WP Rocket etc.) — the schedule is checked in each visitor's own browser, not baked into a cached page, so nothing "freezes."
 
-== Displaying the carousel ==
-`[rapm_hero]` — the "default" placement.
-`[rapm_hero placement="category-living-room"]` — a separate carousel scoped to just that placement.
-An Elementor widget ("Promo Hero Carousel," under the Promo Manager category) wraps the same shortcode.
+== Displaying a carousel ==
+`[rapm_hero]` — the full hero carousel, "default" placement.
+`[rapm_fold_banner]` — the shorter fold-banner carousel, "default" placement.
+`[rapm_hero placement="category-living-room"]` — a separate carousel scoped to just that placement (works the same for `[rapm_fold_banner]`).
+An Elementor widget ("Promo Carousel," under the Promo Manager category) wraps either shortcode via its own Kind control.
 
 == Image specs (defaults — adjustable under Promo Manager > Settings) ==
 - Hero Desktop: 1920x600px, WebP, under 300KB
 - Hero Mobile: 1080x1920px, WebP, under 300KB
+- Fold Banner Desktop: 1920x300px, WebP, under 200KB
+- Fold Banner Mobile: 1080x400px, WebP, under 200KB
 
-Both numbers were checked against real Core Web Vitals/LCP guidance, not picked arbitrarily — see CHANGELOG.md.
+The hero numbers were checked against real Core Web Vitals/LCP guidance, not picked arbitrarily. The fold banner numbers are a documented starting point, not an external standard — no established industry convention exists for this shape (checked directly) — adjust freely if a site's own data says otherwise. See CHANGELOG.md for the full research trail on both.
 
 == Requirements ==
 PHP with either the Imagick extension (preferred) or GD's WebP support, for automatic format conversion. If a host has neither, the plugin will clearly say so and ask for a pre-converted .webp file instead of failing silently.
 
 == Roadmap ==
-This is Phase 1 of a larger plan (asset core + hero carousel). Planned next: a coupon-book scroll-snap display, a marquee/ticker display, and a calendar display — all reading from the same validated asset/slot/scheduling core built here, not a separate system.
+This is Phase 1 of a larger plan (asset core + hero carousel + fold banner). Planned next: a coupon-book scroll-snap display, a marquee/ticker display, and a calendar display — all reading from the same validated asset/slot/scheduling core built here, not a separate system.

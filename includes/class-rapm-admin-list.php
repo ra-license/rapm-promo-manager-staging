@@ -11,6 +11,7 @@ class RAPM_Admin_List {
 			$new[ $key ] = $label;
 			if ( 'title' === $key ) {
 				$new['rapm_preview']   = __( 'Preview', 'rapm' );
+				$new['rapm_kind']      = __( 'Kind', 'rapm' );
 				$new['rapm_placement'] = __( 'Placement', 'rapm' );
 				$new['rapm_status']    = __( 'Status', 'rapm' );
 				$new['rapm_edit']      = __( 'Edit', 'rapm' );
@@ -28,6 +29,12 @@ class RAPM_Admin_List {
 				} else {
 					echo '<span style="color:#999;font-style:italic;">' . esc_html__( 'No image', 'rapm' ) . '</span>';
 				}
+				break;
+
+			case 'rapm_kind':
+				$kind_key = get_post_meta( $post_id, '_rapm_kind', true ) ?: 'hero'; // phpcs:ignore
+				$kind     = RAPM_Slots::kind( $kind_key );
+				echo esc_html( $kind['label'] );
 				break;
 
 			case 'rapm_placement':

@@ -4,15 +4,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * [rapm_hero] — the hero carousel display mode. Evolves NovaSlider's
- * proven Swiper.js + client-side-schedule approach (already live on
- * kemperhomefurnishings.com) onto the validated rapm_asset data model:
- * every slide now comes from a properly-sized, WebP, size-capped asset
- * with real HTML copy instead of a free-form, unvalidated slide array.
+ * [rapm_hero] and [rapm_fold_banner] — both display "kinds" share this one
+ * carousel/scheduling engine, parameterized by which kind's slot pair
+ * (and which placement) to query. Evolves NovaSlider's proven Swiper.js +
+ * client-side-schedule approach (already live on kemperhomefurnishings.com)
+ * onto the validated rapm_asset data model: every slide now comes from a
+ * properly-sized, WebP, size-capped asset with real HTML copy instead of a
+ * free-form, unvalidated slide array.
  */
 class RAPM_Hero_Carousel {
 
-	public static function shortcode( $atts ) {
+	public static function shortcode_hero( $atts ) {
+		return self::render( 'hero', $atts, 'rapm_hero' );
+	}
+
+	public static function shortcode_fold_banner( $atts ) {
+		return self::render( 'fold_banner', $atts, 'rapm_fold_banner' );
+	}
+
+	private static function render( $kind_key, $atts, $tag ) {
 		$defaults = RAPM_Admin_Settings::get();
 		$atts     = shortcode_atts(
 			array(
@@ -22,10 +32,12 @@ class RAPM_Hero_Carousel {
 				'nav'       => $defaults['default_nav_style'],
 			),
 			$atts,
-			'rapm_hero'
+			$tag
 		);
 
 		$placement = sanitize_title( $atts['placement'] );
+		$kind      = RAPM_Slots::kind( $kind_key );
+		$slots     = RAPM_Slots::all();
 
 		$query = new WP_Query(
 			array(
@@ -35,9 +47,14 @@ class RAPM_Hero_Carousel {
 				'orderby'        => 'menu_order date',
 				'order'          => 'ASC',
 				'meta_query'     => array(
+					'relation' => 'AND',
 					array(
 						'key'   => '_rapm_placement',
 						'value' => $placement,
+					),
+					array(
+						'key'   => '_rapm_kind',
+						'value' => $kind_key,
 					),
 				),
 			)
@@ -47,13 +64,15 @@ class RAPM_Hero_Carousel {
 			return '';
 		}
 
-		$instance_id = 'rapm-' . $placement . '-' . wp_unique_id();
+		$instance_id  = 'rapm-' . $placement . '-' . wp_unique_id();
+		$desktop_slot = $slots[ $kind['desktop'] ];
+		$mobile_slot  = $slots[ $kind['mobile'] ];
 
 		ob_start();
 		?>
 		<style>
-			.<?php echo esc_attr( $instance_id ); ?> { width: 100%; height: 600px; margin: 0 auto; overflow: hidden; position: relative; }
-			@media (max-width: 768px) { .<?php echo esc_attr( $instance_id ); ?> { height: 100vh; max-height: 900px; } }
+			.<?php echo esc_attr( $instance_id ); ?> { width: 100%; margin: 0 auto; overflow: hidden; position: relative; aspect-ratio: <?php echo esc_html( $desktop_slot['width'] . ' / ' . $desktop_slot['height'] ); ?>; }
+			@media (max-width: 768px) { .<?php echo esc_attr( $instance_id ); ?> { aspect-ratio: <?php echo esc_html( $mobile_slot['width'] . ' / ' . $mobile_slot['height'] ); ?>; } }
 		</style>
 		<div class="swiper rapm-hero <?php echo esc_attr( $instance_id ); ?>" style="display:none;" data-rapm-carousel>
 			<div class="swiper-wrapper">
@@ -144,6 +163,8 @@ class RAPM_Hero_Carousel {
 		return $schema;
 	}
 
+	const SHORTCODE_TAGS = array( 'rapm_hero', 'rapm_fold_banner' );
+
 	public static function should_load_assets() {
 		$force_load_on = apply_filters( 'rapm_force_load_ids', array() );
 
@@ -153,15 +174,17 @@ class RAPM_Hero_Carousel {
 				if ( in_array( $post->ID, $force_load_on, true ) ) {
 					return true;
 				}
-				if ( has_shortcode( $post->post_content, 'rapm_hero' ) ) {
-					return true;
-				}
-				// Elementor's Shortcode widget stores content in
-				// _elementor_data, not post_content, so has_shortcode()
-				// above can't see it directly — check the fully-built
-				// content too.
-				if ( has_shortcode( apply_filters( 'the_content', $post->post_content ), 'rapm_hero' ) ) {
-					return true;
+				foreach ( self::SHORTCODE_TAGS as $tag ) {
+					if ( has_shortcode( $post->post_content, $tag ) ) {
+						return true;
+					}
+					// Elementor's Shortcode widget stores content in
+					// _elementor_data, not post_content, so has_shortcode()
+					// above can't see it directly — check the fully-built
+					// content too.
+					if ( has_shortcode( apply_filters( 'the_content', $post->post_content ), $tag ) ) {
+						return true;
+					}
 				}
 			}
 		}

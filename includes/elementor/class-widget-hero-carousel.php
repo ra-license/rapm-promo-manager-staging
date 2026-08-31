@@ -10,7 +10,7 @@ class RAPM_Widget_Hero_Carousel extends \Elementor\Widget_Base {
 	}
 
 	public function get_title() {
-		return __( 'Promo Hero Carousel', 'rapm' );
+		return __( 'Promo Carousel', 'rapm' );
 	}
 
 	public function get_icon() {
@@ -28,6 +28,19 @@ class RAPM_Widget_Hero_Carousel extends \Elementor\Widget_Base {
 		);
 
 		$this->add_control(
+			'kind',
+			array(
+				'label'   => __( 'Kind', 'rapm' ),
+				'type'    => \Elementor\Controls_Manager::SELECT,
+				'default' => 'hero',
+				'options' => array(
+					'hero'        => __( 'Hero (full carousel)', 'rapm' ),
+					'fold_banner' => __( 'Fold Banner (shorter, near the fold)', 'rapm' ),
+				),
+			)
+		);
+
+		$this->add_control(
 			'placement',
 			array(
 				'label'       => __( 'Placement', 'rapm' ),
@@ -42,6 +55,7 @@ class RAPM_Widget_Hero_Carousel extends \Elementor\Widget_Base {
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-		echo do_shortcode( '[rapm_hero placement="' . esc_attr( $settings['placement'] ) . '"]' );
+		$tag      = 'fold_banner' === $settings['kind'] ? 'rapm_fold_banner' : 'rapm_hero';
+		echo do_shortcode( '[' . $tag . ' placement="' . esc_attr( $settings['placement'] ) . '"]' );
 	}
 }

@@ -18,7 +18,7 @@ class RAPM_Slots {
 
 	public static function defaults() {
 		return array(
-			'hero_desktop' => array(
+			'hero_desktop'        => array(
 				'label'                  => __( 'Hero — Desktop', 'rapm' ),
 				'width'                  => 1920,
 				'height'                 => 600,
@@ -26,7 +26,7 @@ class RAPM_Slots {
 				'max_kb'                 => 300,
 				'format'                 => 'webp',
 			),
-			'hero_mobile'  => array(
+			'hero_mobile'         => array(
 				'label'                  => __( 'Hero — Mobile', 'rapm' ),
 				'width'                  => 1080,
 				'height'                 => 1920,
@@ -34,7 +34,58 @@ class RAPM_Slots {
 				'max_kb'                 => 300,
 				'format'                 => 'webp',
 			),
+			// A shorter, lower-key strip meant to sit near the fold rather
+			// than dominate the top of the page — no established industry
+			// dimension convention exists for this (checked directly), so
+			// these numbers are a starting point, not a standard; adjust
+			// freely under Settings if a client's own testing says
+			// otherwise. Kept far smaller than the hero's file-size budget
+			// since it's proportionally a much smaller image.
+			'fold_banner_desktop' => array(
+				'label'                  => __( 'Fold Banner — Desktop', 'rapm' ),
+				'width'                  => 1920,
+				'height'                 => 300,
+				'aspect_ratio_tolerance' => 0.02,
+				'max_kb'                 => 200,
+				'format'                 => 'webp',
+			),
+			// A shorter mobile crop than the same 6.4:1 desktop ratio would
+			// give (1080x170) — kept taller for text legibility on a small
+			// screen, a deliberate judgment call given no standard exists.
+			'fold_banner_mobile'  => array(
+				'label'                  => __( 'Fold Banner — Mobile', 'rapm' ),
+				'width'                  => 1080,
+				'height'                 => 400,
+				'aspect_ratio_tolerance' => 0.02,
+				'max_kb'                 => 200,
+				'format'                 => 'webp',
+			),
 		);
+	}
+
+	/**
+	 * Which two slots (desktop/mobile) apply for each asset "kind" — the
+	 * one other place, besides here, that would need updating to add a
+	 * third kind later.
+	 */
+	public static function kinds() {
+		return array(
+			'hero'        => array(
+				'label'   => __( 'Hero (full carousel)', 'rapm' ),
+				'desktop' => 'hero_desktop',
+				'mobile'  => 'hero_mobile',
+			),
+			'fold_banner' => array(
+				'label'   => __( 'Fold Banner (shorter, near the fold)', 'rapm' ),
+				'desktop' => 'fold_banner_desktop',
+				'mobile'  => 'fold_banner_mobile',
+			),
+		);
+	}
+
+	public static function kind( $kind_key ) {
+		$kinds = self::kinds();
+		return isset( $kinds[ $kind_key ] ) ? $kinds[ $kind_key ] : $kinds['hero'];
 	}
 
 	/**
