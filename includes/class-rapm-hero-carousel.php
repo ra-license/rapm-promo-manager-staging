@@ -115,6 +115,9 @@ class RAPM_Hero_Carousel {
 		$subhead      = get_post_meta( $asset_id, '_rapm_subhead', true );
 		$cta_text     = get_post_meta( $asset_id, '_rapm_cta_text', true );
 		$alt          = get_post_meta( $asset_id, '_rapm_alt_text', true );
+		$text_align   = get_post_meta( $asset_id, '_rapm_text_align', true ) ?: 'left'; // phpcs:ignore
+		$text_color   = get_post_meta( $asset_id, '_rapm_text_color', true ) ?: '#ffffff'; // phpcs:ignore
+		$text_style   = get_post_meta( $asset_id, '_rapm_text_style', true ) ?: 'bold'; // phpcs:ignore
 		$starts_at    = get_post_meta( $asset_id, '_rapm_starts_at', true );
 		$ends_at      = get_post_meta( $asset_id, '_rapm_ends_at', true );
 		$dest_type    = get_post_meta( $asset_id, '_rapm_destination_type', true );
@@ -137,7 +140,7 @@ class RAPM_Hero_Carousel {
 				<img src="<?php echo esc_url( $desktop_src ); ?>" alt="<?php echo esc_attr( $alt ); ?>" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />
 			</picture>
 			<?php if ( $headline || $subhead || $cta_text ) : ?>
-				<div class="rapm-slide-copy">
+				<div class="rapm-slide-copy" data-align="<?php echo esc_attr( $text_align ); ?>" data-style="<?php echo esc_attr( $text_style ); ?>" style="color:<?php echo esc_attr( $text_color ); ?>;">
 					<?php if ( $headline ) : ?><h2 class="rapm-headline"><?php echo esc_html( $headline ); ?></h2><?php endif; ?>
 					<?php if ( $subhead ) : ?><p class="rapm-subhead"><?php echo esc_html( $subhead ); ?></p><?php endif; ?>
 					<?php if ( $cta_text ) : ?><span class="rapm-cta-btn"><?php echo esc_html( $cta_text ); ?></span><?php endif; ?>

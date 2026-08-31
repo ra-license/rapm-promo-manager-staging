@@ -4,6 +4,16 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.6.0
+
+**Feature: text alignment/color/style controls, and a proper multi-select product picker for hand-picked lists.** Direct follow-up feedback on the earlier work in this session — several requested pieces hadn't actually been built yet (they were scoped as later phases in the original plan, not silently dropped, but that distinction wasn't surfaced clearly enough at the time).
+
+- **Text styling**: each promotion now has Text Alignment (Left/Center/Right), Text Color (a color picker, default white), and Text Style (Bold/Elegant/Minimal — system font stacks only, so a style choice never adds an extra font download on the live site). The Live Preview reflects all three as you change them. The button's own white pill styling is intentionally unaffected by Text Color, for contrast.
+- **Multi-select product picker for "hand-picked lists"**: the SKU textarea is replaced by a search-as-you-type picker (search by product name or SKU, indicated directly in the field's placeholder) — clicking a result adds it to a visible, removable list of selected products rather than requiring anyone to know or type raw SKUs. Re-opening an existing hand-picked list resolves its saved SKUs back into named chips automatically. The single-product/category/brand picker used elsewhere also now labels itself per type (e.g. "Search by product name or SKU" specifically for products).
+- Bundled from the same feedback pass: the "Type of Promotion" dropdown shows each kind's required dimensions, and the image fields read "Desktop Promotion" / "Mobile Promotion" (shipped in 1.5.0, listed here for completeness of this feedback round).
+
+**Not yet built, and not silently dropped either — flagged directly rather than assumed:** the Marquee display, a promotions calendar view, and a coupon-book display were scoped as later phases in the original project plan and still need to be scoped and built. See the project memory / conversation for the open questions on each before implementation starts.
+
 ## 1.5.0
 
 **Feature: link a promotion picture to an outside file (direct URL or Google Drive) instead of uploading it, kept up to date automatically.** Requested for brand partners who host their own co-op promotional images and update them independently — rather than an account manager re-downloading and re-uploading a file every time a brand changes it.

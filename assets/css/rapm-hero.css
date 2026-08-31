@@ -34,6 +34,20 @@
 	color: #fff;
 	z-index: 4;
 	pointer-events: none;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	text-align: left;
+}
+
+/* Alignment is a per-asset choice (Admin: "Text Alignment") — the default
+   (no data-align, or "left") matches the plugin's original fixed layout,
+   so existing assets render unchanged after upgrading. */
+.rapm-slide-copy[data-align="center"] { align-items: center; text-align: center; }
+.rapm-slide-copy[data-align="right"] { align-items: flex-end; text-align: right; }
+
+.rapm-headline, .rapm-subhead {
+	color: inherit; /* set inline per-asset via the Text Color field, default #fff from .rapm-slide-copy above */
 }
 
 .rapm-headline {
@@ -49,6 +63,18 @@
 	opacity: 0.92;
 	max-width: 480px;
 }
+
+/* Typography presets (Admin: "Text Style") — kept to system font stacks
+   rather than a webfont pick-list, so choosing one never adds an extra
+   network request on the client site. */
+.rapm-slide-copy[data-style="elegant"] .rapm-headline,
+.rapm-slide-copy[data-style="elegant"] .rapm-subhead {
+	font-family: Georgia, "Times New Roman", serif;
+}
+.rapm-slide-copy[data-style="elegant"] .rapm-headline { font-weight: 600; letter-spacing: 0.01em; }
+
+.rapm-slide-copy[data-style="minimal"] .rapm-headline { font-weight: 500; letter-spacing: 0.03em; text-shadow: none; }
+.rapm-slide-copy[data-style="minimal"] .rapm-subhead { opacity: 0.85; }
 
 .rapm-cta-btn {
 	display: inline-block;

@@ -179,6 +179,25 @@ class RAPM_Destination {
 			wp_send_json_success( array( 'label' => self::label_for( $type, absint( $_GET['resolve_id'] ) ) ) );
 		}
 
+		// Used to redisplay an existing "hand-picked list" as named chips on
+		// edit — only the raw SKUs are stored, so their product names need
+		// looking up again. A SKU that no longer matches any product still
+		// gets a chip (labeled with the SKU itself), since the SKU is what's
+		// actually saved and shouldn't silently vanish from the list.
+		if ( isset( $_GET['resolve_skus'] ) && class_exists( 'WooCommerce' ) ) {
+			$skus    = array_filter( array_map( 'trim', explode( ',', sanitize_text_field( wp_unslash( $_GET['resolve_skus'] ) ) ) ) );
+			$results = array();
+			foreach ( $skus as $sku ) {
+				$product_id = wc_get_product_id_by_sku( $sku );
+				$results[]  = array(
+					'sku'   => $sku,
+					'label' => $product_id ? get_the_title( $product_id ) : $sku,
+					'found' => (bool) $product_id,
+				);
+			}
+			wp_send_json_success( array( 'results' => $results ) );
+		}
+
 		$term = isset( $_GET['term'] ) ? sanitize_text_field( wp_unslash( $_GET['term'] ) ) : '';
 		if ( '' === $term ) {
 			wp_send_json_success( array( 'results' => array() ) );
@@ -212,7 +231,7 @@ class RAPM_Destination {
 				$sku_match = wc_get_product_id_by_sku( trim( $term ) );
 				if ( $sku_match ) {
 					/* translators: %s: the SKU that was matched */
-					$results[] = array( 'id' => $sku_match, 'label' => sprintf( __( '%1$s (SKU: %2$s)', 'rapm' ), get_the_title( $sku_match ), trim( $term ) ) );
+					$results[] = array( 'id' => $sku_match, 'sku' => trim( $term ), 'label' => sprintf( __( '%1$s (SKU: %2$s)', 'rapm' ), get_the_title( $sku_match ), trim( $term ) ) );
 					$exclude[] = $sku_match;
 				}
 				$query = new WP_Query(
@@ -226,7 +245,9 @@ class RAPM_Destination {
 					)
 				);
 				foreach ( $query->posts as $id ) {
-					$results[] = array( 'id' => $id, 'label' => get_the_title( $id ) );
+					$sku = get_post_meta( $id, '_sku', true );
+					/* translators: 1: product name, 2: SKU */
+					$results[] = array( 'id' => $id, 'sku' => $sku, 'label' => $sku ? sprintf( __( '%1$s (SKU: %2$s)', 'rapm' ), get_the_title( $id ), $sku ) : get_the_title( $id ) );
 				}
 				break;
 

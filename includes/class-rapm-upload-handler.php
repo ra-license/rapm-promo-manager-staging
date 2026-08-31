@@ -286,6 +286,33 @@ class RAPM_Upload_Handler {
 							<th><label for="rapm_cta_text"><?php esc_html_e( 'Button Text', 'rapm' ); ?></label></th>
 							<td><input type="text" id="rapm_cta_text" name="rapm_cta_text" value="<?php echo esc_attr( $m( '_rapm_cta_text' ) ); ?>" placeholder="<?php esc_attr_e( 'e.g. Shop Now', 'rapm' ); ?>" /></td>
 						</tr>
+						<tr>
+							<th><label for="rapm_text_align"><?php esc_html_e( 'Text Alignment', 'rapm' ); ?></label></th>
+							<td>
+								<select id="rapm_text_align" name="rapm_text_align">
+									<option value="left" <?php selected( $m( '_rapm_text_align', 'left' ), 'left' ); ?>><?php esc_html_e( 'Left', 'rapm' ); ?></option>
+									<option value="center" <?php selected( $m( '_rapm_text_align', 'left' ), 'center' ); ?>><?php esc_html_e( 'Center', 'rapm' ); ?></option>
+									<option value="right" <?php selected( $m( '_rapm_text_align', 'left' ), 'right' ); ?>><?php esc_html_e( 'Right', 'rapm' ); ?></option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="rapm_text_color"><?php esc_html_e( 'Text Color', 'rapm' ); ?></label></th>
+							<td>
+								<input type="color" id="rapm_text_color" name="rapm_text_color" value="<?php echo esc_attr( $m( '_rapm_text_color', '#ffffff' ) ); ?>" style="height:32px;width:60px;padding:2px;vertical-align:middle;" />
+								<p class="description"><?php esc_html_e( 'Only changes the headline and smaller line — the button always stays white for readability.', 'rapm' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="rapm_text_style"><?php esc_html_e( 'Text Style', 'rapm' ); ?></label></th>
+							<td>
+								<select id="rapm_text_style" name="rapm_text_style">
+									<option value="bold" <?php selected( $m( '_rapm_text_style', 'bold' ), 'bold' ); ?>><?php esc_html_e( 'Bold (default)', 'rapm' ); ?></option>
+									<option value="elegant" <?php selected( $m( '_rapm_text_style', 'bold' ), 'elegant' ); ?>><?php esc_html_e( 'Elegant', 'rapm' ); ?></option>
+									<option value="minimal" <?php selected( $m( '_rapm_text_style', 'bold' ), 'minimal' ); ?>><?php esc_html_e( 'Minimal', 'rapm' ); ?></option>
+								</select>
+							</td>
+						</tr>
 					</table>
 				</div>
 				<script>
@@ -306,7 +333,7 @@ class RAPM_Upload_Handler {
 					<div id="rapm-preview" class="rapm-hero" style="aspect-ratio:<?php echo esc_attr( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;background:#333;">
 						<div class="rapm-slide" style="width:100%;height:100%;">
 							<img id="rapm-preview-img" src="<?php echo $img_desktop ? esc_url( wp_get_attachment_image_url( $img_desktop, 'full' ) ) : ''; ?>" alt="" style="width:100%;height:100%;object-fit:cover;display:<?php echo $img_desktop ? 'block' : 'none'; ?>;" />
-							<div class="rapm-slide-copy">
+							<div class="rapm-slide-copy" id="rapm-preview-copy" data-align="<?php echo esc_attr( $m( '_rapm_text_align', 'left' ) ); ?>" data-style="<?php echo esc_attr( $m( '_rapm_text_style', 'bold' ) ); ?>" style="color:<?php echo esc_attr( $m( '_rapm_text_color', '#ffffff' ) ); ?>;">
 								<h2 class="rapm-headline" id="rapm-preview-headline"></h2>
 								<p class="rapm-subhead" id="rapm-preview-subhead"></p>
 								<span class="rapm-cta-btn" id="rapm-preview-cta"></span>
@@ -320,8 +347,12 @@ class RAPM_Upload_Handler {
 						var headlineInput = document.getElementById( 'rapm_headline' );
 						var subheadInput  = document.getElementById( 'rapm_subhead' );
 						var ctaInput      = document.getElementById( 'rapm_cta_text' );
+						var alignInput    = document.getElementById( 'rapm_text_align' );
+						var colorInput    = document.getElementById( 'rapm_text_color' );
+						var styleInput    = document.getElementById( 'rapm_text_style' );
 						var fileInput     = document.getElementById( 'rapm_image_desktop' );
 						var previewImg    = document.getElementById( 'rapm-preview-img' );
+						var previewCopy   = document.getElementById( 'rapm-preview-copy' );
 						var previewEmpty  = document.getElementById( 'rapm-preview-empty' );
 
 						function setText( el, value ) {
@@ -332,10 +363,17 @@ class RAPM_Upload_Handler {
 							setText( document.getElementById( 'rapm-preview-headline' ), headlineInput.value );
 							setText( document.getElementById( 'rapm-preview-subhead' ), subheadInput.value );
 							setText( document.getElementById( 'rapm-preview-cta' ), ctaInput.value );
+							previewCopy.setAttribute( 'data-align', alignInput.value );
+							previewCopy.setAttribute( 'data-style', styleInput.value );
+							previewCopy.style.color = colorInput.value;
 						}
 						[ headlineInput, subheadInput, ctaInput ].forEach( function ( el ) {
 							el.addEventListener( 'input', updateCopy );
 						} );
+						[ alignInput, styleInput ].forEach( function ( el ) {
+							el.addEventListener( 'change', updateCopy );
+						} );
+						colorInput.addEventListener( 'input', updateCopy );
 						updateCopy();
 
 						fileInput.addEventListener( 'change', function () {
@@ -368,7 +406,7 @@ class RAPM_Upload_Handler {
 						</td>
 					</tr>
 					<tr class="rapm-dest-row" data-for="post,wc_product,wc_category,wc_brand">
-						<th><label for="rapm_dest_picker"><?php esc_html_e( 'Start typing to search', 'rapm' ); ?></label></th>
+						<th><label for="rapm_dest_picker" id="rapm-dest-picker-label"><?php esc_html_e( 'Start typing to search', 'rapm' ); ?></label></th>
 						<td>
 							<input type="text" id="rapm_dest_picker" class="regular-text" autocomplete="off" placeholder="<?php esc_attr_e( 'Start typing a name…', 'rapm' ); ?>" />
 							<div id="rapm-dest-picker-results" class="rapm-dest-picker-results"></div>
@@ -382,10 +420,13 @@ class RAPM_Upload_Handler {
 						</td>
 					</tr>
 					<tr class="rapm-dest-row" data-for="curated">
-						<th><label for="rapm_curated_skus"><?php esc_html_e( 'Specific product SKUs', 'rapm' ); ?></label></th>
+						<th><label for="rapm_curated_picker"><?php esc_html_e( 'Specific products', 'rapm' ); ?></label></th>
 						<td>
-							<textarea id="rapm_curated_skus" name="rapm_curated_skus" rows="4" class="large-text" placeholder="<?php esc_attr_e( 'One SKU per line (or separate with commas)', 'rapm' ); ?>"><?php echo esc_textarea( implode( "\n", $curated['skus'] ) ); ?></textarea>
-							<p class="description"><?php esc_html_e( 'These exact products show first, in this order.', 'rapm' ); ?></p>
+							<input type="text" id="rapm_curated_picker" class="regular-text" autocomplete="off" placeholder="<?php esc_attr_e( 'Search by product name or SKU…', 'rapm' ); ?>" />
+							<div id="rapm-curated-picker-results" class="rapm-dest-picker-results"></div>
+							<p class="description"><?php esc_html_e( 'Click a result to add it. Add as many as you like — they\'ll show first, in the order you add them.', 'rapm' ); ?></p>
+							<ul id="rapm-curated-selected-list" style="list-style:none;margin:10px 0 0;padding:0;"></ul>
+							<textarea id="rapm_curated_skus" name="rapm_curated_skus" rows="3" class="large-text" style="display:none;"><?php echo esc_textarea( implode( "\n", $curated['skus'] ) ); ?></textarea>
 							<p style="margin-top:16px;">
 								<label for="rapm_curated_fallback_type"><strong><?php esc_html_e( 'Then fill in the rest of the page with...', 'rapm' ); ?></strong></label><br />
 								<select id="rapm_curated_fallback_type" name="rapm_curated_fallback_type">
@@ -408,12 +449,19 @@ class RAPM_Upload_Handler {
 						var rows         = document.querySelectorAll( '.rapm-dest-row' );
 						var hiddenValue  = document.getElementById( 'rapm_dest_value' );
 						var picker       = document.getElementById( 'rapm_dest_picker' );
+						var pickerLabel  = document.getElementById( 'rapm-dest-picker-label' );
 						var resultsBox   = document.getElementById( 'rapm-dest-picker-results' );
 						var currentLabel = document.getElementById( 'rapm-dest-picker-current' );
 						var ajaxUrl      = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
 						var searchNonce  = <?php echo wp_json_encode( wp_create_nonce( 'rapm_search_destination' ) ); ?>;
 						var pickerTypes  = [ 'post', 'wc_product', 'wc_category', 'wc_brand' ];
 						var debounceTimer;
+						var PICKER_TEXT = {
+							post:        { label: <?php echo wp_json_encode( __( 'Start typing a page or post name', 'rapm' ) ); ?>, placeholder: <?php echo wp_json_encode( __( 'Start typing a name…', 'rapm' ) ); ?> },
+							wc_product:  { label: <?php echo wp_json_encode( __( 'Search by product name or SKU', 'rapm' ) ); ?>, placeholder: <?php echo wp_json_encode( __( 'Search by product name or SKU…', 'rapm' ) ); ?> },
+							wc_category: { label: <?php echo wp_json_encode( __( 'Start typing a category name', 'rapm' ) ); ?>, placeholder: <?php echo wp_json_encode( __( 'Start typing a name…', 'rapm' ) ); ?> },
+							wc_brand:    { label: <?php echo wp_json_encode( __( 'Start typing a brand name', 'rapm' ) ); ?>, placeholder: <?php echo wp_json_encode( __( 'Start typing a name…', 'rapm' ) ); ?> }
+						};
 
 						function syncRows() {
 							var current = destType.value;
@@ -421,6 +469,11 @@ class RAPM_Upload_Handler {
 								var allowed = row.getAttribute( 'data-for' ).split( ',' );
 								row.style.display = allowed.indexOf( current ) === -1 ? 'none' : '';
 							} );
+							var text = PICKER_TEXT[ current ];
+							if ( text ) {
+								pickerLabel.textContent = text.label;
+								picker.setAttribute( 'placeholder', text.placeholder );
+							}
 						}
 
 						// The plain url/search-words fields and the picker all
@@ -491,6 +544,102 @@ class RAPM_Upload_Handler {
 							fetch( resolveUrl ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
 								if ( res.success && res.data.label ) {
 									currentLabel.textContent = <?php echo wp_json_encode( __( 'Currently: ', 'rapm' ) ); ?> + res.data.label;
+								}
+							} );
+						}
+					} )();
+				</script>
+
+				<style>
+					.rapm-curated-chip { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #f0f0f1; border: 1px solid #dcdcde; border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 13px; max-width: 420px; }
+					.rapm-curated-chip.is-unresolved { border-color: #d63638; }
+					.rapm-curated-chip button { background: none; border: none; color: #b32d2e; cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; }
+				</style>
+				<script>
+					( function () {
+						var picker      = document.getElementById( 'rapm_curated_picker' );
+						var resultsBox  = document.getElementById( 'rapm-curated-picker-results' );
+						var listEl      = document.getElementById( 'rapm-curated-selected-list' );
+						var skusField   = document.getElementById( 'rapm_curated_skus' );
+						var ajaxUrl     = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+						var searchNonce = <?php echo wp_json_encode( wp_create_nonce( 'rapm_search_destination' ) ); ?>;
+						var selected    = []; // [{ sku, label, found }]
+						var debounceTimer;
+
+						function renderChips() {
+							listEl.innerHTML = '';
+							selected.forEach( function ( item, index ) {
+								var li = document.createElement( 'li' );
+								li.className = 'rapm-curated-chip' + ( item.found === false ? ' is-unresolved' : '' );
+								var span = document.createElement( 'span' );
+								span.textContent = item.label;
+								var btn = document.createElement( 'button' );
+								btn.type = 'button';
+								btn.setAttribute( 'aria-label', <?php echo wp_json_encode( __( 'Remove', 'rapm' ) ); ?> );
+								btn.textContent = '\u00d7';
+								btn.addEventListener( 'click', function () {
+									selected.splice( index, 1 );
+									renderChips();
+								} );
+								li.appendChild( span );
+								li.appendChild( btn );
+								listEl.appendChild( li );
+							} );
+							skusField.value = selected.map( function ( item ) { return item.sku; } ).join( '\n' );
+						}
+
+						function addProduct( sku, label, found ) {
+							if ( ! sku || selected.some( function ( item ) { return item.sku === sku; } ) ) {
+								return;
+							}
+							selected.push( { sku: sku, label: label, found: found } );
+							renderChips();
+						}
+
+						picker.addEventListener( 'input', function () {
+							var term = this.value.trim();
+							clearTimeout( debounceTimer );
+							if ( term.length < 2 ) {
+								resultsBox.innerHTML = '';
+								return;
+							}
+							debounceTimer = setTimeout( function () {
+								var url = ajaxUrl + '?action=rapm_search_destination&nonce=' + encodeURIComponent( searchNonce )
+									+ '&type=wc_product&term=' + encodeURIComponent( term );
+								fetch( url ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+									resultsBox.innerHTML = '';
+									if ( ! res.success || ! res.data.results.length ) {
+										return;
+									}
+									var list = document.createElement( 'ul' );
+									list.className = 'rapm-dest-picker-list';
+									res.data.results.forEach( function ( item ) {
+										if ( ! item.sku ) {
+											return;
+										}
+										var li = document.createElement( 'li' );
+										li.textContent = item.label;
+										li.addEventListener( 'click', function () {
+											addProduct( item.sku, item.label, true );
+											picker.value = '';
+											resultsBox.innerHTML = '';
+										} );
+										list.appendChild( li );
+									} );
+									resultsBox.appendChild( list );
+								} );
+							}, 300 );
+						} );
+
+						var existingSkus = skusField.value.split( '\n' ).map( function ( s ) { return s.trim(); } ).filter( Boolean );
+						if ( existingSkus.length ) {
+							var resolveUrl = ajaxUrl + '?action=rapm_search_destination&nonce=' + encodeURIComponent( searchNonce )
+								+ '&type=wc_product&resolve_skus=' + encodeURIComponent( existingSkus.join( ',' ) );
+							fetch( resolveUrl ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+								if ( res.success ) {
+									res.data.results.forEach( function ( item ) {
+										addProduct( item.sku, item.found ? item.label : ( <?php echo wp_json_encode( __( 'SKU: ', 'rapm' ) ); ?> + item.label ), item.found );
+									} );
 								}
 							} );
 						}
@@ -666,6 +815,9 @@ class RAPM_Upload_Handler {
 			'rapm_headline'     => 'sanitize_text_field',
 			'rapm_subhead'      => 'sanitize_text_field',
 			'rapm_cta_text'     => 'sanitize_text_field',
+			'rapm_text_align'   => array( __CLASS__, 'sanitize_text_align' ),
+			'rapm_text_color'   => array( __CLASS__, 'sanitize_text_color' ),
+			'rapm_text_style'   => array( __CLASS__, 'sanitize_text_style' ),
 			'rapm_starts_at'    => 'sanitize_text_field',
 			'rapm_ends_at'      => 'sanitize_text_field',
 		);
@@ -812,6 +964,19 @@ class RAPM_Upload_Handler {
 		}
 
 		return $attachment_id;
+	}
+
+	public static function sanitize_text_align( $value ) {
+		return in_array( $value, array( 'left', 'center', 'right' ), true ) ? $value : 'left';
+	}
+
+	public static function sanitize_text_style( $value ) {
+		return in_array( $value, array( 'bold', 'elegant', 'minimal' ), true ) ? $value : 'bold';
+	}
+
+	public static function sanitize_text_color( $value ) {
+		$color = sanitize_hex_color( $value );
+		return $color ? $color : '#ffffff';
 	}
 
 	private static function fail( $back_url, $message ) {
