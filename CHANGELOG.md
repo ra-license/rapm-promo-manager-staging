@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.4.0
+
+**Feature: in-plugin Help & FAQ page, written for a 5th-grade reading level.** Directly follows from the same non-technical-user requirement behind the rest of this plugin's UI — a help resource that itself uses jargon or long sentences doesn't actually help.
+
+- New Promo Manager > Help & FAQ admin page (`RAPM_Help`), open to anyone who can add assets (`edit_posts`), not just Administrators. Step-by-step "Adding a New Promotion" walkthrough at the top, followed by short Q&A entries grouped by topic (Pictures, Sale Text, Where It Goes When Clicked, Scheduling).
+- Built with native `<details>`/`<summary>` for the Q&A entries rather than a custom JS accordion — no JavaScript dependency, and screen readers announce the expand/collapse state correctly on their own.
+- A "Help & FAQ" button now appears next to the page title on the Add/Edit Asset form itself, so it's discoverable right where questions actually come up.
+
 ## 1.3.0
 
 **Feature: link a promotion to specific WooCommerce products, brands, or search results — pickable by name, not ID.** Prompted by the need to point a promotion at specific SKUs, a brand, or a category without asking a non-technical account manager to hunt down a numeric ID.
