@@ -4,6 +4,10 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.9.1
+
+**Fix: Marquee's wrapper now hugs the tile row's actual width instead of stretching full-width.** `.rapm-marquee-wrap` was a block-level flex container with no width constraint, so it always spanned its full parent width regardless of item count — most obvious at `items="1"`, where a single small tile sat centered inside a much wider empty band. Set to `width: max-content` (capped by `max-width: 100%` so it still shrinks correctly on narrow screens) so the whitespace around the row always matches the row's own width, at every item count from 1 to 5. Verified visually at items=1/3/5 with the wrapper's own background tinted for inspection.
+
 ## 1.9.0
 
 **Fix: Marquee tiles beyond the visible count now page in like a carousel, not wrap onto more rows.** Direct follow-up to 1.8.0 — the wrap-to-more-rows behavior shipped there wasn't what was wanted; extra tiles should be paged to, not stacked below.

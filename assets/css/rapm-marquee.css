@@ -8,6 +8,12 @@
 	align-items: center;
 	gap: 8px;
 	justify-content: center;
+	/* Hug the tile row's own width (1 tile through 5) rather than
+	   staying block-level full-width — otherwise the row sits centered
+	   inside a much wider empty band, most obvious at a low item count. */
+	width: max-content;
+	max-width: 100%;
+	margin: 0 auto;
 }
 
 .rapm-marquee {
