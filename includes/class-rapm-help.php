@@ -80,6 +80,25 @@ class RAPM_Help {
 				<p><?php esc_html_e( 'The desktop picture is required — without it, your promotion will not show up anywhere. The phone picture is a good idea too, since it makes sure your promotion looks its best on phones, but you can add it later if you need to.', 'rapm' ); ?></p>
 			</details>
 
+			<h2><?php esc_html_e( 'Linking to an Outside Picture — Questions and Answers', 'rapm' ); ?></h2>
+
+			<details>
+				<summary><?php esc_html_e( 'What does "Use a link" mean?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Instead of uploading a file from your computer, you paste in a web address that points straight to a picture — for example, one a brand partner keeps on their own marketing site, or a Google Drive file. We check it every hour and update the picture on your site automatically if it changes, so you never have to remember to re-upload it.', 'rapm' ); ?></p>
+			</details>
+
+			<details>
+				<summary><?php esc_html_e( 'How do I link to a Google Drive file?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'In Google Drive, right-click the file, choose Share, and change the setting to "Anyone with the link." Then copy that link and paste it into the box. If the setting is left more restricted than that, the link won\'t work.', 'rapm' ); ?></p>
+			</details>
+
+			<details>
+				<summary><?php esc_html_e( 'What happens if the link stops working?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Nothing breaks on your site — the last picture that worked keeps showing. You\'ll get an email, and you\'ll also see a red "Link issue" note next to that promotion in "All Assets," so you know to check it.', 'rapm' ); ?></p>
+			</details>
+
+			<div class="rapm-help-note"><?php esc_html_e( 'A linked picture still has to be the exact right size, just like an uploaded one — if a brand\'s picture is the wrong size, it will be turned down with a note explaining why, the same as an upload would be.', 'rapm' ); ?></div>
+
 			<h2><?php esc_html_e( 'Sale Text — Questions and Answers', 'rapm' ); ?></h2>
 
 			<details>

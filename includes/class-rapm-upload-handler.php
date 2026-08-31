@@ -71,8 +71,16 @@ class RAPM_Upload_Handler {
 		$placement   = $m( '_rapm_placement', 'default' );
 		$dest_type   = $m( '_rapm_destination_type', 'url' );
 		$dest_value  = $m( '_rapm_destination_value' );
-		$img_desktop = (int) $m( '_rapm_image_desktop_id' );
-		$img_mobile  = (int) $m( '_rapm_image_mobile_id' );
+		$img_desktop    = (int) $m( '_rapm_image_desktop_id' );
+		$img_mobile     = (int) $m( '_rapm_image_mobile_id' );
+		$desktop_source = $m( '_rapm_image_desktop_source', 'upload' );
+		$desktop_url    = $m( '_rapm_image_desktop_url' );
+		$desktop_synced = $m( '_rapm_image_desktop_synced_at' );
+		$desktop_error  = $m( '_rapm_image_desktop_sync_error' );
+		$mobile_source  = $m( '_rapm_image_mobile_source', 'upload' );
+		$mobile_url     = $m( '_rapm_image_mobile_url' );
+		$mobile_synced  = $m( '_rapm_image_mobile_synced_at' );
+		$mobile_error   = $m( '_rapm_image_mobile_sync_error' );
 		$slots       = RAPM_Slots::all();
 		$kinds       = RAPM_Slots::kinds();
 
@@ -117,8 +125,21 @@ class RAPM_Upload_Handler {
 					<th><label for="rapm_kind_selector"><?php esc_html_e( 'Type of Promotion', 'rapm' ); ?></label></th>
 					<td>
 						<select id="rapm_kind_selector">
-							<?php foreach ( $kinds as $key => $info ) : ?>
-								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $kind_key, $key ); ?>><?php echo esc_html( $info['label'] ); ?></option>
+							<?php
+							foreach ( $kinds as $key => $info ) :
+								$opt_desktop = $slots[ $info['desktop'] ];
+								$opt_mobile  = $slots[ $info['mobile'] ];
+								$opt_label   = sprintf(
+									/* translators: 1: kind label, 2: desktop width, 3: desktop height, 4: mobile width, 5: mobile height */
+									__( '%1$s — Desktop %2$dx%3$d, Mobile %4$dx%5$d', 'rapm' ),
+									$info['label'],
+									$opt_desktop['width'],
+									$opt_desktop['height'],
+									$opt_mobile['width'],
+									$opt_mobile['height']
+								);
+								?>
+								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $kind_key, $key ); ?>><?php echo esc_html( $opt_label ); ?></option>
 							<?php endforeach; ?>
 						</select>
 						<p class="description"><?php esc_html_e( 'Choose which one before uploading pictures below — each type needs a different picture size, and picking this first tells you the right size to use.', 'rapm' ); ?></p>
@@ -158,22 +179,54 @@ class RAPM_Upload_Handler {
 				<p class="description"><?php esc_html_e( 'Upload whatever picture you have — any common format (JPG, PNG, whatever your phone or camera saves) is fine. This tool will automatically resize/convert it for you if needed, and will tell you clearly if it can\'t be used.', 'rapm' ); ?></p>
 				<table class="form-table">
 					<tr>
-						<th><label for="rapm_image_desktop"><?php echo esc_html( $desktop_slot['label'] ); ?></label></th>
+						<th><label><?php esc_html_e( 'Desktop Promotion', 'rapm' ); ?></label></th>
 						<td>
 							<?php if ( $img_desktop ) : ?>
 								<?php echo wp_get_attachment_image( $img_desktop, array( 240, 75 ), false, array( 'style' => 'display:block;margin-bottom:8px;border-radius:6px;object-fit:cover;' ) ); ?>
 							<?php endif; ?>
-							<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" <?php echo $img_desktop ? '' : 'required'; ?> />
+
+							<label class="rapm-source-choice"><input type="radio" name="rapm_image_desktop_source" class="rapm-source-radio" data-target="desktop" value="upload" <?php checked( 'upload', $desktop_source ); ?> /> <?php esc_html_e( 'Upload a file', 'rapm' ); ?></label>
+							<label class="rapm-source-choice"><input type="radio" name="rapm_image_desktop_source" class="rapm-source-radio" data-target="desktop" value="link" <?php checked( 'link', $desktop_source ); ?> /> <?php esc_html_e( 'Use a link', 'rapm' ); ?></label>
+
+							<div id="rapm-desktop-upload-row" style="margin-top:8px;<?php echo 'link' === $desktop_source ? 'display:none;' : ''; ?>">
+								<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" <?php echo ( $img_desktop || 'link' === $desktop_source ) ? '' : 'required'; ?> />
+							</div>
+							<div id="rapm-desktop-link-row" style="margin-top:8px;<?php echo 'link' === $desktop_source ? '' : 'display:none;'; ?>">
+								<input type="url" id="rapm_image_desktop_url" name="rapm_image_desktop_url" class="regular-text" value="<?php echo esc_attr( $desktop_url ); ?>" placeholder="https://…" />
+								<p class="description"><?php esc_html_e( 'Paste a direct link to the picture, or a Google Drive share link (set the file\'s sharing setting to "Anyone with the link"). We\'ll check this link every hour and automatically update the picture if it changes — you never have to come back and re-upload it yourself.', 'rapm' ); ?></p>
+								<?php if ( $desktop_error ) : ?>
+									<p class="description" style="color:#b32d2e;"><?php echo esc_html( sprintf( __( 'Couldn\'t update from this link: %s Still showing the last picture that worked — nothing is broken on the live site.', 'rapm' ), $desktop_error ) ); ?></p>
+								<?php elseif ( $desktop_synced ) : ?>
+									<p class="description"><?php echo esc_html( sprintf( __( 'Last checked: %s ago', 'rapm' ), human_time_diff( strtotime( $desktop_synced ) ) ) ); ?></p>
+								<?php endif; ?>
+							</div>
+
 							<p class="description"><?php echo esc_html( sprintf( __( 'This picture needs to be exactly %1$d by %2$d (width by height, in pixels — this is usually shown when you export, crop, or resize a photo). If it\'s the wrong size, you\'ll see exactly what you uploaded vs. what\'s needed so you know what to fix.', 'rapm' ), $desktop_slot['width'], $desktop_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th><label for="rapm_image_mobile"><?php echo esc_html( $mobile_slot['label'] ); ?></label></th>
+						<th><label><?php esc_html_e( 'Mobile Promotion', 'rapm' ); ?></label></th>
 						<td>
 							<?php if ( $img_mobile ) : ?>
 								<?php echo wp_get_attachment_image( $img_mobile, array( 120, 213 ), false, array( 'style' => 'display:block;margin-bottom:8px;border-radius:6px;object-fit:cover;' ) ); ?>
 							<?php endif; ?>
-							<input type="file" id="rapm_image_mobile" name="rapm_image_mobile" accept="image/*" />
+
+							<label class="rapm-source-choice"><input type="radio" name="rapm_image_mobile_source" class="rapm-source-radio" data-target="mobile" value="upload" <?php checked( 'upload', $mobile_source ); ?> /> <?php esc_html_e( 'Upload a file', 'rapm' ); ?></label>
+							<label class="rapm-source-choice"><input type="radio" name="rapm_image_mobile_source" class="rapm-source-radio" data-target="mobile" value="link" <?php checked( 'link', $mobile_source ); ?> /> <?php esc_html_e( 'Use a link', 'rapm' ); ?></label>
+
+							<div id="rapm-mobile-upload-row" style="margin-top:8px;<?php echo 'link' === $mobile_source ? 'display:none;' : ''; ?>">
+								<input type="file" id="rapm_image_mobile" name="rapm_image_mobile" accept="image/*" />
+							</div>
+							<div id="rapm-mobile-link-row" style="margin-top:8px;<?php echo 'link' === $mobile_source ? '' : 'display:none;'; ?>">
+								<input type="url" id="rapm_image_mobile_url" name="rapm_image_mobile_url" class="regular-text" value="<?php echo esc_attr( $mobile_url ); ?>" placeholder="https://…" />
+								<p class="description"><?php esc_html_e( 'Paste a direct link to the picture, or a Google Drive share link (set the file\'s sharing setting to "Anyone with the link"). We\'ll check this link every hour and automatically update the picture if it changes.', 'rapm' ); ?></p>
+								<?php if ( $mobile_error ) : ?>
+									<p class="description" style="color:#b32d2e;"><?php echo esc_html( sprintf( __( 'Couldn\'t update from this link: %s Still showing the last picture that worked — nothing is broken on the live site.', 'rapm' ), $mobile_error ) ); ?></p>
+								<?php elseif ( $mobile_synced ) : ?>
+									<p class="description"><?php echo esc_html( sprintf( __( 'Last checked: %s ago', 'rapm' ), human_time_diff( strtotime( $mobile_synced ) ) ) ); ?></p>
+								<?php endif; ?>
+							</div>
+
 							<p class="description"><?php echo esc_html( sprintf( __( 'The version shown on phones — needs to be exactly %1$d by %2$d.', 'rapm' ), $mobile_slot['width'], $mobile_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
@@ -184,6 +237,22 @@ class RAPM_Upload_Handler {
 						</td>
 					</tr>
 				</table>
+				<style>
+					.rapm-source-choice { font-size: 13px; margin-right: 16px; font-weight: normal; }
+				</style>
+				<script>
+					( function () {
+						function syncImageSource( target ) {
+							var checked = document.querySelector( 'input[name="rapm_image_' + target + '_source"]:checked' );
+							var val = checked ? checked.value : 'upload';
+							document.getElementById( 'rapm-' + target + '-upload-row' ).style.display = 'link' === val ? 'none' : '';
+							document.getElementById( 'rapm-' + target + '-link-row' ).style.display = 'link' === val ? '' : 'none';
+						}
+						document.querySelectorAll( '.rapm-source-radio' ).forEach( function ( radio ) {
+							radio.addEventListener( 'change', function () { syncImageSource( this.getAttribute( 'data-target' ) ); } );
+						} );
+					} )();
+				</script>
 
 				<h2><?php esc_html_e( 'Sale Text', 'rapm' ); ?></h2>
 				<table class="form-table">
@@ -481,14 +550,38 @@ class RAPM_Upload_Handler {
 		$new_desktop_id = null;
 		$new_mobile_id  = null;
 
-		if ( ! empty( $_FILES['rapm_image_desktop']['tmp_name'] ) ) {
+		$desktop_source = isset( $_POST['rapm_image_desktop_source'] ) && 'link' === $_POST['rapm_image_desktop_source'] ? 'link' : 'upload';
+		$mobile_source  = isset( $_POST['rapm_image_mobile_source'] ) && 'link' === $_POST['rapm_image_mobile_source'] ? 'link' : 'upload';
+		$desktop_url    = '';
+		$mobile_url     = '';
+
+		if ( 'link' === $desktop_source ) {
+			$desktop_url = isset( $_POST['rapm_image_desktop_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_desktop_url'] ) ) : '';
+			if ( $desktop_url ) {
+				$result = RAPM_Link_Source::fetch_and_validate( $desktop_url, $slots[ $kind['desktop'] ], $asset_id ?: 0 );
+				if ( is_wp_error( $result ) ) {
+					self::fail( $back, $result->get_error_message() );
+				}
+				$new_desktop_id = $result;
+			}
+		} elseif ( ! empty( $_FILES['rapm_image_desktop']['tmp_name'] ) ) {
 			$result = self::process_upload( $_FILES['rapm_image_desktop'], $slots[ $kind['desktop'] ], $asset_id ?: 0 );
 			if ( is_wp_error( $result ) ) {
 				self::fail( $back, $result->get_error_message() );
 			}
 			$new_desktop_id = $result;
 		}
-		if ( ! empty( $_FILES['rapm_image_mobile']['tmp_name'] ) ) {
+
+		if ( 'link' === $mobile_source ) {
+			$mobile_url = isset( $_POST['rapm_image_mobile_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_mobile_url'] ) ) : '';
+			if ( $mobile_url ) {
+				$result = RAPM_Link_Source::fetch_and_validate( $mobile_url, $slots[ $kind['mobile'] ], $asset_id ?: 0 );
+				if ( is_wp_error( $result ) ) {
+					self::fail( $back, $result->get_error_message() );
+				}
+				$new_mobile_id = $result;
+			}
+		} elseif ( ! empty( $_FILES['rapm_image_mobile']['tmp_name'] ) ) {
 			$result = self::process_upload( $_FILES['rapm_image_mobile'], $slots[ $kind['mobile'] ], $asset_id ?: 0 );
 			if ( is_wp_error( $result ) ) {
 				self::fail( $back, $result->get_error_message() );
@@ -504,7 +597,10 @@ class RAPM_Upload_Handler {
 		// explain why.
 		$has_desktop_image = $new_desktop_id || ( $is_edit && get_post_meta( $asset_id, '_rapm_image_desktop_id', true ) );
 		if ( ! $has_desktop_image ) {
-			self::fail( $back, __( 'Please upload a desktop image — it\'s required for this asset to actually display anywhere.', 'rapm' ) );
+			$desktop_required_msg = 'link' === $desktop_source
+				? __( 'Please paste a link to a desktop picture — it\'s required for this asset to actually display anywhere.', 'rapm' )
+				: __( 'Please upload a desktop image — it\'s required for this asset to actually display anywhere.', 'rapm' );
+			self::fail( $back, $desktop_required_msg );
 		}
 
 		if ( $is_edit ) {
@@ -535,6 +631,28 @@ class RAPM_Upload_Handler {
 		}
 		if ( null !== $new_mobile_id ) {
 			update_post_meta( $asset_id, '_rapm_image_mobile_id', $new_mobile_id );
+		}
+
+		update_post_meta( $asset_id, '_rapm_image_desktop_source', $desktop_source );
+		if ( 'link' === $desktop_source && null !== $new_desktop_id ) {
+			update_post_meta( $asset_id, '_rapm_image_desktop_url', $desktop_url );
+			update_post_meta( $asset_id, '_rapm_image_desktop_synced_at', current_time( 'mysql' ) );
+			delete_post_meta( $asset_id, '_rapm_image_desktop_sync_error' );
+		} elseif ( 'upload' === $desktop_source ) {
+			delete_post_meta( $asset_id, '_rapm_image_desktop_url' );
+			delete_post_meta( $asset_id, '_rapm_image_desktop_synced_at' );
+			delete_post_meta( $asset_id, '_rapm_image_desktop_sync_error' );
+		}
+
+		update_post_meta( $asset_id, '_rapm_image_mobile_source', $mobile_source );
+		if ( 'link' === $mobile_source && null !== $new_mobile_id ) {
+			update_post_meta( $asset_id, '_rapm_image_mobile_url', $mobile_url );
+			update_post_meta( $asset_id, '_rapm_image_mobile_synced_at', current_time( 'mysql' ) );
+			delete_post_meta( $asset_id, '_rapm_image_mobile_sync_error' );
+		} elseif ( 'upload' === $mobile_source ) {
+			delete_post_meta( $asset_id, '_rapm_image_mobile_url' );
+			delete_post_meta( $asset_id, '_rapm_image_mobile_synced_at' );
+			delete_post_meta( $asset_id, '_rapm_image_mobile_sync_error' );
 		}
 
 		update_post_meta( $asset_id, '_rapm_kind', $kind_key );
@@ -612,17 +730,33 @@ class RAPM_Upload_Handler {
 		if ( ! empty( $file['error'] ) && UPLOAD_ERR_OK !== $file['error'] ) {
 			return new WP_Error( 'rapm_upload_error', __( 'The file failed to upload — please try again.', 'rapm' ) );
 		}
+		return self::validate_convert_sideload( $file['tmp_name'], $file['name'], $slot, $parent_id );
+	}
 
-		$filetype = wp_check_filetype( $file['name'] );
-		if ( empty( $filetype['type'] ) || 0 !== strpos( $filetype['type'], 'image/' ) ) {
-			return new WP_Error( 'rapm_not_image', __( 'That file doesn\'t look like an image.', 'rapm' ) );
-		}
-
-		$dims = getimagesize( $file['tmp_name'] );
+	/**
+	 * The core validation/conversion/sideload pipeline — starting from any
+	 * image file already sitting on disk, regardless of how it got there.
+	 * process_upload() (a posted file) and RAPM_Link_Source (a downloaded
+	 * URL) both funnel through this one method, so a link-sourced image is
+	 * never held to a looser standard than a directly uploaded one.
+	 *
+	 * The actual file type is read from the file's own bytes
+	 * (getimagesize()'s mime), not trusted from $original_filename's
+	 * extension — a downloaded URL often has no useful filename at all
+	 * (e.g. a Google Drive export link), so extension-sniffing would
+	 * reject perfectly good images.
+	 */
+	public static function validate_convert_sideload( $tmp_path, $original_filename, $slot, $parent_id ) {
+		$dims = getimagesize( $tmp_path );
 		if ( ! $dims ) {
 			return new WP_Error( 'rapm_unreadable', __( 'Could not read that image file.', 'rapm' ) );
 		}
 		list( $width, $height ) = $dims;
+		$mime = isset( $dims['mime'] ) ? $dims['mime'] : '';
+
+		if ( ! in_array( $mime, array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' ), true ) ) {
+			return new WP_Error( 'rapm_not_image', __( 'That file doesn\'t look like an image.', 'rapm' ) );
+		}
 
 		if ( ! RAPM_Slots::dimensions_match( $slot, $width, $height ) ) {
 			return new WP_Error(
@@ -638,21 +772,22 @@ class RAPM_Upload_Handler {
 			);
 		}
 
-		$already_webp_and_small = 'image/webp' === $filetype['type'] && ( filesize( $file['tmp_name'] ) / 1024 ) <= $slot['max_kb'];
+		$already_webp_and_small = 'image/webp' === $mime && ( filesize( $tmp_path ) / 1024 ) <= $slot['max_kb'];
+		$base_name              = sanitize_file_name( pathinfo( $original_filename, PATHINFO_FILENAME ) ) ?: 'rapm-image'; // phpcs:ignore
 
 		if ( $already_webp_and_small ) {
-			$upload_path = $file['tmp_name'];
-			$upload_name = wp_unique_filename( wp_upload_dir()['path'], sanitize_file_name( $file['name'] ) );
+			$upload_path = $tmp_path;
+			$upload_name = wp_unique_filename( wp_upload_dir()['path'], $base_name . '.webp' );
 		} else {
 			if ( ! RAPM_Webp_Converter::is_available() ) {
 				return new WP_Error( 'rapm_no_webp_support', __( 'This server can\'t auto-convert images to WebP (no Imagick or GD WebP support found). Please upload a .webp file directly, or ask your host to enable WebP support.', 'rapm' ) );
 			}
-			$converted = RAPM_Webp_Converter::convert( $file['tmp_name'], $slot['max_kb'] );
+			$converted = RAPM_Webp_Converter::convert( $tmp_path, $slot['max_kb'] );
 			if ( is_wp_error( $converted ) ) {
 				return $converted;
 			}
 			$upload_path = $converted['path'];
-			$upload_name = wp_unique_filename( wp_upload_dir()['path'], pathinfo( $file['name'], PATHINFO_FILENAME ) . '.webp' );
+			$upload_name = wp_unique_filename( wp_upload_dir()['path'], $base_name . '.webp' );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';

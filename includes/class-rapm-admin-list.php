@@ -43,6 +43,9 @@ class RAPM_Admin_List {
 
 			case 'rapm_status':
 				echo esc_html( self::schedule_status_label( $post_id ) );
+				if ( get_post_meta( $post_id, '_rapm_image_desktop_sync_error', true ) || get_post_meta( $post_id, '_rapm_image_mobile_sync_error', true ) ) {
+					echo ' <span style="color:#b32d2e;" title="' . esc_attr__( 'A linked picture stopped updating — the last one that worked is still showing. Edit this asset for details.', 'rapm' ) . '">&#9888; ' . esc_html__( 'Link issue', 'rapm' ) . '</span>';
+				}
 				break;
 
 			case 'rapm_edit':

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RA Promo Manager
  * Description: Validated, scheduled promotional assets (hero banners and more) for client sites — enforces correct image dimensions/format/size on upload, schedules reliably even behind full-page caching, and links out to WordPress content, Elementor pages, or WooCommerce products/categories. Shortcode: [rapm_hero placement="default"].
- * Version: 1.4.0
+ * Version: 1.5.0
  * Author: RA Marketing
  * Text Domain: rapm
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RAPM_VERSION', '1.4.0' );
+define( 'RAPM_VERSION', '1.5.0' );
 define( 'RAPM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RAPM_URL', plugin_dir_url( __FILE__ ) );
 
@@ -23,6 +23,8 @@ require_once RAPM_DIR . 'includes/class-rapm-admin-settings.php';
 require_once RAPM_DIR . 'includes/class-rapm-upload-handler.php';
 require_once RAPM_DIR . 'includes/class-rapm-admin-list.php';
 require_once RAPM_DIR . 'includes/class-rapm-help.php';
+require_once RAPM_DIR . 'includes/class-rapm-link-source.php';
+require_once RAPM_DIR . 'includes/class-rapm-sync.php';
 require_once RAPM_DIR . 'includes/class-rapm-hero-carousel.php';
 require_once RAPM_DIR . 'includes/class-rapm-curated-results.php';
 require_once RAPM_DIR . 'includes/class-rapm-elementor.php';
@@ -54,6 +56,9 @@ final class RAPM_Plugin {
 		add_action( 'admin_post_rapm_save_asset', array( 'RAPM_Upload_Handler', 'handle_save' ) );
 		add_action( 'wp_ajax_rapm_search_destination', array( 'RAPM_Destination', 'ajax_search' ) );
 
+		add_action( 'init', array( 'RAPM_Sync', 'schedule' ) );
+		add_action( RAPM_Sync::HOOK, array( 'RAPM_Sync', 'run' ) );
+
 		add_action( 'admin_menu', array( 'RAPM_Admin_Settings', 'add_menu' ) );
 		add_action( 'admin_init', array( 'RAPM_Admin_Settings', 'register_settings' ) );
 
@@ -69,10 +74,12 @@ final class RAPM_Plugin {
 
 	public function activate() {
 		RAPM_Post_Types::register();
+		RAPM_Sync::schedule();
 		flush_rewrite_rules();
 	}
 
 	public function deactivate() {
+		RAPM_Sync::unschedule();
 		flush_rewrite_rules();
 	}
 }

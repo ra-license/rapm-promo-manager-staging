@@ -4,6 +4,17 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.5.0
+
+**Feature: link a promotion picture to an outside file (direct URL or Google Drive) instead of uploading it, kept up to date automatically.** Requested for brand partners who host their own co-op promotional images and update them independently — rather than an account manager re-downloading and re-uploading a file every time a brand changes it.
+
+- Each of Desktop Promotion / Mobile Promotion now offers "Upload a file" or "Use a link." A linked image goes through the exact same dimension/format/size validation as a direct upload (`RAPM_Upload_Handler::validate_convert_sideload()`, refactored to be the shared core both paths call) — it's held to the same standard, not a looser one.
+- **Live sync, not a one-time import**: a new hourly WP-Cron job (`RAPM_Sync`) re-checks every linked image and swaps in the new picture only when the source file actually changed (compared by content hash, not just re-fetching blindly), so an unchanged source doesn't clutter the Media Library.
+- **A failed check never breaks the live site.** If a link goes down, gets deleted, or starts returning the wrong-size image, the last picture that worked keeps showing — the failure is recorded, surfaced as a red "Link issue" note in All Assets, and emailed once to the site admin (not on every retry) so it gets noticed and fixed.
+- **Google Drive support, researched rather than assumed reliable**: a normal Drive "Share" link isn't directly downloadable, so it's automatically rewritten to Drive's export-download URL. Flagged clearly in both the field's help text and the Help & FAQ page: Drive blocks larger files behind a "can't scan for viruses" warning page instead of serving them directly, so this is reliable for typical promotional-image sizes but not guaranteed for large files — a direct file URL from a CDN or marketing portal remains the more dependable option.
+- New `RAPM_Link_Source` class handles URL normalization and the fetch-validate-sideload pipeline (built on WordPress's own `download_url()`).
+- Two smaller fixes bundled in while touching this same form: the "Type of Promotion" dropdown now shows each kind's required dimensions directly in the option text, and the Desktop/Mobile picture fields are labeled "Desktop Promotion" / "Mobile Promotion" instead of the more generic slot label.
+
 ## 1.4.0
 
 **Feature: in-plugin Help & FAQ page, written for a 5th-grade reading level.** Directly follows from the same non-technical-user requirement behind the rest of this plugin's UI — a help resource that itself uses jargon or long sentences doesn't actually help.
