@@ -1,0 +1,101 @@
+.rapm-hero {
+	position: relative;
+	overflow: hidden;
+	background: #111;
+}
+
+.rapm-slide {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.rapm-slide picture {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* Promotional copy is always real HTML text layered over the image, never
+   flattened into the image file itself — this is what keeps it crawlable,
+   screen-reader accessible, and editable without a re-upload. Kept
+   restrained (a soft gradient, modest type scale, no motion beyond the
+   carousel's own transition) rather than flashy — banner-blindness/
+   eye-tracking research consistently finds understated promotional
+   elements outperform loud ones in an editorial-feeling context. */
+.rapm-slide-copy {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	padding: 32px 40px;
+	box-sizing: border-box;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.55) 100%);
+	color: #fff;
+	z-index: 4;
+	pointer-events: none;
+}
+
+.rapm-headline {
+	font-size: 28px;
+	font-weight: 700;
+	margin: 0 0 6px;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.rapm-subhead {
+	font-size: 15px;
+	margin: 0 0 14px;
+	opacity: 0.92;
+	max-width: 480px;
+}
+
+.rapm-cta-btn {
+	display: inline-block;
+	padding: 10px 22px;
+	border-radius: 100px;
+	background: #fff;
+	color: #111;
+	font-size: 13px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.rapm-slide-link {
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	display: block;
+}
+
+.rapm-nav-btn {
+	color: #fff !important;
+	background: rgba(0, 0, 0, 0.4);
+	padding: 26px 18px;
+	border-radius: 4px;
+	z-index: 10;
+}
+
+.rapm-nav-btn::after {
+	font-size: 18px !important;
+}
+
+.rapm-hero .swiper-pagination {
+	bottom: 16px !important;
+	z-index: 10;
+}
+
+.rapm-hero .swiper-pagination-bullet {
+	background: #fff !important;
+	opacity: 0.65;
+}
+
+.rapm-hero .swiper-pagination-bullet-active {
+	opacity: 1;
+}
+
+@media (max-width: 768px) {
+	.rapm-slide-copy { padding: 24px 20px; }
+	.rapm-headline { font-size: 22px; }
+}
