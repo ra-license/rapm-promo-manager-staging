@@ -4,6 +4,15 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.2.0
+
+**Feature: plain-language guided form for non-technical uploaders.** Prompted directly by the concern that the people actually using this form day-to-day may have no idea what "image size," "file type," or web jargon in general means, and previous copy leaned on exactly that (e.g. explaining live text via "keeps it readable to... AI answer tools").
+
+- The Headline/Subheadline/Button Text fields are no longer just described in prose as "the alternative to baking text into the image" — there's now an explicit, plain-language either/or choice at the top of that section ("Does your picture already show the price, sale, or date on it?" — Yes/No radio buttons), and choosing "Yes" hides the text fields entirely rather than leaving someone to infer they should skip them.
+- **Fix, found while wiring this up:** the hidden-but-still-present text fields would have been submitted along with the form regardless of the radio choice (CSS `display:none` doesn't stop a value from being submitted) — `handle_save()` now explicitly force-clears Headline/Subhead/CTA server-side whenever "already on the picture" is chosen, so a stale value can't sneak through.
+- **Fix, found in the same pass:** the Button Text field's "Shop Now" suggestion was previously a pre-filled *value*, not a placeholder hint — meaning re-editing an asset where it had been deliberately left blank would silently re-populate "Shop Now" and could get re-saved on the next edit. Now a real `placeholder`, only ever saved if actually typed.
+- Rewrote the jargon-heavy copy throughout the rest of the form into plain language: "Kind" → "Type of Promotion," "Links To"/"Link Target" → "Send visitors to..."/"Address / ID," "Schedule" → "When It Should Show," dimension requirements now explain what "pixels" means instead of assuming it, and all mentions of WebP/SEO/screen-readers/full-page-caching removed from user-facing copy (kept only in code comments, where they belong).
+
 ## 1.1.2
 
 **Fixes, prompted by verifying that live text is genuinely optional (it is — Headline/Subhead/Button Text have never been required fields, server- or client-side):**

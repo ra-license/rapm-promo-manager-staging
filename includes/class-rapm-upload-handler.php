@@ -76,6 +76,12 @@ class RAPM_Upload_Handler {
 		$slots       = RAPM_Slots::all();
 		$kinds       = RAPM_Slots::kinds();
 
+		// Explicitly stored, not inferred from whether the text fields are
+		// empty — a brand-new asset and an existing one where "already on
+		// the image" was deliberately chosen both have empty fields, and
+		// need to be told apart to restore the right choice on re-edit.
+		$text_mode = $m( '_rapm_text_mode', 'type' );
+
 		// The kind can come from the URL (switching it before any file is
 		// chosen, so the right dimensions show immediately) or from the
 		// asset being edited; defaults to 'hero'.
@@ -98,14 +104,14 @@ class RAPM_Upload_Handler {
 
 			<table class="form-table" style="max-width:700px;">
 				<tr>
-					<th><label for="rapm_kind_selector"><?php esc_html_e( 'Kind', 'rapm' ); ?></label></th>
+					<th><label for="rapm_kind_selector"><?php esc_html_e( 'Type of Promotion', 'rapm' ); ?></label></th>
 					<td>
 						<select id="rapm_kind_selector">
 							<?php foreach ( $kinds as $key => $info ) : ?>
 								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $kind_key, $key ); ?>><?php echo esc_html( $info['label'] ); ?></option>
 							<?php endforeach; ?>
 						</select>
-						<p class="description"><?php esc_html_e( 'Which required image sizes apply below. Changing this reloads the page.', 'rapm' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Choose which one before uploading pictures below — each type needs a different picture size, and picking this first tells you the right size to use.', 'rapm' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -131,18 +137,15 @@ class RAPM_Upload_Handler {
 						</td>
 					</tr>
 					<tr>
-						<th><label for="rapm_placement"><?php esc_html_e( 'Placement', 'rapm' ); ?></label></th>
+						<th><label for="rapm_placement"><?php esc_html_e( 'Which Spot on the Site', 'rapm' ); ?></label></th>
 						<td><input type="text" id="rapm_placement" name="rapm_placement" value="<?php echo esc_attr( $placement ); ?>" />
-							<p class="description"><?php echo esc_html( sprintf( __( 'Which [rapm_hero placement="..."] or [rapm_fold_banner placement="..."] this belongs to (matched separately per Kind). Leave as "default" unless this site needs more than one %s.', 'rapm' ), strtolower( $kind['label'] ) ) ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'Just leave this as "default" unless someone has told you this site shows more than one %s in different spots (like one on the homepage and a different one on a category page) and asked you to type a specific name here.', 'rapm' ), strtolower( $kind['label'] ) ) ); ?></p>
 						</td>
 					</tr>
 				</table>
 
 				<h2><?php esc_html_e( 'Images', 'rapm' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Each image is checked against its required size before it\'s accepted, then automatically converted to WebP and compressed — you don\'t need to convert anything yourself. Only choose a file here if you\'re adding one for the first time or replacing the current one.', 'rapm' ); ?></p>
-				<div class="notice notice-warning inline" style="margin:0 0 12px;padding:8px 12px;">
-					<p><strong><?php esc_html_e( 'Don\'t include sale text, dates, or pricing baked into the image itself', 'rapm' ); ?></strong> — <?php esc_html_e( 'enter that in the Headline/Subheadline/Button Text fields below instead. This plugin can\'t automatically detect text already on an image, so if both are present they\'ll visibly overlap. Use the live preview at the bottom of this page to check before saving.', 'rapm' ); ?></p>
-				</div>
+				<p class="description"><?php esc_html_e( 'Upload whatever picture you have — any common format (JPG, PNG, whatever your phone or camera saves) is fine. This tool will automatically resize/convert it for you if needed, and will tell you clearly if it can\'t be used.', 'rapm' ); ?></p>
 				<table class="form-table">
 					<tr>
 						<th><label for="rapm_image_desktop"><?php echo esc_html( $desktop_slot['label'] ); ?></label></th>
@@ -151,7 +154,7 @@ class RAPM_Upload_Handler {
 								<?php echo wp_get_attachment_image( $img_desktop, array( 240, 75 ), false, array( 'style' => 'display:block;margin-bottom:8px;border-radius:6px;object-fit:cover;' ) ); ?>
 							<?php endif; ?>
 							<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" <?php echo $img_desktop ? '' : 'required'; ?> />
-							<p class="description"><?php echo esc_html( sprintf( __( 'Needs to be %1$dx%2$d px. Any common image format is fine — it\'ll be converted to WebP automatically.', 'rapm' ), $desktop_slot['width'], $desktop_slot['height'] ) ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'This picture needs to be exactly %1$d by %2$d (width by height, in pixels — this is usually shown when you export, crop, or resize a photo). If it\'s the wrong size, you\'ll see exactly what you uploaded vs. what\'s needed so you know what to fix.', 'rapm' ), $desktop_slot['width'], $desktop_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
 					<tr>
@@ -161,36 +164,65 @@ class RAPM_Upload_Handler {
 								<?php echo wp_get_attachment_image( $img_mobile, array( 120, 213 ), false, array( 'style' => 'display:block;margin-bottom:8px;border-radius:6px;object-fit:cover;' ) ); ?>
 							<?php endif; ?>
 							<input type="file" id="rapm_image_mobile" name="rapm_image_mobile" accept="image/*" />
-							<p class="description"><?php echo esc_html( sprintf( __( 'Needs to be %1$dx%2$d px.', 'rapm' ), $mobile_slot['width'], $mobile_slot['height'] ) ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'The version shown on phones — needs to be exactly %1$d by %2$d.', 'rapm' ), $mobile_slot['width'], $mobile_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th><label for="rapm_alt_text"><?php esc_html_e( 'Image Description (alt text)', 'rapm' ); ?></label></th>
+						<th><label for="rapm_alt_text"><?php esc_html_e( 'What\'s in the Picture', 'rapm' ); ?></label></th>
 						<td><input type="text" id="rapm_alt_text" name="rapm_alt_text" class="regular-text" value="<?php echo esc_attr( $m( '_rapm_alt_text' ) ); ?>" placeholder="<?php esc_attr_e( 'e.g. Living room with cream sectional and walnut coffee table', 'rapm' ); ?>" />
-							<p class="description"><?php esc_html_e( 'Describe the image itself, not the offer — the headline below already carries that as real text.', 'rapm' ); ?></p>
+							<p class="description"><?php esc_html_e( 'A short, plain description of what the picture shows (not the sale/offer — that goes below). This helps people using a screen reader, and helps the picture show up in search results.', 'rapm' ); ?></p>
 						</td>
 					</tr>
 				</table>
 
-				<h2><?php esc_html_e( 'Copy', 'rapm' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Rendered as real text over the image, never baked into it — this is what keeps it readable to search engines, screen readers, and AI answer tools, and lets you update wording without re-uploading anything.', 'rapm' ); ?></p>
+				<h2><?php esc_html_e( 'Sale Text', 'rapm' ); ?></h2>
 				<table class="form-table">
 					<tr>
-						<th><label for="rapm_headline"><?php esc_html_e( 'Headline', 'rapm' ); ?></label></th>
-						<td><input type="text" id="rapm_headline" name="rapm_headline" class="regular-text" value="<?php echo esc_attr( $m( '_rapm_headline' ) ); ?>" /></td>
-					</tr>
-					<tr>
-						<th><label for="rapm_subhead"><?php esc_html_e( 'Subheadline', 'rapm' ); ?></label></th>
-						<td><input type="text" id="rapm_subhead" name="rapm_subhead" class="regular-text" value="<?php echo esc_attr( $m( '_rapm_subhead' ) ); ?>" /></td>
-					</tr>
-					<tr>
-						<th><label for="rapm_cta_text"><?php esc_html_e( 'Button Text', 'rapm' ); ?></label></th>
-						<td><input type="text" id="rapm_cta_text" name="rapm_cta_text" value="<?php echo esc_attr( $m( '_rapm_cta_text', __( 'Shop Now', 'rapm' ) ) ); ?>" /></td>
+						<th><?php esc_html_e( 'Does your picture already show the price, sale, or date on it?', 'rapm' ); ?></th>
+						<td>
+							<label style="display:block;margin-bottom:8px;">
+								<input type="radio" name="rapm_text_mode" id="rapm_text_mode_type" value="type" <?php checked( 'type', $text_mode ); ?> />
+								<?php esc_html_e( 'No — I\'ll type it below (recommended)', 'rapm' ); ?>
+							</label>
+							<label style="display:block;">
+								<input type="radio" name="rapm_text_mode" id="rapm_text_mode_image" value="image" <?php checked( 'image', $text_mode ); ?> />
+								<?php esc_html_e( 'Yes — it\'s already printed on the picture, I don\'t need to type anything below', 'rapm' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Pick whichever is true. Typing something below AND having it already on the picture means it would show up twice, on top of itself.', 'rapm' ); ?></p>
+						</td>
 					</tr>
 				</table>
 
+				<div id="rapm-text-fields" <?php echo 'image' === $text_mode ? 'style="display:none;"' : ''; ?>>
+					<table class="form-table">
+						<tr>
+							<th><label for="rapm_headline"><?php esc_html_e( 'Headline', 'rapm' ); ?></label></th>
+							<td><input type="text" id="rapm_headline" name="rapm_headline" class="regular-text" value="<?php echo esc_attr( $m( '_rapm_headline' ) ); ?>" placeholder="<?php esc_attr_e( 'e.g. Labor Day Sale', 'rapm' ); ?>" /></td>
+						</tr>
+						<tr>
+							<th><label for="rapm_subhead"><?php esc_html_e( 'Smaller line under the headline', 'rapm' ); ?></label></th>
+							<td><input type="text" id="rapm_subhead" name="rapm_subhead" class="regular-text" value="<?php echo esc_attr( $m( '_rapm_subhead' ) ); ?>" placeholder="<?php esc_attr_e( 'e.g. Up to 30% off sofas and sectionals', 'rapm' ); ?>" /></td>
+						</tr>
+						<tr>
+							<th><label for="rapm_cta_text"><?php esc_html_e( 'Button Text', 'rapm' ); ?></label></th>
+							<td><input type="text" id="rapm_cta_text" name="rapm_cta_text" value="<?php echo esc_attr( $m( '_rapm_cta_text' ) ); ?>" placeholder="<?php esc_attr_e( 'e.g. Shop Now', 'rapm' ); ?>" /></td>
+						</tr>
+					</table>
+				</div>
+				<script>
+					( function () {
+						var typeFields = document.getElementById( 'rapm-text-fields' );
+						function sync() {
+							var wantsTyped = document.getElementById( 'rapm_text_mode_type' ).checked;
+							typeFields.style.display = wantsTyped ? '' : 'none';
+						}
+						document.getElementById( 'rapm_text_mode_type' ).addEventListener( 'change', sync );
+						document.getElementById( 'rapm_text_mode_image' ).addEventListener( 'change', sync );
+					} )();
+				</script>
+
 				<h2><?php esc_html_e( 'Live Preview', 'rapm' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Exactly what this will look like live — updates as you type or choose a new image. This is the place to catch text on the image clashing with the fields above.', 'rapm' ); ?></p>
+				<p class="description"><?php esc_html_e( 'This shows exactly what visitors will see, updating as you type or choose a picture. If something looks off — text overlapping, hard to read, etc. — fix it here before saving.', 'rapm' ); ?></p>
 				<div id="rapm-preview-wrap" style="max-width:600px;margin-bottom:24px;">
 					<div id="rapm-preview" class="rapm-hero" style="aspect-ratio:<?php echo esc_attr( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;background:#333;">
 						<div class="rapm-slide" style="width:100%;height:100%;">
@@ -236,38 +268,39 @@ class RAPM_Upload_Handler {
 					} )();
 				</script>
 
-				<h2><?php esc_html_e( 'Link', 'rapm' ); ?></h2>
+				<h2><?php esc_html_e( 'Where It Goes When Clicked', 'rapm' ); ?></h2>
 				<table class="form-table">
 					<tr>
-						<th><label for="rapm_dest_type"><?php esc_html_e( 'Links To', 'rapm' ); ?></label></th>
+						<th><label for="rapm_dest_type"><?php esc_html_e( 'Send visitors to...', 'rapm' ); ?></label></th>
 						<td>
 							<select id="rapm_dest_type" name="rapm_dest_type">
 								<?php foreach ( RAPM_Destination::types() as $type => $label ) : ?>
 									<option value="<?php echo esc_attr( $type ); ?>" <?php selected( $dest_type, $type ); ?>><?php echo esc_html( $label ); ?></option>
 								<?php endforeach; ?>
 							</select>
+							<p class="description"><?php esc_html_e( 'If you\'re not sure which to pick, use "A specific link" — it\'s just a normal web address, like the ones in your browser\'s address bar.', 'rapm' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th><label for="rapm_dest_value"><?php esc_html_e( 'Link Target', 'rapm' ); ?></label></th>
+						<th><label for="rapm_dest_value"><?php esc_html_e( 'Address / ID', 'rapm' ); ?></label></th>
 						<td><input type="text" id="rapm_dest_value" name="rapm_dest_value" class="regular-text" value="<?php echo esc_attr( $dest_value ); ?>" placeholder="https://…" />
-							<p class="description"><?php esc_html_e( 'A full URL for "A specific link", or the numeric post/product/category ID for the others (find it in that item\'s own edit-screen URL in wp-admin).', 'rapm' ); ?></p>
+							<p class="description"><?php esc_html_e( 'For "A specific link," paste the full web address (starting with https://). For the other options, ask whoever manages the website for the ID number — it\'s not something you can guess.', 'rapm' ); ?></p>
 						</td>
 					</tr>
 				</table>
 
-				<h2><?php esc_html_e( 'Schedule', 'rapm' ); ?></h2>
+				<h2><?php esc_html_e( 'When It Should Show', 'rapm' ); ?></h2>
 				<table class="form-table">
 					<tr>
-						<th><label for="rapm_starts_at"><?php esc_html_e( 'Starts', 'rapm' ); ?></label></th>
+						<th><label for="rapm_starts_at"><?php esc_html_e( 'Start showing on', 'rapm' ); ?></label></th>
 						<td><input type="datetime-local" id="rapm_starts_at" name="rapm_starts_at" value="<?php echo esc_attr( $m( '_rapm_starts_at' ) ); ?>" />
-							<p class="description"><?php esc_html_e( 'Leave blank to start showing immediately once published.', 'rapm' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Leave blank to start showing right away.', 'rapm' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th><label for="rapm_ends_at"><?php esc_html_e( 'Ends', 'rapm' ); ?></label></th>
+						<th><label for="rapm_ends_at"><?php esc_html_e( 'Stop showing on', 'rapm' ); ?></label></th>
 						<td><input type="datetime-local" id="rapm_ends_at" name="rapm_ends_at" value="<?php echo esc_attr( $m( '_rapm_ends_at' ) ); ?>" />
-							<p class="description"><?php esc_html_e( 'Leave blank to run indefinitely. This works reliably even behind a full-page cache plugin — it\'s checked in the visitor\'s own browser, not baked into a cached page.', 'rapm' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Leave blank to keep showing until you come back and change it. You can trust this date/time — it\'ll turn off exactly when it says, automatically, no matter what.', 'rapm' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -367,6 +400,9 @@ class RAPM_Upload_Handler {
 
 		update_post_meta( $asset_id, '_rapm_kind', $kind_key );
 
+		$text_mode = isset( $_POST['rapm_text_mode'] ) && 'image' === $_POST['rapm_text_mode'] ? 'image' : 'type';
+		update_post_meta( $asset_id, '_rapm_text_mode', $text_mode );
+
 		$meta_fields = array(
 			'rapm_placement'    => 'sanitize_title',
 			'rapm_alt_text'     => 'sanitize_text_field',
@@ -378,6 +414,15 @@ class RAPM_Upload_Handler {
 			'rapm_ends_at'      => 'sanitize_text_field',
 		);
 		foreach ( $meta_fields as $field => $sanitizer ) {
+			// The text fields are only hidden with CSS when "already on the
+			// image" is chosen — the browser still submits whatever value
+			// was left in them. Force them empty here rather than trust
+			// that, so switching to "already on the image" can't leave a
+			// stale headline/subhead/CTA saved underneath it.
+			if ( 'image' === $text_mode && in_array( $field, array( 'rapm_headline', 'rapm_subhead', 'rapm_cta_text' ), true ) ) {
+				update_post_meta( $asset_id, '_' . $field, '' );
+				continue;
+			}
 			if ( isset( $_POST[ $field ] ) ) {
 				update_post_meta( $asset_id, '_' . $field, call_user_func( $sanitizer, wp_unslash( $_POST[ $field ] ) ) );
 			}
