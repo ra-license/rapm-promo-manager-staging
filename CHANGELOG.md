@@ -4,6 +4,12 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.1.2
+
+**Fixes, prompted by verifying that live text is genuinely optional (it is — Headline/Subhead/Button Text have never been required fields, server- or client-side):**
+- An image-only slide (no headline/subhead/CTA at all) previously still rendered the `.rapm-slide-copy` gradient overlay wrapper unconditionally, subtly darkening the bottom of an otherwise "clean" image. Now that wrapper only renders when there's actually text to show.
+- The desktop image, on the other hand, effectively *was* required — without one, `render_slide()` already silently skipped the asset entirely (nothing to render), but nothing told the person saving it that would happen. Added a clear error instead: *"Please upload a desktop image — it's required for this asset to actually display anywhere."* Plus client-side `required` on that file input for new assets, for immediate feedback.
+
 ## 1.1.1
 
 **Feature: live WYSIWYG preview + text-clash warning on the Add/Edit Asset form.** Addresses a real gap: nothing previously stopped someone from uploading an image with sale text already baked into the pixels *and* separately filling in Headline/Subheadline/Button Text, producing visibly overlapping/duplicate text on the live page. Automatically detecting text inside an image would require OCR (a paid cloud vision API or a server binary rarely available on typical WordPress hosting) — a real external dependency and cost this plugin deliberately doesn't take on. Instead: the form now shows a live preview (image + text overlay rendered together, using the exact same CSS the live carousel uses) that updates as you type or choose a file, so whoever's uploading can see and fix a clash themselves before it ever publishes — plus an explicit on-screen warning next to the image fields. Loads `rapm-hero.css` only on this one admin screen.

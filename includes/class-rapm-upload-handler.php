@@ -150,7 +150,7 @@ class RAPM_Upload_Handler {
 							<?php if ( $img_desktop ) : ?>
 								<?php echo wp_get_attachment_image( $img_desktop, array( 240, 75 ), false, array( 'style' => 'display:block;margin-bottom:8px;border-radius:6px;object-fit:cover;' ) ); ?>
 							<?php endif; ?>
-							<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" />
+							<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" <?php echo $img_desktop ? '' : 'required'; ?> />
 							<p class="description"><?php echo esc_html( sprintf( __( 'Needs to be %1$dx%2$d px. Any common image format is fine — it\'ll be converted to WebP automatically.', 'rapm' ), $desktop_slot['width'], $desktop_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
@@ -322,6 +322,17 @@ class RAPM_Upload_Handler {
 				self::fail( $back, $result->get_error_message() );
 			}
 			$new_mobile_id = $result;
+		}
+
+		// A desktop image is the one truly required piece — without it the
+		// carousel has nothing to show and silently skips this asset
+		// entirely (see RAPM_Hero_Carousel::render_slide()). Catch that
+		// here with a clear message rather than letting someone publish an
+		// asset that will never actually appear anywhere, with no error to
+		// explain why.
+		$has_desktop_image = $new_desktop_id || ( $is_edit && get_post_meta( $asset_id, '_rapm_image_desktop_id', true ) );
+		if ( ! $has_desktop_image ) {
+			self::fail( $back, __( 'Please upload a desktop image — it\'s required for this asset to actually display anywhere.', 'rapm' ) );
 		}
 
 		if ( $is_edit ) {
