@@ -32,7 +32,7 @@ An Elementor widget ("Promo Carousel," under the Promo Manager category) wraps e
 `[rapm_curated_results]` — put this on one plain page, then set its address under Promo Manager > Settings > Curated Results Page. Every "hand-picked list" link on the site reuses this one page automatically.
 
 == Other display modes ==
-`[rapm_marquee items="4"]` — a compact row of square image tiles, "items" (1–5) controlling how many sit in one row (extra tiles wrap to another row). Add assets with Kind set to Marquee.
+`[rapm_marquee items="4"]` — a compact row of square image tiles, "items" (1–5) controlling how many show at once. Extra tiles page in like a carousel (Prev/Next buttons plus an optional timer, both configurable under Settings) rather than showing all at once. Add assets with Kind set to Marquee.
 `[rapm_coupon_book]` — a horizontal scrolling row of coupon cards (Kind: Coupon).
 `[rapm_promotions_calendar]` — a month calendar of every promotion (any Kind) that has both a start and end date set. Add `placement="..."` or `kind="..."` to scope it. This is RA Promo Manager's own promotions calendar — a different thing from any separate community-events-calendar plugin the site might also run, and it has no public submission form; every promotion on it comes from the Add/Edit Asset admin form.
 Marquee, Coupon Book, and Calendar don't have their own Elementor widgets yet — use Elementor's own Shortcode widget with the shortcodes above in the meantime.

@@ -1,13 +1,39 @@
-/* A compact "quick links" row of square tiles, not a scrolling ticker.
-   --rapm-marquee-items (set inline per-instance from the [rapm_marquee
-   items="..."] attribute) controls tiles per row; each tile itself is
-   capped at max-width so the row stays small even on a wide screen,
-   rather than stretching to fill the container. */
+/* A compact "quick links" row of square tiles, paged like a carousel —
+   exactly --rapm-marquee-items tiles are ever visible at once (JS hides
+   the rest), advanced by the Prev/Next arrows and/or a timer. Never
+   more tiles at once than the configured count, and never fewer visible
+   just because of wrapping. */
+.rapm-marquee-wrap {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	justify-content: center;
+}
+
 .rapm-marquee {
 	display: grid;
 	grid-template-columns: repeat(var(--rapm-marquee-items, 4), minmax(0, 200px));
-	justify-content: center;
 	gap: 20px 16px;
+}
+
+.rapm-marquee-arrow {
+	flex: 0 0 auto;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	background: #fff;
+	color: inherit;
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.rapm-marquee-arrow:hover {
+	background: rgba(0, 0, 0, 0.06);
 }
 
 .rapm-marquee-tile {

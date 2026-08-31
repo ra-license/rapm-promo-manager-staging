@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.9.0
+
+**Fix: Marquee tiles beyond the visible count now page in like a carousel, not wrap onto more rows.** Direct follow-up to 1.8.0 — the wrap-to-more-rows behavior shipped there wasn't what was wanted; extra tiles should be paged to, not stacked below.
+
+- `[rapm_marquee]` now shows exactly `items` tiles at a time (never more), with Prev/Next arrow buttons and an optional auto-advance timer for anything beyond that count — the same "carousel" expectation as the hero, hand-rolled in plain JS rather than pulling in Swiper (consistent with this display mode's existing no-library approach).
+- New Settings (Promo Manager > Settings > Marquee Defaults): **Auto-Advance** (on by default for Marquee, unlike the hero's carousel which defaults off) and **Auto-Advance Speed**. Arrow buttons work regardless of the Auto-Advance setting. Auto-advance pauses on hover and is skipped entirely for `prefers-reduced-motion`.
+- Verified visually (not just reasoned about) with a stand-in page simulating 7 scheduled tiles at 3-per-page: confirmed exactly 3 show at once, Prev/Next page correctly, and Next wraps from the last page back to the first.
+
 ## 1.8.0
 
 **Redesign: Marquee is now a compact row of square image tiles, not a scrolling text ticker.** The 1.7.0 build of Marquee (pure scrolling text, no picture) turned out to be a mismatch for what was actually wanted: a small "quick links" style row of images — the user pointed at a live example (a furniture site's own tile row under its main nav) where every tile displayed at a consistent size on screen despite the source photos having wildly different natural proportions (checked directly: 786×499, 786×589, 786×524 among them), which is exactly the inconsistency problem this plugin exists to prevent, just not yet applied to this display mode.

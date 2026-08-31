@@ -12,18 +12,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  * displayed each image at its own native proportions, so the row visibly
  * varied tile to tile depending on what a client happened to upload.
  *
- * `items` controls how many tiles sit in one row (1–5, default 4); any
- * additional active tiles beyond that wrap onto further rows rather than
- * being hidden, so a client's promotion is never silently dropped just
- * because the row is "full."
+ * `items` controls how many tiles show at once (1–5, default from
+ * Settings). Anything beyond that count is never shown alongside the
+ * current set — it pages in as its own screen instead, advanced by a
+ * timer and/or the Prev/Next buttons, the same "carousel" expectation as
+ * the hero. All paging happens client-side, in JS, same as every other
+ * display mode here — see RAPM_Schedule for why (full-page caching).
  */
 class RAPM_Marquee {
 
 	public static function shortcode( $atts ) {
-		$atts = shortcode_atts(
+		$defaults = RAPM_Admin_Settings::get();
+		$atts     = shortcode_atts(
 			array(
 				'placement' => 'default',
-				'items'     => RAPM_Admin_Settings::get( 'default_marquee_items' ),
+				'items'     => $defaults['default_marquee_items'],
+				'autoplay'  => $defaults['default_marquee_autoplay'] ? 'yes' : 'no',
+				'speed'     => $defaults['default_marquee_speed'],
 			),
 			$atts,
 			'rapm_marquee'
@@ -61,19 +66,68 @@ class RAPM_Marquee {
 
 		ob_start();
 		?>
-		<div class="rapm-marquee <?php echo esc_attr( $instance_id ); ?>" data-rapm-marquee style="display:none;--rapm-marquee-items:<?php echo (int) $per_row; ?>;">
-			<?php foreach ( $query->posts as $post ) : self::render_tile( $post->ID ); endforeach; ?>
+		<div class="rapm-marquee-wrap <?php echo esc_attr( $instance_id ); ?>" data-rapm-marquee style="display:none;">
+			<button type="button" class="rapm-marquee-arrow rapm-marquee-prev" aria-label="<?php esc_attr_e( 'Previous', 'rapm' ); ?>" hidden>&lsaquo;</button>
+			<div class="rapm-marquee" style="--rapm-marquee-items:<?php echo (int) $per_row; ?>;">
+				<?php foreach ( $query->posts as $post ) : self::render_tile( $post->ID ); endforeach; ?>
+			</div>
+			<button type="button" class="rapm-marquee-arrow rapm-marquee-next" aria-label="<?php esc_attr_e( 'Next', 'rapm' ); ?>" hidden>&rsaquo;</button>
 		</div>
 		<script>
 			( function () {
 				function init() {
 					if ( typeof RAPM_Schedule === 'undefined' ) { return; }
-					var root = document.querySelector( '.<?php echo esc_js( $instance_id ); ?>' );
+					var root       = document.querySelector( '.<?php echo esc_js( $instance_id ); ?>' );
+					var track      = root.querySelector( '.rapm-marquee' );
+					var prevBtn    = root.querySelector( '.rapm-marquee-prev' );
+					var nextBtn    = root.querySelector( '.rapm-marquee-next' );
+					var perPage    = <?php echo (int) $per_row; ?>;
+					var autoplayOn = <?php echo 'yes' === $atts['autoplay'] ? 'true' : 'false'; ?>;
+					var speed      = <?php echo max( 2000, (int) $atts['speed'] ); ?>;
+					var reduceMotion = window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+
+					var pages     = [];
+					var pageIndex = 0;
+					var timer     = null;
+
+					function chunk( list, size ) {
+						var out = [];
+						for ( var i = 0; i < list.length; i += size ) {
+							out.push( list.slice( i, i + size ) );
+						}
+						return out;
+					}
+
+					function showPage( i ) {
+						if ( ! pages.length ) { return; }
+						pageIndex = ( i + pages.length ) % pages.length;
+						var all = track.querySelectorAll( '.rapm-marquee-tile' );
+						Array.prototype.forEach.call( all, function ( el ) { el.style.display = 'none'; } );
+						pages[ pageIndex ].forEach( function ( el ) { el.style.display = ''; } );
+					}
+
+					function stopTimer() {
+						if ( timer ) { clearInterval( timer ); timer = null; }
+					}
+					function startTimer() {
+						stopTimer();
+						if ( ! autoplayOn || reduceMotion || pages.length <= 1 ) { return; }
+						timer = setInterval( function () { showPage( pageIndex + 1 ); }, speed );
+					}
+
+					prevBtn.addEventListener( 'click', function () { showPage( pageIndex - 1 ); startTimer(); } );
+					nextBtn.addEventListener( 'click', function () { showPage( pageIndex + 1 ); startTimer(); } );
+					root.addEventListener( 'mouseenter', stopTimer );
+					root.addEventListener( 'mouseleave', startTimer );
 
 					RAPM_Schedule.watch( root, '.rapm-marquee-tile', function ( active ) {
-						var all = root.querySelectorAll( '.rapm-marquee-tile' );
-						Array.prototype.forEach.call( all, function ( el ) { el.style.display = 'none'; } );
-						active.forEach( function ( el ) { el.style.display = ''; } );
+						pages = chunk( active, perPage );
+						pageIndex = 0;
+						showPage( 0 );
+						var hasMultiplePages = pages.length > 1;
+						prevBtn.hidden = ! hasMultiplePages;
+						nextBtn.hidden = ! hasMultiplePages;
+						startTimer();
 						root.style.display = active.length ? '' : 'none';
 					} );
 				}
