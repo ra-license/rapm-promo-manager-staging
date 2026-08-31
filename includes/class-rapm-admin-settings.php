@@ -13,6 +13,7 @@ class RAPM_Admin_Settings {
 			'default_autoplay'        => 0,
 			'default_autoplay_speed'  => 7000,
 			'default_nav_style'       => 'both',
+			'default_marquee_items'   => 4,
 			'curated_results_page_url' => '',
 			// WooCommerce's own native Brands feature (added in WC 8.6)
 			// uses this taxonomy name; older sites/plugins commonly use
@@ -62,6 +63,7 @@ class RAPM_Admin_Settings {
 		$out['default_nav_style']      = isset( $input['default_nav_style'] ) && in_array( $input['default_nav_style'], array( 'both', 'arrows', 'dots', 'none' ), true )
 			? $input['default_nav_style']
 			: $out['default_nav_style'];
+		$out['default_marquee_items']  = isset( $input['default_marquee_items'] ) ? max( 1, min( 5, absint( $input['default_marquee_items'] ) ) ) : $out['default_marquee_items'];
 
 		$out['curated_results_page_url'] = isset( $input['curated_results_page_url'] ) ? esc_url_raw( $input['curated_results_page_url'] ) : '';
 		$out['brand_taxonomy']           = isset( $input['brand_taxonomy'] ) && '' !== trim( $input['brand_taxonomy'] )
@@ -151,6 +153,22 @@ class RAPM_Admin_Settings {
 					</tr>
 				</table>
 
+				<h2><?php esc_html_e( 'Marquee Defaults', 'rapm' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Applied to [rapm_marquee] unless a specific one overrides it with its own items="..." attribute.', 'rapm' ); ?></p>
+				<table class="form-table">
+					<tr>
+						<th><label for="rapm_marquee_items"><?php esc_html_e( 'Tiles Per Row', 'rapm' ); ?></label></th>
+						<td>
+							<select id="rapm_marquee_items" name="<?php echo esc_attr( self::OPTION ); ?>[default_marquee_items]">
+								<?php for ( $n = 1; $n <= 5; $n++ ) : ?>
+									<option value="<?php echo esc_attr( $n ); ?>" <?php selected( (int) $opts['default_marquee_items'], $n ); ?>><?php echo esc_html( $n ); ?></option>
+								<?php endfor; ?>
+							</select>
+							<p class="description"><?php esc_html_e( 'How many tiles show side by side on a full-width screen. Extra tiles wrap onto another row rather than being hidden.', 'rapm' ); ?></p>
+						</td>
+					</tr>
+				</table>
+
 				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
 					<h2><?php esc_html_e( 'Product Linking', 'rapm' ); ?></h2>
 					<p class="description"><?php esc_html_e( 'One-time setup so "A hand-picked list of products" links work on the Add/Edit Asset form. Not needed for the simpler "A specific product" / "A product category" / "Search results" links.', 'rapm' ); ?></p>
@@ -187,7 +205,7 @@ class RAPM_Admin_Settings {
 				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
 					<tr><td><code>[rapm_curated_results]</code></td><td><?php esc_html_e( 'Put this on the one page set as "Curated Results Page" above. Renders whichever hand-picked product list + fill-in results a given asset\'s link points to — nothing to configure on the page itself.', 'rapm' ); ?></td></tr>
 				<?php endif; ?>
-				<tr><td><code>[rapm_marquee]</code></td><td><?php esc_html_e( 'A scrolling text ticker for the "default" placement — added under Add New Asset with "Type of Promotion" set to Marquee. No picture needed for this type.', 'rapm' ); ?></td></tr>
+				<tr><td><code>[rapm_marquee]</code></td><td><?php esc_html_e( 'A compact row of square tiles for the "default" placement — added under Add New Asset with "Type of Promotion" set to Marquee. Add items="3" (1 to 5) to change how many sit in one row; the default is set below.', 'rapm' ); ?></td></tr>
 				<tr><td><code>[rapm_coupon_book]</code></td><td><?php esc_html_e( 'A horizontal scrolling row of coupon cards for the "default" placement — added the same way with "Type of Promotion" set to Coupon.', 'rapm' ); ?></td></tr>
 				<tr><td><code>[rapm_promotions_calendar]</code></td><td><?php esc_html_e( 'A month calendar showing every promotion that has both a start and end date set, across all types. Add placement="..." or kind="..." to show only a specific one.', 'rapm' ); ?></td></tr>
 			</table>

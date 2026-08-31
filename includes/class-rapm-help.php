@@ -61,7 +61,11 @@ class RAPM_Help {
 			<h2><?php esc_html_e( 'Types of Promotions', 'rapm' ); ?></h2>
 			<details>
 				<summary><?php esc_html_e( 'What\'s the difference between Hero, Fold Banner, Coupon, and Marquee?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'Hero is the big slider at the top of a page. Fold Banner is a shorter strip meant to sit lower down. Coupon is a small card shown in a horizontal scrolling row alongside other coupons. Marquee is scrolling text only — no picture at all — good for a short announcement like "Free delivery this week."', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Hero is the big slider at the top of a page. Fold Banner is a shorter strip meant to sit lower down. Coupon is a small card shown in a horizontal scrolling row alongside other coupons. Marquee is a compact row of small square tiles — like "Design Services," "Current Promotions," "Financing," "Visit Us" — good for quick links or small promo squares near the top of a page.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'Why does Marquee only accept square pictures?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'So every tile in the row looks the same size. If different tiles used pictures with different shapes, the row would look uneven — one tile taller than the next. A square picture (the same width and height) crops predictably no matter what you upload.', 'rapm' ); ?></p>
 			</details>
 			<details>
 				<summary><?php esc_html_e( 'How do I show a calendar of upcoming promotions?', 'rapm' ); ?></summary>

@@ -131,7 +131,7 @@ class RAPM_Upload_Handler {
 								if ( $info['desktop'] ) {
 									$opt_desktop = $slots[ $info['desktop'] ];
 									$opt_mobile  = $slots[ $info['mobile'] ];
-									$opt_label   = 'coupon_card' === $info['desktop']
+									$opt_label   = $info['desktop'] === $info['mobile']
 										? sprintf(
 											/* translators: 1: kind label, 2: card width, 3: card height */
 											__( '%1$s — %2$dx%3$d', 'rapm' ),
@@ -288,8 +288,8 @@ class RAPM_Upload_Handler {
 					</tr>
 				</table>
 				<?php else : ?>
-				<h2><?php esc_html_e( 'Ticker Text', 'rapm' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'What should scroll across the ticker.', 'rapm' ); ?></p>
+				<h2><?php esc_html_e( 'Text', 'rapm' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'This type doesn\'t use a picture — just type the text below.', 'rapm' ); ?></p>
 				<?php endif; ?>
 
 				<div id="rapm-text-fields" <?php echo 'image' === $text_mode ? 'style="display:none;"' : ''; ?>>
@@ -841,11 +841,12 @@ class RAPM_Upload_Handler {
 				self::fail( $back, $desktop_required_msg );
 			}
 		} else {
-			// Text-only kind (Marquee) — the ticker text is what's
-			// required instead of an image.
+			// Text-only kind — no current kind is image-less, but a site
+			// could register one via the rapm_slots/kinds filters, so this
+			// stays as a safety net: text is what's required instead.
 			$headline_check = isset( $_POST['rapm_headline'] ) ? trim( wp_unslash( $_POST['rapm_headline'] ) ) : '';
 			if ( '' === $headline_check ) {
-				self::fail( $back, __( 'Please enter the ticker text — it\'s required for this promotion to actually display anywhere.', 'rapm' ) );
+				self::fail( $back, __( 'Please enter the text — it\'s required for this promotion to actually display anywhere.', 'rapm' ) );
 			}
 		}
 

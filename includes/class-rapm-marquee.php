@@ -4,12 +4,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * [rapm_marquee] — a scrolling text ticker. Reuses the rapm_asset data
- * model and the shared scheduling engine (RAPM_Schedule.watch()), but not
- * Swiper — text-only content doesn't need a slide library, just a CSS
- * animation. Kind "marquee" has no image slots at all (see RAPM_Slots),
- * so every item here is just a headline (+ optional button text) linking
- * to a destination.
+ * [rapm_marquee items="4"] — a compact row of square image tiles (a
+ * "quick links" strip), not a scrolling ticker. Every tile is forced
+ * through the same 1080x1080 slot (RAPM_Slots) regardless of the source
+ * photo's own shape, which is exactly what keeps every tile the same
+ * size on screen — the original version of this (elsewhere on the site)
+ * displayed each image at its own native proportions, so the row visibly
+ * varied tile to tile depending on what a client happened to upload.
+ *
+ * `items` controls how many tiles sit in one row (1–5, default 4); any
+ * additional active tiles beyond that wrap onto further rows rather than
+ * being hidden, so a client's promotion is never silently dropped just
+ * because the row is "full."
  */
 class RAPM_Marquee {
 
@@ -17,13 +23,14 @@ class RAPM_Marquee {
 		$atts = shortcode_atts(
 			array(
 				'placement' => 'default',
-				'speed'     => 40, // Seconds for one full loop of the track.
+				'items'     => RAPM_Admin_Settings::get( 'default_marquee_items' ),
 			),
 			$atts,
 			'rapm_marquee'
 		);
 
 		$placement = sanitize_title( $atts['placement'] );
+		$per_row   = max( 1, min( 5, (int) $atts['items'] ) );
 
 		$query = new WP_Query(
 			array(
@@ -54,30 +61,20 @@ class RAPM_Marquee {
 
 		ob_start();
 		?>
-		<div class="rapm-marquee <?php echo esc_attr( $instance_id ); ?>" data-rapm-marquee style="display:none;--rapm-marquee-speed:<?php echo (int) $atts['speed']; ?>s;">
-			<div class="rapm-marquee-track">
-				<?php foreach ( $query->posts as $post ) : self::render_item( $post->ID ); endforeach; ?>
-			</div>
+		<div class="rapm-marquee <?php echo esc_attr( $instance_id ); ?>" data-rapm-marquee style="display:none;--rapm-marquee-items:<?php echo (int) $per_row; ?>;">
+			<?php foreach ( $query->posts as $post ) : self::render_tile( $post->ID ); endforeach; ?>
 		</div>
 		<script>
 			( function () {
 				function init() {
 					if ( typeof RAPM_Schedule === 'undefined' ) { return; }
-					var root  = document.querySelector( '.<?php echo esc_js( $instance_id ); ?>' );
-					var track = root.querySelector( '.rapm-marquee-track' );
+					var root = document.querySelector( '.<?php echo esc_js( $instance_id ); ?>' );
 
-					RAPM_Schedule.watch( root, '.rapm-marquee-item', function ( active ) {
-						if ( ! active.length ) {
-							root.style.display = 'none';
-							return;
-						}
-						track.innerHTML = '';
-						// Duplicated once so the CSS scroll animation
-						// (translateX to -50%) loops seamlessly.
-						active.concat( active ).forEach( function ( el ) {
-							track.appendChild( el.cloneNode( true ) );
-						} );
-						root.style.display = '';
+					RAPM_Schedule.watch( root, '.rapm-marquee-tile', function ( active ) {
+						var all = root.querySelectorAll( '.rapm-marquee-tile' );
+						Array.prototype.forEach.call( all, function ( el ) { el.style.display = 'none'; } );
+						active.forEach( function ( el ) { el.style.display = ''; } );
+						root.style.display = active.length ? '' : 'none';
 					} );
 				}
 				if ( document.readyState === 'loading' ) {
@@ -92,28 +89,35 @@ class RAPM_Marquee {
 		return ob_get_clean();
 	}
 
-	private static function render_item( $asset_id ) {
-		$headline   = get_post_meta( $asset_id, '_rapm_headline', true );
-		$cta_text   = get_post_meta( $asset_id, '_rapm_cta_text', true );
-		$starts_at  = get_post_meta( $asset_id, '_rapm_starts_at', true );
-		$ends_at    = get_post_meta( $asset_id, '_rapm_ends_at', true );
-		$dest_type  = get_post_meta( $asset_id, '_rapm_destination_type', true );
-		$dest_value = get_post_meta( $asset_id, '_rapm_destination_value', true );
-		$url        = RAPM_Destination::resolve_url( $dest_type, $dest_value );
+	private static function render_tile( $asset_id ) {
+		$headline    = get_post_meta( $asset_id, '_rapm_headline', true );
+		$subhead     = get_post_meta( $asset_id, '_rapm_subhead', true );
+		$alt         = get_post_meta( $asset_id, '_rapm_alt_text', true );
+		$starts_at   = get_post_meta( $asset_id, '_rapm_starts_at', true );
+		$ends_at     = get_post_meta( $asset_id, '_rapm_ends_at', true );
+		$dest_type   = get_post_meta( $asset_id, '_rapm_destination_type', true );
+		$dest_value  = get_post_meta( $asset_id, '_rapm_destination_value', true );
+		$url         = RAPM_Destination::resolve_url( $dest_type, $dest_value );
+		$desktop_id  = (int) get_post_meta( $asset_id, '_rapm_image_desktop_id', true );
+		$desktop_src = $desktop_id ? wp_get_attachment_image_url( $desktop_id, 'full' ) : '';
 
-		if ( ! $headline ) {
-			return; // No text — nothing to show for this item.
+		if ( ! $desktop_src ) {
+			return; // No usable image — nothing to show for this tile.
 		}
 
-		$text = $cta_text ? $headline . ' — ' . $cta_text : $headline;
+		$tag = $url ? 'a' : 'div';
 		?>
-		<span class="rapm-marquee-item" data-rapm-start="<?php echo esc_attr( $starts_at ); ?>" data-rapm-end="<?php echo esc_attr( $ends_at ); ?>">
-			<?php if ( $url ) : ?>
-				<a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $text ); ?></a>
-			<?php else : ?>
-				<?php echo esc_html( $text ); ?>
+		<<?php echo esc_html( $tag ); ?> <?php echo $url ? 'href="' . esc_url( $url ) . '"' : ''; ?> class="rapm-marquee-tile" data-rapm-start="<?php echo esc_attr( $starts_at ); ?>" data-rapm-end="<?php echo esc_attr( $ends_at ); ?>">
+			<span class="rapm-marquee-tile-image">
+				<img src="<?php echo esc_url( $desktop_src ); ?>" alt="<?php echo esc_attr( $alt ); ?>" loading="lazy" />
+			</span>
+			<?php if ( $headline || $subhead ) : ?>
+				<span class="rapm-marquee-tile-caption">
+					<?php if ( $headline ) : ?><span class="rapm-marquee-tile-headline"><?php echo esc_html( $headline ); ?></span><?php endif; ?>
+					<?php if ( $subhead ) : ?><span class="rapm-marquee-tile-subhead"><?php echo esc_html( $subhead ); ?></span><?php endif; ?>
+				</span>
 			<?php endif; ?>
-		</span>
+		</<?php echo esc_html( $tag ); ?>>
 		<?php
 	}
 

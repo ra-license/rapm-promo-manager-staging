@@ -75,6 +75,21 @@ class RAPM_Slots {
 				'max_kb'                 => 150,
 				'format'                 => 'webp',
 			),
+			// A square tile shown small in a row (the marquee). Deliberately
+			// matches Instagram's standard square post size (1080x1080) —
+			// a recognizable, easy-to-export target for clients who already
+			// think in social-media proportions, and it crops predictably
+			// regardless of source photo shape (the exact problem that made
+			// the original tile row look inconsistent — every image was a
+			// different aspect ratio, forced into the same small box).
+			'marquee_tile'        => array(
+				'label'                  => __( 'Marquee Tile', 'rapm' ),
+				'width'                  => 1080,
+				'height'                 => 1080,
+				'aspect_ratio_tolerance' => 0.02,
+				'max_kb'                 => 200,
+				'format'                 => 'webp',
+			),
 		);
 	}
 
@@ -103,15 +118,13 @@ class RAPM_Slots {
 				'desktop' => 'coupon_card',
 				'mobile'  => 'coupon_card',
 			),
-			// Text only — no image slots at all, so the Add/Edit Asset
-			// form skips the Images section entirely for this kind (see
-			// RAPM_Upload_Handler). 'desktop'/'mobile' are left null
-			// rather than omitted so every caller can check them the same
-			// way (`if ( $kind['desktop'] )`) instead of an isset() check.
+			// A single square tile slot reused for both desktop/mobile,
+			// same reasoning as coupon_card above — always shown small, in
+			// a fixed-count row, never full-bleed.
 			'marquee'     => array(
-				'label'   => __( 'Marquee (scrolling text ticker)', 'rapm' ),
-				'desktop' => null,
-				'mobile'  => null,
+				'label'   => __( 'Marquee (small tiles in a row)', 'rapm' ),
+				'desktop' => 'marquee_tile',
+				'mobile'  => 'marquee_tile',
 			),
 		);
 	}

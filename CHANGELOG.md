@@ -4,6 +4,15 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.8.0
+
+**Redesign: Marquee is now a compact row of square image tiles, not a scrolling text ticker.** The 1.7.0 build of Marquee (pure scrolling text, no picture) turned out to be a mismatch for what was actually wanted: a small "quick links" style row of images — the user pointed at a live example (a furniture site's own tile row under its main nav) where every tile displayed at a consistent size on screen despite the source photos having wildly different natural proportions (checked directly: 786×499, 786×589, 786×524 among them), which is exactly the inconsistency problem this plugin exists to prevent, just not yet applied to this display mode.
+
+- Marquee is now an image Kind again, using a new **1080×1080 "Marquee Tile" slot** — deliberately Instagram's own standard square post size, so it's an easy, recognizable export target and crops predictably regardless of the source photo's shape.
+- `[rapm_marquee items="4"]` — a new `items` attribute (1–5) controls how many tiles sit in one row; extra active tiles wrap onto further rows rather than being hidden, so a promotion is never silently dropped just because a row is "full." Defaults to a new site-wide **Tiles Per Row** setting (Promo Manager > Settings > Marquee Defaults), same pattern as the existing Carousel Defaults.
+- Rendered as a plain CSS grid (image tile + caption below), not Swiper — each tile is capped at a max width so the row stays compact (roughly matching the reference example) rather than stretching to fill a wide page.
+- The Add/Edit Asset form's "no image required" special-casing added for Marquee in 1.7.0 is now dead code for every current Kind (Marquee has a real image slot again like every other Kind) — left in place, generalized to plain "text-only kind" language, as a safety net for a future custom Kind added via the `rapm_slots`/`rapm_kinds` filters, rather than ripped out.
+
 ## 1.7.0
 
 **Feature: the three remaining display modes from the original project plan (Coupon Book, Marquee, Promotions Calendar), plus an optional bulk-SKU CSV importer.** These were scoped as later phases from the start ("not this build") rather than dropped, but that phasing wasn't kept visible enough as work progressed — this release closes that gap.
