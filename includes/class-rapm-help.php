@@ -76,7 +76,11 @@ class RAPM_Help {
 
 			<details>
 				<summary><?php esc_html_e( 'Why did my picture get rejected?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'Each spot on the website needs a picture that is an exact size. The page tells you the size you need, in pixels, before you upload. If your picture is a different size, crop it or export it again at the right size, then try uploading it a second time.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Each spot on the website needs a picture with a specific shape (like a wide banner, or a tall phone picture). If your picture is the right shape but a different resolution, it\'s automatically resized for you — nothing to fix. If it\'s rejected, it means the picture is a different shape entirely (like a square photo where a wide banner is needed) — crop or export it again in the right shape, then try uploading it a second time.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'Does it ever resize my picture for me?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Yes, but only when it\'s safe to do automatically: if your picture is already the right shape (say, exported at twice the size needed), it scales it down for you with nothing lost or cropped out. It never automatically crops a picture that\'s a different shape — that could cut off part of the photo that matters, so that always needs a person to decide, not the computer.', 'rapm' ); ?></p>
 			</details>
 
 			<details>

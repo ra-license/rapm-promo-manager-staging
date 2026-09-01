@@ -215,7 +215,7 @@ class RAPM_Upload_Handler {
 								<?php endif; ?>
 							</div>
 
-							<p class="description"><?php echo esc_html( sprintf( __( 'This picture needs to be exactly %1$d by %2$d (width by height, in pixels — this is usually shown when you export, crop, or resize a photo). If it\'s the wrong size, you\'ll see exactly what you uploaded vs. what\'s needed so you know what to fix.', 'rapm' ), $desktop_slot['width'], $desktop_slot['height'] ) ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'This picture should be %1$d by %2$d (width by height, in pixels). If it\'s the same shape at a different size (say, an export at twice the resolution), it\'s resized automatically — no need to fix that yourself. If it\'s a different shape entirely, you\'ll see exactly what you uploaded vs. what\'s needed so you know what to fix.', 'rapm' ), $desktop_slot['width'], $desktop_slot['height'] ) ); ?></p>
 						</td>
 					</tr>
 					<tr>
@@ -1035,21 +1035,38 @@ class RAPM_Upload_Handler {
 			return new WP_Error( 'rapm_not_image', __( 'That file doesn\'t look like an image.', 'rapm' ) );
 		}
 
+		$was_resized = false;
+
 		if ( ! RAPM_Slots::dimensions_match( $slot, $width, $height ) ) {
-			return new WP_Error(
-				'rapm_wrong_dimensions',
-				sprintf(
-					/* translators: 1: required width, 2: required height, 3: actual width, 4: actual height */
-					__( 'This needs to be %1$dx%2$d px. The file you uploaded is %3$dx%4$d px — please crop or re-export it to the right size and try again.', 'rapm' ),
-					$slot['width'],
-					$slot['height'],
-					$width,
-					$height
-				)
-			);
+			if ( ! RAPM_Slots::aspect_ratio_matches( $slot, $width, $height ) ) {
+				return new WP_Error(
+					'rapm_wrong_dimensions',
+					sprintf(
+						/* translators: 1: required width, 2: required height, 3: actual width, 4: actual height */
+						__( 'This needs to be %1$dx%2$d px. The file you uploaded is %3$dx%4$d px — please crop or re-export it to the right size and try again.', 'rapm' ),
+						$slot['width'],
+						$slot['height'],
+						$width,
+						$height
+					)
+				);
+			}
+
+			// Same shape, just a different resolution (e.g. a 2x export) —
+			// a plain scale is a safe, lossless fit with nothing to crop
+			// or distort, so this is auto-corrected rather than rejected.
+			if ( ! RAPM_Webp_Converter::is_available() ) {
+				return new WP_Error( 'rapm_no_webp_support', __( 'This server can\'t auto-resize or auto-convert images (no Imagick or GD support found). Please crop or re-export this to the exact size and try again.', 'rapm' ) );
+			}
+			$resized = RAPM_Webp_Converter::resize_to( $tmp_path, $slot['width'], $slot['height'] );
+			if ( is_wp_error( $resized ) ) {
+				return $resized;
+			}
+			$tmp_path    = $resized;
+			$was_resized = true;
 		}
 
-		$already_webp_and_small = 'image/webp' === $mime && ( filesize( $tmp_path ) / 1024 ) <= $slot['max_kb'];
+		$already_webp_and_small = ! $was_resized && 'image/webp' === $mime && ( filesize( $tmp_path ) / 1024 ) <= $slot['max_kb'];
 		$base_name              = sanitize_file_name( pathinfo( $original_filename, PATHINFO_FILENAME ) ) ?: 'rapm-image'; // phpcs:ignore
 
 		if ( $already_webp_and_small ) {
@@ -1060,6 +1077,9 @@ class RAPM_Upload_Handler {
 				return new WP_Error( 'rapm_no_webp_support', __( 'This server can\'t auto-convert images to WebP (no Imagick or GD WebP support found). Please upload a .webp file directly, or ask your host to enable WebP support.', 'rapm' ) );
 			}
 			$converted = RAPM_Webp_Converter::convert( $tmp_path, $slot['max_kb'] );
+			if ( $was_resized && file_exists( $tmp_path ) ) {
+				wp_delete_file( $tmp_path ); // The resize step's own intermediate file — convert() has already read it into a fresh output file above.
+			}
 			if ( is_wp_error( $converted ) ) {
 				return $converted;
 			}

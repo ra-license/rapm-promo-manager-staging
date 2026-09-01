@@ -9,14 +9,82 @@ if ( ! defined( 'ABSPATH' ) ) {
  * JPG/PNG they have on hand instead of needing to know what WebP is or
  * how to make one. Imagick is tried first (more consistently available
  * and higher quality across shared hosting than GD's WebP support, which
- * many hosts compile without); GD is the fallback. Dimensions are never
- * touched here — a wrong crop needs a human to fix, so that's validated
- * (and rejected) before this class is ever called, not silently altered.
+ * many hosts compile without); GD is the fallback.
+ *
+ * Dimensions are only ever touched via resize_to() — a plain, lossless
+ * scale, called by RAPM_Upload_Handler only when the source is already
+ * the right shape (see RAPM_Slots::aspect_ratio_matches()). A wrong
+ * *shape* still needs a human to fix (cropping or squashing it
+ * automatically risks cutting off or warping whatever the photo is of),
+ * so that's validated and rejected before this class is ever reached.
  */
 class RAPM_Webp_Converter {
 
 	public static function is_available() {
 		return self::imagick_supports_webp() || function_exists( 'imagewebp' );
+	}
+
+	/**
+	 * Scales $source_path to exactly $target_width x $target_height — no
+	 * cropping, just a resize. Only ever called by
+	 * RAPM_Upload_Handler::validate_convert_sideload() after confirming
+	 * (via RAPM_Slots::aspect_ratio_matches()) the source is already
+	 * close enough to the target's shape that a plain scale is a safe,
+	 * lossless fit, not a distortion or a guess at what to crop out.
+	 * Returns a new temp file path the caller must clean up, or a
+	 * WP_Error if this host has neither Imagick nor GD available.
+	 */
+	public static function resize_to( $source_path, $target_width, $target_height ) {
+		if ( extension_loaded( 'imagick' ) && class_exists( 'Imagick' ) ) {
+			try {
+				$image = new Imagick( $source_path );
+				$image->resizeImage( $target_width, $target_height, Imagick::FILTER_LANCZOS, 1, false );
+				$tmp = wp_tempnam( 'rapm-resized' );
+				$image->writeImage( $tmp );
+				$image->clear();
+				$image->destroy();
+				return $tmp;
+			} catch ( Exception $e ) {
+				return new WP_Error( 'rapm_resize_failed', $e->getMessage() );
+			}
+		}
+
+		if ( function_exists( 'imagecreatetruecolor' ) ) {
+			$info = getimagesize( $source_path );
+			if ( ! $info ) {
+				return new WP_Error( 'rapm_resize_failed', __( 'Could not read the image to resize it.', 'rapm' ) );
+			}
+			switch ( $info['mime'] ) {
+				case 'image/jpeg':
+					$src = imagecreatefromjpeg( $source_path );
+					break;
+				case 'image/png':
+					$src = imagecreatefrompng( $source_path );
+					break;
+				case 'image/webp':
+					$src = function_exists( 'imagecreatefromwebp' ) ? imagecreatefromwebp( $source_path ) : false;
+					break;
+				case 'image/gif':
+					$src = imagecreatefromgif( $source_path );
+					break;
+				default:
+					$src = false;
+			}
+			if ( ! $src ) {
+				return new WP_Error( 'rapm_resize_failed', __( 'Unsupported image type to resize.', 'rapm' ) );
+			}
+
+			$dst = imagecreatetruecolor( $target_width, $target_height );
+			imagecopyresampled( $dst, $src, 0, 0, 0, 0, $target_width, $target_height, imagesx( $src ), imagesy( $src ) );
+			imagedestroy( $src );
+
+			$tmp = wp_tempnam( 'rapm-resized' );
+			imagepng( $dst, $tmp ); // Format doesn't matter here — convert() re-encodes to WebP right after this.
+			imagedestroy( $dst );
+			return $tmp;
+		}
+
+		return new WP_Error( 'rapm_resize_unavailable', __( 'This server can\'t automatically resize images (no Imagick or GD found).', 'rapm' ) );
 	}
 
 	private static function imagick_supports_webp() {

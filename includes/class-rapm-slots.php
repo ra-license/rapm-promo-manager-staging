@@ -182,4 +182,29 @@ class RAPM_Slots {
 		$h_diff    = abs( $height - $slot['height'] ) / $slot['height'];
 		return $w_diff <= $tolerance && $h_diff <= $tolerance;
 	}
+
+	/**
+	 * True if an upload is the right *shape* for a slot (its width:height
+	 * ratio is close to the slot's own, within the same
+	 * aspect_ratio_tolerance) even though its absolute pixel dimensions
+	 * don't match dimensions_match(). This is the one case
+	 * RAPM_Upload_Handler auto-resizes rather than rejecting — e.g. a
+	 * 3840x1200 export of a 1920x600 hero slot is the exact same 3.2:1
+	 * shape, just at 2x resolution, so scaling it down is a pure,
+	 * lossless fit with no cropping and nothing to distort. A materially
+	 * different shape (a square photo dropped into a wide hero slot)
+	 * fails this too, and stays a hard rejection — fitting that requires
+	 * either cropping or squashing, and either one risks cutting off or
+	 * warping whatever the photo is actually of, which needs a human
+	 * decision, not an automatic one.
+	 */
+	public static function aspect_ratio_matches( $slot, $width, $height ) {
+		if ( ! $slot || ! $width || ! $height ) {
+			return false;
+		}
+		$tolerance    = isset( $slot['aspect_ratio_tolerance'] ) ? (float) $slot['aspect_ratio_tolerance'] : 0;
+		$target_ratio = $slot['width'] / $slot['height'];
+		$actual_ratio = $width / $height;
+		return abs( $actual_ratio - $target_ratio ) / $target_ratio <= $tolerance;
+	}
 }

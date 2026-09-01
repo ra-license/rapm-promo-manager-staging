@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.11.0
+
+**Feature: automatic, safe image resizing — the one remaining manual step in "optimize sizing, format, and file size."** Format and file size were already fully automatic since 1.0.0; dimensions were always a hard rejection, on purpose (auto-cropping to fit a different shape risks cutting off whatever the photo is actually of). Direct feedback asked whether sizing itself could be automated — the answer, worked through explicitly rather than assumed: split it into a genuinely safe case and a genuinely risky one, and only automate the safe one.
+
+- If an upload is the **same shape** as a slot but the wrong resolution (e.g. a 3840×1200 export dropped into a 1920×600 hero slot — same 3.2:1 ratio, just 2x) — it's now **scaled to fit automatically**, with nothing cropped or distorted. New `RAPM_Slots::aspect_ratio_matches()` (reuses each slot's existing `aspect_ratio_tolerance`) and `RAPM_Webp_Converter::resize_to()` (Imagick preferred, GD fallback, same pattern as the WebP conversion path).
+- A **genuinely different shape** (a square photo into a wide hero slot) still hard-rejects exactly like before — fitting that means either cropping or squashing, and either one risks damaging the photo in a way that needs a person to decide, not software. This boundary was a deliberate, explicit choice this round, not a default.
+- Updated the Add/Edit Asset form's own copy and two Help & FAQ entries to explain the new behavior in plain terms, since "why did my picture get rejected" now has a more precise answer than it used to.
+
 ## 1.10.0
 
 **Feature: promotion text can use one of the site's own Elementor fonts.** Previously "Text Style" was a fixed Bold/Elegant/Minimal preset using hardcoded system font stacks — no way to actually match a specific site's own brand typeface. Researched Elementor's Kit/Global Fonts API directly against its own source (not guessed) before building against it, since getting internal API structure wrong here would mean a broken or empty feature.
