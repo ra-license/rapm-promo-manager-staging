@@ -12,7 +12,7 @@ class RAPM_Admin_List {
 			if ( 'title' === $key ) {
 				$new['rapm_preview']   = __( 'Preview', 'rapm' );
 				$new['rapm_kind']      = __( 'Kind', 'rapm' );
-				$new['rapm_placement'] = __( 'Placement', 'rapm' );
+				$new['rapm_placement'] = __( 'Shortcode', 'rapm' );
 				$new['rapm_status']    = __( 'Status', 'rapm' );
 				$new['rapm_edit']      = __( 'Edit', 'rapm' );
 			}
@@ -38,7 +38,13 @@ class RAPM_Admin_List {
 				break;
 
 			case 'rapm_placement':
-				echo esc_html( get_post_meta( $post_id, '_rapm_placement', true ) ?: 'default' ); // phpcs:ignore
+				$kind_key      = get_post_meta( $post_id, '_rapm_kind', true ) ?: 'hero'; // phpcs:ignore
+				$kind          = RAPM_Slots::kind( $kind_key );
+				$placement_key = get_post_meta( $post_id, '_rapm_placement', true ) ?: 'default'; // phpcs:ignore
+				$shortcode     = 'default' === $placement_key
+					? '[' . $kind['shortcode'] . ']'
+					: '[' . $kind['shortcode'] . ' placement="' . $placement_key . '"]';
+				echo '<code>' . esc_html( $shortcode ) . '</code>';
 				break;
 
 			case 'rapm_status':

@@ -4,6 +4,10 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.12.1
+
+**Fix: the "All Assets" list showed the raw placement value ("default") instead of the actual shortcode needed to display it.** Direct follow-up to 1.12.0's "where this shows up" guidance on the edit screen — the same information is more useful directly in the list, where several promotions are visible at once, than the bare placement word was. That column (still keyed `rapm_placement` internally) is now labeled "Shortcode" and shows the real thing to copy, e.g. `[rapm_hero]` or `[rapm_coupon_book placement="category-living-room"]`, computed the same way as the edit screen's own guidance box.
+
 ## 1.12.0
 
 **Fix: saving an asset gave no sign it had worked, and no way to tell where it actually shows up on the site.** Direct feedback: a Hero was submitted, the page just returned to what looked like the same form, with nothing confirming success or explaining how to actually get it onto the website if the shortcode wasn't already placed somewhere.
