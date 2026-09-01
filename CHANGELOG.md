@@ -4,6 +4,13 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.12.2
+
+**Fix: nothing on the form ruled out "Which Spot on the Site" being mistaken for desktop-vs-mobile targeting.** Device targeting was already fully handled — every promotion has its own Desktop Promotion and Mobile Promotion pictures, shown automatically to the right visitor — but a real user, mid-form, typed "Mobile" into the Placement field (which is actually for running independent promotions in different page *locations*, unrelated to device), which would have silently produced a promotion that never displays anywhere (no shortcode targets a "mobile" placement).
+
+- Added a direct note under "Which Spot on the Site" clarifying it's not about phones vs. computers, and a matching note at the top of the Images section explaining the two pictures are shown automatically per device.
+- New Help & FAQ entry: "Do I need to create a separate promotion for mobile and desktop?" — No.
+
 ## 1.12.1
 
 **Fix: the "All Assets" list showed the raw placement value ("default") instead of the actual shortcode needed to display it.** Direct follow-up to 1.12.0's "where this shows up" guidance on the edit screen — the same information is more useful directly in the list, where several promotions are visible at once, than the bare placement word was. That column (still keyed `rapm_placement` internally) is now labeled "Shortcode" and shows the real thing to copy, e.g. `[rapm_hero]` or `[rapm_coupon_book placement="category-living-room"]`, computed the same way as the edit screen's own guidance box.

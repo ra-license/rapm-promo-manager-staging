@@ -97,6 +97,10 @@ class RAPM_Help {
 				<summary><?php esc_html_e( 'Do I need both a desktop picture and a phone picture?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'The desktop picture is required — without it, your promotion will not show up anywhere. The phone picture is a good idea too, since it makes sure your promotion looks its best on phones, but you can add it later if you need to.', 'rapm' ); ?></p>
 			</details>
+			<details>
+				<summary><?php esc_html_e( 'Do I need to create a separate promotion for mobile and desktop?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'No. One promotion covers both — that\'s exactly what the Desktop Promotion and Mobile Promotion pictures are for. Upload both, and visitors on a computer automatically see the desktop one while visitors on a phone automatically see the mobile one. "Which Spot on the Site" further up the form is for something different (multiple promotions in different page locations) — leave it as "default" unless someone has specifically told you otherwise.', 'rapm' ); ?></p>
+			</details>
 
 			<h2><?php esc_html_e( 'Linking to an Outside Picture — Questions and Answers', 'rapm' ); ?></h2>
 

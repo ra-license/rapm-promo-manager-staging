@@ -211,6 +211,9 @@ class RAPM_Upload_Handler {
 						<th><label for="rapm_placement"><?php esc_html_e( 'Which Spot on the Site', 'rapm' ); ?></label></th>
 						<td><input type="text" id="rapm_placement" name="rapm_placement" value="<?php echo esc_attr( $placement ); ?>" />
 							<p class="description"><?php echo esc_html( sprintf( __( 'Just leave this as "default" unless someone has told you this site shows more than one %s in different spots (like one on the homepage and a different one on a category page) and asked you to type a specific name here.', 'rapm' ), strtolower( $kind['label'] ) ) ); ?></p>
+							<?php if ( $has_images ) : ?>
+								<p class="description"><strong><?php esc_html_e( 'This is not about phones vs. computers', 'rapm' ); ?></strong> — <?php esc_html_e( 'every promotion already shows the right picture on both automatically once you upload one of each below. Leave this as "default" for that.', 'rapm' ); ?></p>
+							<?php endif; ?>
 						</td>
 					</tr>
 				</table>
@@ -218,6 +221,7 @@ class RAPM_Upload_Handler {
 				<?php if ( $has_images ) : ?>
 				<h2><?php esc_html_e( 'Images', 'rapm' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Upload whatever picture you have — any common format (JPG, PNG, whatever your phone or camera saves) is fine. This tool will automatically resize/convert it for you if needed, and will tell you clearly if it can\'t be used.', 'rapm' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Upload both below on every promotion — visitors on a computer automatically see the Desktop one, visitors on a phone automatically see the Mobile one. You never need to create a separate promotion for each device.', 'rapm' ); ?></p>
 				<table class="form-table">
 					<tr>
 						<th><label><?php esc_html_e( 'Desktop Promotion', 'rapm' ); ?></label></th>
