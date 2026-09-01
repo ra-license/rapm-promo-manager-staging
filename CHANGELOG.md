@@ -4,6 +4,16 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.13.0
+
+**Feature: Desktop/Mobile toggle on the Live Preview.** Direct follow-up to a question about how to actually verify the right picture shows on the right device — the mechanism was already solid (native `<picture>`/`<source>`, decided by the browser itself, not something that could quietly fail), but confirming it meant leaving wp-admin and manually resizing a browser window, since the Live Preview only ever showed the desktop picture.
+
+- Two small buttons above the preview switch it between the Desktop and Mobile picture, live — no save needed, updates immediately as pictures are uploaded/changed.
+- If no Mobile Promotion has been uploaded yet, switching to Mobile honestly shows what a phone visitor would actually see instead: the desktop picture, cropped down into the narrower phone shape — with a note explaining that's what's happening, so a bad automatic crop is easy to catch (and fix by adding a dedicated mobile picture) before it ever goes live.
+- Also wired up for link-sourced pictures (the "Use a link" option) — the pasted URL previews directly, best-effort, since it hasn't been fetched/validated yet at that point.
+- New Help & FAQ entry: "How do I check what the mobile version will actually look like?"
+- Caught and fixed while building this: reading a blank `<img>` element's `.src` back out in JS resolves to the current page's own URL, not an empty string — a real gotcha that would have broken the "no image yet" state on a brand-new asset had it shipped. Read the actual attachment URL from PHP instead.
+
 ## 1.12.2
 
 **Fix: nothing on the form ruled out "Which Spot on the Site" being mistaken for desktop-vs-mobile targeting.** Device targeting was already fully handled — every promotion has its own Desktop Promotion and Mobile Promotion pictures, shown automatically to the right visitor — but a real user, mid-form, typed "Mobile" into the Placement field (which is actually for running independent promotions in different page *locations*, unrelated to device), which would have silently produced a promotion that never displays anywhere (no shortcode targets a "mobile" placement).

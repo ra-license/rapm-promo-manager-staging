@@ -399,7 +399,11 @@ class RAPM_Upload_Handler {
 				<?php if ( $has_images ) : ?>
 				<h2><?php esc_html_e( 'Live Preview', 'rapm' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'This shows exactly what visitors will see, updating as you type or choose a picture. If something looks off — text overlapping, hard to read, etc. — fix it here before saving.', 'rapm' ); ?></p>
-				<div id="rapm-preview-wrap" style="max-width:600px;margin-bottom:24px;">
+				<p>
+					<button type="button" class="button button-small rapm-preview-toggle-btn" id="rapm-preview-toggle-desktop" aria-pressed="true"><?php esc_html_e( 'Desktop', 'rapm' ); ?></button>
+					<button type="button" class="button button-small rapm-preview-toggle-btn" id="rapm-preview-toggle-mobile" aria-pressed="false"><?php esc_html_e( 'Mobile', 'rapm' ); ?></button>
+				</p>
+				<div id="rapm-preview-wrap" style="max-width:600px;margin-bottom:24px;transition:max-width .2s;">
 					<div id="rapm-preview" class="rapm-hero" style="aspect-ratio:<?php echo esc_attr( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;background:#333;">
 						<div class="rapm-slide" style="width:100%;height:100%;">
 							<img id="rapm-preview-img" src="<?php echo $img_desktop ? esc_url( wp_get_attachment_image_url( $img_desktop, 'full' ) ) : ''; ?>" alt="" style="width:100%;height:100%;object-fit:cover;display:<?php echo $img_desktop ? 'block' : 'none'; ?>;" />
@@ -415,7 +419,11 @@ class RAPM_Upload_Handler {
 						</div>
 					</div>
 					<p class="description" id="rapm-preview-empty" style="<?php echo $img_desktop ? 'display:none;' : ''; ?>"><?php esc_html_e( 'Choose a desktop image above to preview it here.', 'rapm' ); ?></p>
+					<p class="description" id="rapm-preview-no-mobile" style="display:none;color:#b32d2e;"><?php esc_html_e( 'No mobile picture uploaded yet — phones will show the desktop picture instead, until you add one.', 'rapm' ); ?></p>
 				</div>
+				<style>
+					.rapm-preview-toggle-btn[aria-pressed="true"] { background: #2271b1; border-color: #2271b1; color: #fff; }
+				</style>
 				<script>
 					( function () {
 						var headlineInput = document.getElementById( 'rapm_headline' );
@@ -424,10 +432,28 @@ class RAPM_Upload_Handler {
 						var alignInput    = document.getElementById( 'rapm_text_align' );
 						var colorInput    = document.getElementById( 'rapm_text_color' );
 						var styleInput    = document.getElementById( 'rapm_text_style' );
-						var fileInput     = document.getElementById( 'rapm_image_desktop' );
+						var desktopFile   = document.getElementById( 'rapm_image_desktop' );
+						var mobileFile    = document.getElementById( 'rapm_image_mobile' );
+						var desktopUrlInput = document.getElementById( 'rapm_image_desktop_url' );
+						var mobileUrlInput  = document.getElementById( 'rapm_image_mobile_url' );
+						var previewWrap   = document.getElementById( 'rapm-preview-wrap' );
+						var previewBox    = document.getElementById( 'rapm-preview' );
 						var previewImg    = document.getElementById( 'rapm-preview-img' );
 						var previewCopy   = document.getElementById( 'rapm-preview-copy' );
 						var previewEmpty  = document.getElementById( 'rapm-preview-empty' );
+						var previewNoMobile = document.getElementById( 'rapm-preview-no-mobile' );
+						var toggleDesktop = document.getElementById( 'rapm-preview-toggle-desktop' );
+						var toggleMobile  = document.getElementById( 'rapm-preview-toggle-mobile' );
+
+						var desktopRatio = <?php echo wp_json_encode( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;
+						var mobileRatio  = <?php echo wp_json_encode( $mobile_slot['width'] . '/' . $mobile_slot['height'] ); ?>;
+						// Read from PHP directly, not previewImg.src — when the
+						// src attribute is empty, the DOM resolves .src to the
+						// current page's own URL instead of '', which would
+						// wrongly count as "an image is set."
+						var desktopSrc   = <?php echo $img_desktop ? wp_json_encode( esc_url_raw( wp_get_attachment_image_url( $img_desktop, 'full' ) ) ) : "''"; ?>;
+						var mobileSrc    = <?php echo $img_mobile ? wp_json_encode( esc_url_raw( wp_get_attachment_image_url( $img_mobile, 'full' ) ) ) : "''"; ?>;
+						var mode         = 'desktop';
 
 						function setText( el, value ) {
 							el.textContent = value;
@@ -457,12 +483,52 @@ class RAPM_Upload_Handler {
 						colorInput.addEventListener( 'input', updateCopy );
 						updateCopy();
 
-						fileInput.addEventListener( 'change', function () {
+						function updateImageDisplay() {
+							var showingSrc = 'mobile' === mode && mobileSrc ? mobileSrc : desktopSrc;
+							previewImg.src = showingSrc;
+							previewImg.style.display = showingSrc ? 'block' : 'none';
+							previewEmpty.style.display = showingSrc ? 'none' : '';
+							previewNoMobile.style.display = ( 'mobile' === mode && ! mobileSrc && desktopSrc ) ? '' : 'none';
+						}
+
+						function applyMode() {
+							previewBox.style.aspectRatio = 'mobile' === mode ? mobileRatio : desktopRatio;
+							previewWrap.style.maxWidth = 'mobile' === mode ? '260px' : '600px';
+							toggleDesktop.setAttribute( 'aria-pressed', 'desktop' === mode ? 'true' : 'false' );
+							toggleMobile.setAttribute( 'aria-pressed', 'mobile' === mode ? 'true' : 'false' );
+							updateImageDisplay();
+						}
+						toggleDesktop.addEventListener( 'click', function () { mode = 'desktop'; applyMode(); } );
+						toggleMobile.addEventListener( 'click', function () { mode = 'mobile'; applyMode(); } );
+
+						desktopFile.addEventListener( 'change', function () {
 							if ( ! this.files || ! this.files[0] ) { return; }
-							previewImg.src = URL.createObjectURL( this.files[0] );
-							previewImg.style.display = 'block';
-							previewEmpty.style.display = 'none';
+							desktopSrc = URL.createObjectURL( this.files[0] );
+							updateImageDisplay();
 						} );
+						if ( mobileFile ) {
+							mobileFile.addEventListener( 'change', function () {
+								if ( ! this.files || ! this.files[0] ) { return; }
+								mobileSrc = URL.createObjectURL( this.files[0] );
+								updateImageDisplay();
+							} );
+						}
+						// Link-sourced images: use the pasted URL directly as a
+						// best-effort preview — it hasn't been fetched/validated
+						// yet, so a source that blocks hotlinking may not render
+						// here even though it'll work fine once saved.
+						if ( desktopUrlInput ) {
+							desktopUrlInput.addEventListener( 'input', function () {
+								desktopSrc = this.value;
+								updateImageDisplay();
+							} );
+						}
+						if ( mobileUrlInput ) {
+							mobileUrlInput.addEventListener( 'input', function () {
+								mobileSrc = this.value;
+								updateImageDisplay();
+							} );
+						}
 					} )();
 				</script>
 				<?php endif; // $has_images ?>

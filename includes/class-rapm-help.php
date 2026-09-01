@@ -101,6 +101,10 @@ class RAPM_Help {
 				<summary><?php esc_html_e( 'Do I need to create a separate promotion for mobile and desktop?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'No. One promotion covers both — that\'s exactly what the Desktop Promotion and Mobile Promotion pictures are for. Upload both, and visitors on a computer automatically see the desktop one while visitors on a phone automatically see the mobile one. "Which Spot on the Site" further up the form is for something different (multiple promotions in different page locations) — leave it as "default" unless someone has specifically told you otherwise.', 'rapm' ); ?></p>
 			</details>
+			<details>
+				<summary><?php esc_html_e( 'How do I check what the mobile version will actually look like?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Use the Desktop/Mobile buttons above the Live Preview box. Switching to Mobile shows your Mobile Promotion picture — or, if you haven\'t added one yet, it shows what phone visitors would see instead: your desktop picture, cropped down into the narrower phone shape. If that crop looks off, that\'s a sign to add a dedicated mobile picture.', 'rapm' ); ?></p>
+			</details>
 
 			<h2><?php esc_html_e( 'Linking to an Outside Picture — Questions and Answers', 'rapm' ); ?></h2>
 
