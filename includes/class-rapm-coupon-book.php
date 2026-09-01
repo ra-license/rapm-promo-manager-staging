@@ -90,6 +90,7 @@ class RAPM_Coupon_Book {
 		$text_align  = get_post_meta( $asset_id, '_rapm_text_align', true ) ?: 'left'; // phpcs:ignore
 		$text_color  = get_post_meta( $asset_id, '_rapm_text_color', true ) ?: '#ffffff'; // phpcs:ignore
 		$text_style  = get_post_meta( $asset_id, '_rapm_text_style', true ) ?: 'bold'; // phpcs:ignore
+		$text_font   = get_post_meta( $asset_id, '_rapm_text_font', true );
 		$dest_type   = get_post_meta( $asset_id, '_rapm_destination_type', true );
 		$dest_value  = get_post_meta( $asset_id, '_rapm_destination_value', true );
 		$url         = RAPM_Destination::resolve_url( $dest_type, $dest_value );
@@ -112,7 +113,7 @@ class RAPM_Coupon_Book {
 				<img src="<?php echo esc_url( $desktop_src ); ?>" alt="<?php echo esc_attr( $alt ); ?>" loading="lazy" />
 			</picture>
 			<?php if ( $headline || $subhead || $cta_text ) : ?>
-				<div class="rapm-slide-copy" data-align="<?php echo esc_attr( $text_align ); ?>" data-style="<?php echo esc_attr( $text_style ); ?>" style="color:<?php echo esc_attr( $text_color ); ?>;">
+				<div class="rapm-slide-copy" data-align="<?php echo esc_attr( $text_align ); ?>" data-style="<?php echo esc_attr( $text_style ); ?>" style="color:<?php echo esc_attr( $text_color ); ?>;<?php echo esc_attr( RAPM_Elementor::font_family_css( $text_font ) ); ?>">
 					<?php if ( $headline ) : ?><h3 class="rapm-headline"><?php echo esc_html( $headline ); ?></h3><?php endif; ?>
 					<?php if ( $subhead ) : ?><p class="rapm-subhead"><?php echo esc_html( $subhead ); ?></p><?php endif; ?>
 					<?php if ( $cta_text ) : ?><span class="rapm-cta-btn"><?php echo esc_html( $cta_text ); ?></span><?php endif; ?>

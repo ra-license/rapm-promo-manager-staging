@@ -154,6 +154,7 @@ class RAPM_Marquee {
 		$url         = RAPM_Destination::resolve_url( $dest_type, $dest_value );
 		$desktop_id  = (int) get_post_meta( $asset_id, '_rapm_image_desktop_id', true );
 		$desktop_src = $desktop_id ? wp_get_attachment_image_url( $desktop_id, 'full' ) : '';
+		$text_font   = get_post_meta( $asset_id, '_rapm_text_font', true );
 
 		if ( ! $desktop_src ) {
 			return; // No usable image — nothing to show for this tile.
@@ -166,7 +167,7 @@ class RAPM_Marquee {
 				<img src="<?php echo esc_url( $desktop_src ); ?>" alt="<?php echo esc_attr( $alt ); ?>" loading="lazy" />
 			</span>
 			<?php if ( $headline || $subhead ) : ?>
-				<span class="rapm-marquee-tile-caption">
+				<span class="rapm-marquee-tile-caption" <?php echo $text_font ? 'style="' . esc_attr( RAPM_Elementor::font_family_css( $text_font ) ) . '"' : ''; ?>>
 					<?php if ( $headline ) : ?><span class="rapm-marquee-tile-headline"><?php echo esc_html( $headline ); ?></span><?php endif; ?>
 					<?php if ( $subhead ) : ?><span class="rapm-marquee-tile-subhead"><?php echo esc_html( $subhead ); ?></span><?php endif; ?>
 				</span>

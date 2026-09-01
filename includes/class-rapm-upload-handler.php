@@ -333,6 +333,21 @@ class RAPM_Upload_Handler {
 								</select>
 							</td>
 						</tr>
+						<?php $site_fonts = RAPM_Elementor::global_fonts(); ?>
+						<?php if ( $site_fonts ) : ?>
+							<tr>
+								<th><label for="rapm_text_font"><?php esc_html_e( 'Typeface', 'rapm' ); ?></label></th>
+								<td>
+									<select id="rapm_text_font" name="rapm_text_font">
+										<option value=""><?php esc_html_e( 'Site Default', 'rapm' ); ?></option>
+										<?php foreach ( $site_fonts as $font_id => $font_title ) : ?>
+											<option value="<?php echo esc_attr( $font_id ); ?>" <?php selected( $m( '_rapm_text_font' ), $font_id ); ?>><?php echo esc_html( $font_title ); ?></option>
+										<?php endforeach; ?>
+									</select>
+									<p class="description"><?php esc_html_e( 'These are the same fonts already set up for this website in Elementor (Site Settings > Global Fonts). Picking one keeps the promotion\'s text matching the rest of the site — including automatically, if that font is ever changed later.', 'rapm' ); ?></p>
+								</td>
+							</tr>
+						<?php endif; ?>
 					</table>
 				</div>
 				<?php if ( $has_images ) : ?>
@@ -357,7 +372,11 @@ class RAPM_Upload_Handler {
 					<div id="rapm-preview" class="rapm-hero" style="aspect-ratio:<?php echo esc_attr( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;background:#333;">
 						<div class="rapm-slide" style="width:100%;height:100%;">
 							<img id="rapm-preview-img" src="<?php echo $img_desktop ? esc_url( wp_get_attachment_image_url( $img_desktop, 'full' ) ) : ''; ?>" alt="" style="width:100%;height:100%;object-fit:cover;display:<?php echo $img_desktop ? 'block' : 'none'; ?>;" />
-							<div class="rapm-slide-copy" id="rapm-preview-copy" data-align="<?php echo esc_attr( $m( '_rapm_text_align', 'left' ) ); ?>" data-style="<?php echo esc_attr( $m( '_rapm_text_style', 'bold' ) ); ?>" style="color:<?php echo esc_attr( $m( '_rapm_text_color', '#ffffff' ) ); ?>;">
+							<?php
+							$preview_font_map    = RAPM_Elementor::font_family_map();
+							$preview_font_family = isset( $preview_font_map[ $m( '_rapm_text_font' ) ] ) ? $preview_font_map[ $m( '_rapm_text_font' ) ] : '';
+							?>
+							<div class="rapm-slide-copy" id="rapm-preview-copy" data-align="<?php echo esc_attr( $m( '_rapm_text_align', 'left' ) ); ?>" data-style="<?php echo esc_attr( $m( '_rapm_text_style', 'bold' ) ); ?>" style="color:<?php echo esc_attr( $m( '_rapm_text_color', '#ffffff' ) ); ?>;<?php echo $preview_font_family ? 'font-family:' . esc_attr( $preview_font_family ) . ';' : ''; ?>">
 								<h2 class="rapm-headline" id="rapm-preview-headline"></h2>
 								<p class="rapm-subhead" id="rapm-preview-subhead"></p>
 								<span class="rapm-cta-btn" id="rapm-preview-cta"></span>
@@ -383,6 +402,9 @@ class RAPM_Upload_Handler {
 							el.textContent = value;
 							el.style.display = value ? '' : 'none';
 						}
+						var fontInput   = document.getElementById( 'rapm_text_font' );
+						var fontFamilyMap = <?php echo wp_json_encode( RAPM_Elementor::font_family_map() ); ?>;
+
 						function updateCopy() {
 							setText( document.getElementById( 'rapm-preview-headline' ), headlineInput.value );
 							setText( document.getElementById( 'rapm-preview-subhead' ), subheadInput.value );
@@ -390,6 +412,7 @@ class RAPM_Upload_Handler {
 							previewCopy.setAttribute( 'data-align', alignInput.value );
 							previewCopy.setAttribute( 'data-style', styleInput.value );
 							previewCopy.style.color = colorInput.value;
+							previewCopy.style.fontFamily = ( fontInput && fontFamilyMap[ fontInput.value ] ) ? fontFamilyMap[ fontInput.value ] : '';
 						}
 						[ headlineInput, subheadInput, ctaInput ].forEach( function ( el ) {
 							el.addEventListener( 'input', updateCopy );
@@ -397,6 +420,9 @@ class RAPM_Upload_Handler {
 						[ alignInput, styleInput ].forEach( function ( el ) {
 							el.addEventListener( 'change', updateCopy );
 						} );
+						if ( fontInput ) {
+							fontInput.addEventListener( 'change', updateCopy );
+						}
 						colorInput.addEventListener( 'input', updateCopy );
 						updateCopy();
 
@@ -916,6 +942,7 @@ class RAPM_Upload_Handler {
 			'rapm_text_align'   => array( __CLASS__, 'sanitize_text_align' ),
 			'rapm_text_color'   => array( __CLASS__, 'sanitize_text_color' ),
 			'rapm_text_style'   => array( __CLASS__, 'sanitize_text_style' ),
+			'rapm_text_font'    => array( __CLASS__, 'sanitize_text_font' ),
 			'rapm_starts_at'    => 'sanitize_text_field',
 			'rapm_ends_at'      => 'sanitize_text_field',
 		);
@@ -1075,6 +1102,17 @@ class RAPM_Upload_Handler {
 	public static function sanitize_text_color( $value ) {
 		$color = sanitize_hex_color( $value );
 		return $color ? $color : '#ffffff';
+	}
+
+	/**
+	 * Whitelisted against whatever Elementor global fonts actually exist
+	 * on this site right now, not just any string the form happened to
+	 * post — a stale/tampered value can't silently reference a font id
+	 * that no longer exists.
+	 */
+	public static function sanitize_text_font( $value ) {
+		$available = RAPM_Elementor::global_fonts();
+		return isset( $available[ $value ] ) ? $value : '';
 	}
 
 	private static function fail( $back_url, $message ) {

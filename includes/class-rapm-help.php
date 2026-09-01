@@ -125,6 +125,11 @@ class RAPM_Help {
 				<p><?php esc_html_e( 'The two would show up on top of each other, which looks messy. Always check the preview box before saving — if you see text twice, either clear the text boxes or answer "Yes" to the sale text question.', 'rapm' ); ?></p>
 			</details>
 
+			<details>
+				<summary><?php esc_html_e( 'What is the "Typeface" field, and why don\'t I see it?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'It lets your text use one of the fonts already set up for this website in Elementor, so it matches the rest of the site instead of a generic style. It only shows up if this site uses Elementor and already has fonts set up under Site Settings — if you don\'t see it, ask whoever manages the website, or just leave it on the default style below it.', 'rapm' ); ?></p>
+			</details>
+
 			<h2><?php esc_html_e( 'Where It Goes When Clicked — Questions and Answers', 'rapm' ); ?></h2>
 
 			<details>

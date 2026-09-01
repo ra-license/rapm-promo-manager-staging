@@ -4,6 +4,17 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.10.0
+
+**Feature: promotion text can use one of the site's own Elementor fonts.** Previously "Text Style" was a fixed Bold/Elegant/Minimal preset using hardcoded system font stacks — no way to actually match a specific site's own brand typeface. Researched Elementor's Kit/Global Fonts API directly against its own source (not guessed) before building against it, since getting internal API structure wrong here would mean a broken or empty feature.
+
+- New **Typeface** field on the Add/Edit Asset form — only appears on sites running Elementor with at least one font set up under Site Settings > Global Fonts. Lists the site's actual named fonts ("Primary," "Secondary," "Text," "Accent," or any custom names an editor added) exactly as Elementor itself shows them, plus "Site Default."
+- **Stays in sync automatically, doesn't freeze a name**: the chosen font is stored as Elementor's own stable font id and rendered on the front end as `font-family: var(--e-global-typography-{id}-font-family, inherit)` — a live reference to Elementor's own CSS variable, confirmed from Elementor's source to be declared on `<body class="elementor-kit-*">` sitewide (not just on Elementor-built pages). If the site owner later changes what "Primary" means in Elementor, every promotion using it updates with no re-save needed here.
+- The Add/Edit Asset form's own Live Preview can't see that CSS variable (wp-admin never loads Elementor's front-end kit styles), so the preview resolves and shows the literal font name instead, purely for WYSIWYG accuracy — the live site always uses the auto-syncing variable, never a frozen name.
+- Applies to Hero, Fold Banner, Coupon, and Marquee's below-image caption. Whitelisted server-side against the site's actual current fonts at save time, not just trusted from the submitted form value.
+- Gracefully absent (not broken) on any non-Elementor site, or an Elementor site that's never touched Global Fonts — the existing Bold/Elegant/Minimal presets keep working unchanged either way.
+- **Known unverified gap, flagged rather than assumed**: whether Elementor reliably enqueues the Google Fonts `<link>` for a global font that's *only* referenced by this plugin (not by any actual Elementor widget on the page) couldn't be confirmed from source alone — worth checking on a real site before relying on it for a custom (non-system) font.
+
 ## 1.9.1
 
 **Fix: Marquee's wrapper now hugs the tile row's actual width instead of stretching full-width.** `.rapm-marquee-wrap` was a block-level flex container with no width constraint, so it always spanned its full parent width regardless of item count — most obvious at `items="1"`, where a single small tile sat centered inside a much wider empty band. Set to `width: max-content` (capped by `max-width: 100%` so it still shrinks correctly on narrow screens) so the whitespace around the row always matches the row's own width, at every item count from 1 to 5. Verified visually at items=1/3/5 with the wrapper's own background tinted for inspection.
