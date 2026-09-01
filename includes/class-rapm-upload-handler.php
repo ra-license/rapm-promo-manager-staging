@@ -102,7 +102,13 @@ class RAPM_Upload_Handler {
 		$desktop_slot = $has_images ? $slots[ $kind['desktop'] ] : null;
 		$mobile_slot  = $has_images ? $slots[ $kind['mobile'] ] : null;
 
-		$error_key = isset( $_GET['rapm_error'] ) ? sanitize_key( wp_unslash( $_GET['rapm_error'] ) ) : '';
+		// sanitize_key() is for slugs (lowercase alphanumeric + dashes only)
+		// and would silently mangle a real sentence — every space, capital
+		// letter, and punctuation mark stripped out. sanitize_text_field()
+		// is the correct one for actual human-readable text. No separate
+		// url-decode needed here: PHP already decodes $_GET values (fail()
+		// below only needs to encode once, when building the redirect URL).
+		$error_message = isset( $_GET['rapm_error'] ) ? sanitize_text_field( wp_unslash( $_GET['rapm_error'] ) ) : '';
 		?>
 		<div class="wrap">
 			<h1>
@@ -117,8 +123,8 @@ class RAPM_Upload_Handler {
 				#rapm-dest-picker-current { font-weight: 600; }
 			</style>
 
-			<?php if ( $error_key ) : ?>
-				<div class="notice notice-error"><p><?php echo esc_html( wp_unslash( rawurldecode( $error_key ) ) ); ?></p></div>
+			<?php if ( $error_message ) : ?>
+				<div class="notice notice-error"><p><?php echo esc_html( $error_message ); ?></p></div>
 			<?php endif; ?>
 
 			<table class="form-table" style="max-width:700px;">

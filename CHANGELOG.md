@@ -4,6 +4,10 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.11.1
+
+**Fix: error messages on the Add/Edit Asset form ran all together with no spaces.** The message (e.g. "This needs to be 1920x600 px...") was being run through `sanitize_key()` before display — a function meant for slugs (lowercase letters/numbers/dashes only), which silently strips every space, capital letter, and punctuation mark. On top of that, a leftover `rawurldecode()` at the display site was operating on text `sanitize_key()` had already mangled, so it did nothing useful. Switched to `sanitize_text_field()` (the correct sanitizer for actual human-readable text) and removed the redundant decode — `$_GET` values are already decoded once by PHP itself, so `fail()`'s one-time `rawurlencode()` when building the redirect URL was always sufficient on its own. Checked every other `sanitize_key()` call in the plugin; this was the only one being used on free text rather than an actual slug/key.
+
 ## 1.11.0
 
 **Feature: automatic, safe image resizing — the one remaining manual step in "optimize sizing, format, and file size."** Format and file size were already fully automatic since 1.0.0; dimensions were always a hard rejection, on purpose (auto-cropping to fit a different shape risks cutting off whatever the photo is actually of). Direct feedback asked whether sizing itself could be automated — the answer, worked through explicitly rather than assumed: split it into a genuinely safe case and a genuinely risky one, and only automate the safe one.
