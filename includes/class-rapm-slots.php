@@ -101,30 +101,38 @@ class RAPM_Slots {
 	public static function kinds() {
 		return array(
 			'hero'        => array(
-				'label'   => __( 'Hero (full carousel)', 'rapm' ),
-				'desktop' => 'hero_desktop',
-				'mobile'  => 'hero_mobile',
+				'label'                 => __( 'Hero (full carousel)', 'rapm' ),
+				'desktop'               => 'hero_desktop',
+				'mobile'                => 'hero_mobile',
+				'shortcode'             => 'rapm_hero',
+				'has_elementor_widget'  => true,
 			),
 			'fold_banner' => array(
-				'label'   => __( 'Fold Banner (shorter, near the fold)', 'rapm' ),
-				'desktop' => 'fold_banner_desktop',
-				'mobile'  => 'fold_banner_mobile',
+				'label'                 => __( 'Fold Banner (shorter, near the fold)', 'rapm' ),
+				'desktop'               => 'fold_banner_desktop',
+				'mobile'                => 'fold_banner_mobile',
+				'shortcode'             => 'rapm_fold_banner',
+				'has_elementor_widget'  => true,
 			),
 			// A single card slot reused for both desktop/mobile — same
 			// shape either way since it's always shown at a small, fixed
 			// card size (see coupon_card above), not a full-width hero.
 			'coupon'      => array(
-				'label'   => __( 'Coupon (card in a scrolling row)', 'rapm' ),
-				'desktop' => 'coupon_card',
-				'mobile'  => 'coupon_card',
+				'label'                 => __( 'Coupon (card in a scrolling row)', 'rapm' ),
+				'desktop'               => 'coupon_card',
+				'mobile'                => 'coupon_card',
+				'shortcode'             => 'rapm_coupon_book',
+				'has_elementor_widget'  => false,
 			),
 			// A single square tile slot reused for both desktop/mobile,
 			// same reasoning as coupon_card above — always shown small, in
 			// a fixed-count row, never full-bleed.
 			'marquee'     => array(
-				'label'   => __( 'Marquee (small tiles in a row)', 'rapm' ),
-				'desktop' => 'marquee_tile',
-				'mobile'  => 'marquee_tile',
+				'label'                 => __( 'Marquee (small tiles in a row)', 'rapm' ),
+				'desktop'               => 'marquee_tile',
+				'mobile'                => 'marquee_tile',
+				'shortcode'             => 'rapm_marquee',
+				'has_elementor_widget'  => false,
 			),
 		);
 	}

@@ -127,6 +127,27 @@ class RAPM_Upload_Handler {
 				<div class="notice notice-error"><p><?php echo esc_html( $error_message ); ?></p></div>
 			<?php endif; ?>
 
+			<?php if ( isset( $_GET['rapm_saved'] ) ) : ?>
+				<div class="notice notice-success is-dismissible"><p><strong><?php esc_html_e( 'Saved.', 'rapm' ); ?></strong> <?php esc_html_e( 'This promotion is saved. If its start date has arrived, it\'s already live anywhere the shortcode below has been added.', 'rapm' ); ?></p></div>
+			<?php endif; ?>
+
+			<?php if ( $is_edit ) : ?>
+				<?php
+				$placement_slug = sanitize_title( $placement ?: 'default' );
+				$shortcode_text = 'default' === $placement_slug
+					? '[' . $kind['shortcode'] . ']'
+					: '[' . $kind['shortcode'] . ' placement="' . $placement_slug . '"]';
+				?>
+				<div class="notice notice-info" style="padding:12px 16px;">
+					<p style="margin:0 0 6px;"><strong><?php esc_html_e( 'Where this shows up on the site', 'rapm' ); ?></strong></p>
+					<p style="margin:0 0 6px;"><?php esc_html_e( 'This promotion only appears where this has been added to the website:', 'rapm' ); ?> <code><?php echo esc_html( $shortcode_text ); ?></code></p>
+					<?php if ( $kind['has_elementor_widget'] ) : ?>
+						<p style="margin:0 0 6px;"><?php esc_html_e( 'If this site uses Elementor, the "Promo Carousel" widget (under the Promo Manager category) can add it there instead of typing that code.', 'rapm' ); ?></p>
+					<?php endif; ?>
+					<p style="margin:0;"><?php esc_html_e( 'Not sure if it\'s already on a page? Ask whoever manages the website — it only needs to be added once per spot, not again for every new promotion you add here.', 'rapm' ); ?></p>
+				</div>
+			<?php endif; ?>
+
 			<table class="form-table" style="max-width:700px;">
 				<tr>
 					<th><label for="rapm_kind_selector"><?php esc_html_e( 'Type of Promotion', 'rapm' ); ?></label></th>

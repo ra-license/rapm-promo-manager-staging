@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.12.0
+
+**Fix: saving an asset gave no sign it had worked, and no way to tell where it actually shows up on the site.** Direct feedback: a Hero was submitted, the page just returned to what looked like the same form, with nothing confirming success or explaining how to actually get it onto the website if the shortcode wasn't already placed somewhere.
+
+- `handle_save()` was already redirecting back with `rapm_saved=1` on success — but nothing ever read that flag. The Add/Edit Asset form now shows a clear "Saved." notice when it's present.
+- New "Where this shows up on the site" box, shown whenever editing an existing asset: the exact shortcode for that asset's Kind and Placement (e.g. `[rapm_hero]`, or `[rapm_coupon_book placement="category-living-room"]`), a note that Hero/Fold Banner can also be added via the "Promo Carousel" Elementor widget instead, and a plain reminder that this only needs to be placed once per spot — not for every new promotion added afterward.
+- `RAPM_Slots::kinds()` now carries each kind's shortcode tag and whether it has a dedicated Elementor widget, so this stays accurate as new kinds get added rather than needing a second hardcoded list.
+
 ## 1.11.1
 
 **Fix: error messages on the Add/Edit Asset form ran all together with no spaces.** The message (e.g. "This needs to be 1920x600 px...") was being run through `sanitize_key()` before display — a function meant for slugs (lowercase letters/numbers/dashes only), which silently strips every space, capital letter, and punctuation mark. On top of that, a leftover `rawurldecode()` at the display site was operating on text `sanitize_key()` had already mangled, so it did nothing useful. Switched to `sanitize_text_field()` (the correct sanitizer for actual human-readable text) and removed the redundant decode — `$_GET` values are already decoded once by PHP itself, so `fail()`'s one-time `rawurlencode()` when building the redirect URL was always sufficient on its own. Checked every other `sanitize_key()` call in the plugin; this was the only one being used on free text rather than an actual slug/key.
