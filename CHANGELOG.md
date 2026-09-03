@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.14.1
+
+**Fix: the "where this shows up" shortcode box only appeared after saving, and sat far from the field it explains.** Direct feedback on a screenshot of the Add New form: the box only rendered on the *edit* screen (after a first save), so it wasn't there yet when someone was actually filling in "Which Spot on the Site" and wondering what it was for — and even on the edit screen, it sat well below that field, down near the Images section, rather than right next to it.
+
+- Moved directly under "Which Spot on the Site," and it now shows on the **Add** screen too, not just Edit — the shortcode can be computed from the Kind and Placement already chosen, no save required.
+- **Live-updates as you type** in the Placement field, so typing something other than "default" immediately shows the exact `placement="..."` shortcode it produces, right where the connection is obvious, instead of only being explained in prose.
+- Verified visually: typing "Category Living Room" correctly and immediately updated the preview to `[rapm_hero placement="category-living-room"]`.
+
 ## 1.14.0
 
 **Feature: the desktop-picture-on-mobile fallback now shrinks to fit instead of cropping.** Follow-up to confirming (researched against the actual HTML spec and how WordPress core, Shopify, Elementor/Divi/Beaver Builder, and Cloudinary/imgix all behave) that *showing* the desktop picture as a mobile fallback is the correct, industry-standard call — no platform hides content when a device-specific image is missing. This refines *how* it's shown, not whether.

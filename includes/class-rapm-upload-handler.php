@@ -131,23 +131,6 @@ class RAPM_Upload_Handler {
 				<div class="notice notice-success is-dismissible"><p><strong><?php esc_html_e( 'Saved.', 'rapm' ); ?></strong> <?php esc_html_e( 'This promotion is saved. If its start date has arrived, it\'s already live anywhere the shortcode below has been added.', 'rapm' ); ?></p></div>
 			<?php endif; ?>
 
-			<?php if ( $is_edit ) : ?>
-				<?php
-				$placement_slug = sanitize_title( $placement ?: 'default' );
-				$shortcode_text = 'default' === $placement_slug
-					? '[' . $kind['shortcode'] . ']'
-					: '[' . $kind['shortcode'] . ' placement="' . $placement_slug . '"]';
-				?>
-				<div class="notice notice-info" style="padding:12px 16px;">
-					<p style="margin:0 0 6px;"><strong><?php esc_html_e( 'Where this shows up on the site', 'rapm' ); ?></strong></p>
-					<p style="margin:0 0 6px;"><?php esc_html_e( 'This promotion only appears where this has been added to the website:', 'rapm' ); ?> <code><?php echo esc_html( $shortcode_text ); ?></code></p>
-					<?php if ( $kind['has_elementor_widget'] ) : ?>
-						<p style="margin:0 0 6px;"><?php esc_html_e( 'If this site uses Elementor, the "Promo Carousel" widget (under the Promo Manager category) can add it there instead of typing that code.', 'rapm' ); ?></p>
-					<?php endif; ?>
-					<p style="margin:0;"><?php esc_html_e( 'Not sure if it\'s already on a page? Ask whoever manages the website — it only needs to be added once per spot, not again for every new promotion you add here.', 'rapm' ); ?></p>
-				</div>
-			<?php endif; ?>
-
 			<table class="form-table" style="max-width:700px;">
 				<tr>
 					<th><label for="rapm_kind_selector"><?php esc_html_e( 'Type of Promotion', 'rapm' ); ?></label></th>
@@ -214,9 +197,38 @@ class RAPM_Upload_Handler {
 							<?php if ( $has_images ) : ?>
 								<p class="description"><strong><?php esc_html_e( 'This is not about phones vs. computers', 'rapm' ); ?></strong> — <?php esc_html_e( 'every promotion already shows the right picture on both automatically once you upload one of each below. Leave this as "default" for that.', 'rapm' ); ?></p>
 							<?php endif; ?>
+							<?php
+							$placement_slug = sanitize_title( $placement ?: 'default' );
+							$shortcode_text = 'default' === $placement_slug
+								? '[' . $kind['shortcode'] . ']'
+								: '[' . $kind['shortcode'] . ' placement="' . $placement_slug . '"]';
+							?>
+							<div class="rapm-shortcode-hint" style="margin-top:10px;padding:10px 12px;background:#f0f6fc;border-left:4px solid #72aee6;max-width:480px;">
+								<p style="margin:0 0 4px;"><?php esc_html_e( 'This is what actually puts this promotion on the website — this exact code, pasted onto a page:', 'rapm' ); ?></p>
+								<p style="margin:0 0 4px;"><code id="rapm-shortcode-preview"><?php echo esc_html( $shortcode_text ); ?></code></p>
+								<?php if ( $kind['has_elementor_widget'] ) : ?>
+									<p style="margin:0 0 4px;"><?php esc_html_e( 'If this site uses Elementor, the "Promo Carousel" widget (under the Promo Manager category) can add it instead of typing that code.', 'rapm' ); ?></p>
+								<?php endif; ?>
+								<p style="margin:0;"><?php esc_html_e( 'Ask whoever manages the website if you\'re not sure it\'s already been added — it only needs to be added once per spot, not again for every new promotion.', 'rapm' ); ?></p>
+							</div>
 						</td>
 					</tr>
 				</table>
+				<script>
+					( function () {
+						var placementInput = document.getElementById( 'rapm_placement' );
+						var preview         = document.getElementById( 'rapm-shortcode-preview' );
+						var shortcodeTag    = <?php echo wp_json_encode( $kind['shortcode'] ); ?>;
+						function slugify( value ) {
+							return value.toLowerCase().trim().replace( /[^a-z0-9]+/g, '-' ).replace( /^-+|-+$/g, '' );
+						}
+						function updatePreview() {
+							var slug = slugify( placementInput.value ) || 'default';
+							preview.textContent = 'default' === slug ? '[' + shortcodeTag + ']' : '[' + shortcodeTag + ' placement="' + slug + '"]';
+						}
+						placementInput.addEventListener( 'input', updatePreview );
+					} )();
+				</script>
 
 				<?php if ( $has_images ) : ?>
 				<h2><?php esc_html_e( 'Images', 'rapm' ); ?></h2>
