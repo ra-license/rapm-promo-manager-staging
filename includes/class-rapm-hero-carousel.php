@@ -138,7 +138,20 @@ class RAPM_Hero_Carousel {
 				<?php if ( $mobile_src ) : ?>
 					<source media="(max-width: 768px)" srcset="<?php echo esc_url( $mobile_src ); ?>" />
 				<?php endif; ?>
-				<img src="<?php echo esc_url( $desktop_src ); ?>" alt="<?php echo esc_attr( $alt ); ?>" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />
+				<?php
+				// No dedicated mobile picture — the desktop one is the
+				// fallback on phones too, per the <picture> spec (there's no
+				// standards-compliant way to show nothing instead). But a
+				// wide desktop shot force-cropped edge-to-edge into a tall
+				// phone frame can cut off whatever the shot is actually of,
+				// so this one case shrinks to fit within the frame instead
+				// (nothing cropped, letterboxed instead) — a real mobile
+				// picture is already cropped exactly for that shape on
+				// purpose, so it keeps filling the frame edge-to-edge as
+				// normal.
+				$img_class = $mobile_src ? '' : ' rapm-fallback-desktop-on-mobile';
+				?>
+				<img src="<?php echo esc_url( $desktop_src ); ?>" alt="<?php echo esc_attr( $alt ); ?>" loading="lazy" class="rapm-slide-img<?php echo esc_attr( $img_class ); ?>" />
 			</picture>
 			<?php if ( $headline || $subhead || $cta_text ) : ?>
 				<div class="rapm-slide-copy" data-align="<?php echo esc_attr( $text_align ); ?>" data-style="<?php echo esc_attr( $text_style ); ?>" style="color:<?php echo esc_attr( $text_color ); ?>;<?php echo esc_attr( RAPM_Elementor::font_family_css( $text_font ) ); ?>">

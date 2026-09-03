@@ -484,11 +484,18 @@ class RAPM_Upload_Handler {
 						updateCopy();
 
 						function updateImageDisplay() {
+							var isFallback = 'mobile' === mode && ! mobileSrc && !! desktopSrc;
 							var showingSrc = 'mobile' === mode && mobileSrc ? mobileSrc : desktopSrc;
 							previewImg.src = showingSrc;
 							previewImg.style.display = showingSrc ? 'block' : 'none';
+							// Matches the live site: a dedicated mobile picture
+							// fills the frame edge-to-edge (it was cropped
+							// exactly for this shape on purpose); the desktop
+							// picture used as a fallback shrinks to fit instead,
+							// so it's never cropped down to just its center.
+							previewImg.style.objectFit = isFallback ? 'contain' : 'cover';
 							previewEmpty.style.display = showingSrc ? 'none' : '';
-							previewNoMobile.style.display = ( 'mobile' === mode && ! mobileSrc && desktopSrc ) ? '' : 'none';
+							previewNoMobile.style.display = isFallback ? '' : 'none';
 						}
 
 						function applyMode() {

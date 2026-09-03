@@ -103,7 +103,7 @@ class RAPM_Help {
 			</details>
 			<details>
 				<summary><?php esc_html_e( 'How do I check what the mobile version will actually look like?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'Use the Desktop/Mobile buttons above the Live Preview box. Switching to Mobile shows your Mobile Promotion picture — or, if you haven\'t added one yet, it shows what phone visitors would see instead: your desktop picture, cropped down into the narrower phone shape. If that crop looks off, that\'s a sign to add a dedicated mobile picture.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Use the Desktop/Mobile buttons above the Live Preview box. Switching to Mobile shows your Mobile Promotion picture — or, if you haven\'t added one yet, it shows what phone visitors would see instead: your desktop picture, shrunk to fit the phone shape. Nothing gets cropped off, but you\'ll see empty space above and below it, which usually looks better with a dedicated mobile picture instead.', 'rapm' ); ?></p>
 			</details>
 
 			<h2><?php esc_html_e( 'Linking to an Outside Picture — Questions and Answers', 'rapm' ); ?></h2>

@@ -16,6 +16,27 @@
 	height: 100%;
 }
 
+.rapm-slide-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* A slide with no dedicated mobile picture falls back to its desktop one
+   on phones (there's no standards-compliant way for <picture> to show
+   nothing instead) — but shrink it to fit the frame rather than crop it
+   edge-to-edge, so a wide desktop shot never gets cropped down to just
+   its center. A real mobile picture is already cropped exactly for this
+   shape on purpose, so it's excluded from this rule and keeps filling
+   the frame edge-to-edge as normal. */
+@media (max-width: 768px) {
+	.rapm-fallback-desktop-on-mobile {
+		object-fit: contain;
+		background: #111;
+	}
+}
+
 /* Promotional copy is always real HTML text layered over the image, never
    flattened into the image file itself — this is what keeps it crawlable,
    screen-reader accessible, and editable without a re-upload. Kept

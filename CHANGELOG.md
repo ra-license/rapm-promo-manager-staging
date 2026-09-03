@@ -4,6 +4,15 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.14.0
+
+**Feature: the desktop-picture-on-mobile fallback now shrinks to fit instead of cropping.** Follow-up to confirming (researched against the actual HTML spec and how WordPress core, Shopify, Elementor/Divi/Beaver Builder, and Cloudinary/imgix all behave) that *showing* the desktop picture as a mobile fallback is the correct, industry-standard call — no platform hides content when a device-specific image is missing. This refines *how* it's shown, not whether.
+
+- A slide without a dedicated Mobile Promotion picture now has its desktop picture **shrink to fit** the phone-shaped frame on mobile screens, instead of being cropped edge-to-edge — nothing gets cut off, at the cost of empty space above/below. A slide *with* a real mobile picture is unaffected — it still fills the frame edge-to-edge, since that crop was made on purpose.
+- Only applies to Hero and Fold Banner, where desktop and mobile genuinely need different shapes. Coupon and Marquee already require the *same* dimensions for both fields, so there's no shape mismatch to fall back from there in the first place.
+- The Add/Edit Asset form's Live Preview (Desktop/Mobile toggle, 1.13.0) updated to match, so what's previewed in wp-admin now matches what actually ships.
+- Verified visually with a deliberately edge-heavy test image (content placed at the far left and right, where a naive crop would cut it) before and after — confirmed the crop was destroying that content and the fix preserves all of it.
+
 ## 1.13.0
 
 **Feature: Desktop/Mobile toggle on the Live Preview.** Direct follow-up to a question about how to actually verify the right picture shows on the right device — the mechanism was already solid (native `<picture>`/`<source>`, decided by the browser itself, not something that could quietly fail), but confirming it meant leaving wp-admin and manually resizing a browser window, since the Live Preview only ever showed the desktop picture.
