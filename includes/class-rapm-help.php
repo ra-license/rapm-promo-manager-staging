@@ -43,6 +43,7 @@ class RAPM_Help {
 			</style>
 
 			<h2><?php esc_html_e( 'Adding a New Promotion — Step by Step', 'rapm' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'The Add New Asset form walks you through this in order, one screen at a time, with Back and Next buttons — you can\'t get lost or skip something by accident.', 'rapm' ); ?></p>
 			<ol>
 				<li><?php esc_html_e( 'On the left menu, click "Add New Asset."', 'rapm' ); ?></li>
 				<li><?php esc_html_e( 'Pick the type of promotion: Hero (the big slider) or Fold Banner (a shorter strip).', 'rapm' ); ?></li>
@@ -56,7 +57,7 @@ class RAPM_Help {
 				<li><?php esc_html_e( 'Click the button at the bottom to save.', 'rapm' ); ?></li>
 			</ol>
 
-			<div class="rapm-help-note"><?php esc_html_e( 'Tip: You can always come back and change anything later. Just find your promotion in "All Assets" and click Edit.', 'rapm' ); ?></div>
+			<div class="rapm-help-note"><?php esc_html_e( 'Tip: You can always come back and change anything later. Just find your promotion in "All Assets" and click Edit — editing shows everything on one page (no steps to click through), so you can jump straight to the one thing you want to change.', 'rapm' ); ?></div>
 
 			<h2><?php esc_html_e( 'Types of Promotions', 'rapm' ); ?></h2>
 			<details>
@@ -116,6 +117,11 @@ class RAPM_Help {
 			<details>
 				<summary><?php esc_html_e( 'How do I check what the mobile version will actually look like?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'Use the Desktop/Mobile buttons above the Live Preview box. Switching to Mobile shows your Mobile Promotion picture — or, if you haven\'t added one yet, it shows what phone visitors would see instead: your desktop picture, shrunk to fit the phone shape. Nothing gets cropped off, but you\'ll see empty space above and below it, which usually looks better with a dedicated mobile picture instead.', 'rapm' ); ?></p>
+			</details>
+
+			<details>
+				<summary><?php esc_html_e( 'Why does editing an existing promotion look different from adding a new one?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Adding something brand new walks you through it step by step, since there\'s more to figure out the first time. Editing something that already exists shows every part on one page instead — no steps, nothing hidden — so you can go straight to whatever you want to change (like a date, or a picture) without clicking through parts you don\'t need to touch. The numbered boxes at the top still work on this page too — click one to jump straight down to that part.', 'rapm' ); ?></p>
 			</details>
 
 			<h2><?php esc_html_e( 'The Sliders Page', 'rapm' ); ?></h2>

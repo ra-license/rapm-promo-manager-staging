@@ -14,7 +14,9 @@ Non-technical client staff upload promotional graphics that are often the wrong 
 == Adding an asset ==
 Use **Promo Manager > Add New Asset**. Don't use the native "Add New" screen under Promo Manager > All Assets — it's a bare title field on purpose (no image/format path exists there at all) and will redirect you to the real form automatically.
 
-Fill in:
+Creating a new asset walks through four groups in order — The Basics, Your Message, Where It Links, Review & Schedule — with a progress bar and Back/Next buttons, built for an audience with no WordPress experience. **Editing an existing asset skips this entirely**: every group shows on one page at once, nothing hidden, and the same progress bar becomes a set of jump links (click one to scroll straight to that section) — a small edit never requires walking back through the whole guide.
+
+Fields, across whichever view you're in:
 - **Kind** — Hero (the full-height carousel), Fold Banner (a shorter strip near the fold), Coupon (a card in a horizontal scrolling row), or Marquee (a small square tile in a compact row, like a "quick links" strip). Switches which image dimensions are required below.
 - **Internal Name** — for your own reference in the admin list, not shown publicly.
 - **Placement** — which `[rapm_hero placement="..."]` or `[rapm_fold_banner placement="..."]` this belongs to (matched separately per Kind, so a "default" hero and a "default" fold banner don't mix). Leave as "default" unless the site needs more than one of the same Kind (e.g. a homepage hero and a separate category-page hero).

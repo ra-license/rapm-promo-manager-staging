@@ -187,10 +187,33 @@ class RAPM_Upload_Handler {
 				<input type="hidden" name="rapm_kind" value="<?php echo esc_attr( $kind_key ); ?>" />
 				<?php wp_nonce_field( self::NONCE_ACTION, 'rapm_nonce' ); ?>
 
+				<div class="rapm-wizard-steps" id="rapm-wizard-steps" role="tablist" aria-label="<?php esc_attr_e( 'Steps for adding this promotion', 'rapm' ); ?>">
+					<button type="button" class="rapm-wizard-step is-current" data-step="1"><span class="rapm-wizard-step-num">1</span><span class="rapm-wizard-step-label"><?php esc_html_e( 'The Basics', 'rapm' ); ?></span></button>
+					<button type="button" class="rapm-wizard-step" data-step="2"><span class="rapm-wizard-step-num">2</span><span class="rapm-wizard-step-label"><?php esc_html_e( 'Your Message', 'rapm' ); ?></span></button>
+					<button type="button" class="rapm-wizard-step" data-step="3"><span class="rapm-wizard-step-num">3</span><span class="rapm-wizard-step-label"><?php esc_html_e( 'Where It Links', 'rapm' ); ?></span></button>
+					<button type="button" class="rapm-wizard-step" data-step="4"><span class="rapm-wizard-step-num">4</span><span class="rapm-wizard-step-label"><?php esc_html_e( 'Review & Schedule', 'rapm' ); ?></span></button>
+				</div>
+				<style>
+					.rapm-wizard-steps { display: flex; flex-wrap: wrap; gap: 4px; margin: 20px 0 28px; max-width: 700px; }
+					.rapm-wizard-step { flex: 1; min-width: 130px; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; padding: 10px 12px; cursor: pointer; text-align: left; }
+					.rapm-wizard-step:disabled { cursor: not-allowed; opacity: .55; }
+					.rapm-wizard-step-num { flex: none; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #dcdcde; color: #50575e; font-size: 12px; font-weight: 600; }
+					.rapm-wizard-step-label { font-size: 12.5px; font-weight: 600; color: #50575e; }
+					.rapm-wizard-step.is-current { border-color: #2271b1; background: #f0f6fc; }
+					.rapm-wizard-step.is-current .rapm-wizard-step-num { background: #2271b1; color: #fff; }
+					.rapm-wizard-step.is-current .rapm-wizard-step-label { color: #1d2327; }
+					.rapm-wizard-step.is-done .rapm-wizard-step-num { background: #00a32a; color: #fff; }
+					.rapm-wizard-nav { max-width: 700px; margin: 20px 0; display: flex; gap: 10px; }
+					.rapm-wizard-next-warning { max-width: 700px; background: #fcf0f1; border-left: 4px solid #d63638; padding: 10px 14px; margin: 0 0 16px; display: none; }
+					.rapm-step-heading { color: #8c8f94; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px; }
+				</style>
+
+				<div class="rapm-step" id="rapm-step-1" data-step="1">
+				<h2 class="rapm-step-heading">1. <?php esc_html_e( 'The Basics', 'rapm' ); ?></h2>
 				<table class="form-table">
 					<tr>
 						<th><label for="rapm_title"><?php esc_html_e( 'Internal Name', 'rapm' ); ?></label></th>
-						<td><input type="text" id="rapm_title" name="rapm_title" class="regular-text" value="<?php echo esc_attr( $title ); ?>" required />
+						<td><input type="text" id="rapm_title" name="rapm_title" class="regular-text" value="<?php echo esc_attr( $title ); ?>" />
 							<p class="description"><?php esc_html_e( 'For your own reference in the admin list — not shown to site visitors.', 'rapm' ); ?></p>
 						</td>
 					</tr>
@@ -287,7 +310,7 @@ class RAPM_Upload_Handler {
 							<label class="rapm-source-choice"><input type="radio" name="rapm_image_desktop_source" class="rapm-source-radio" data-target="desktop" value="link" <?php checked( 'link', $desktop_source ); ?> /> <?php esc_html_e( 'Use a link', 'rapm' ); ?></label>
 
 							<div id="rapm-desktop-upload-row" style="margin-top:8px;<?php echo 'link' === $desktop_source ? 'display:none;' : ''; ?>">
-								<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" <?php echo ( $img_desktop || 'link' === $desktop_source ) ? '' : 'required'; ?> />
+								<input type="file" id="rapm_image_desktop" name="rapm_image_desktop" accept="image/*" />
 								<div id="rapm-desktop-crop-picker" class="rapm-crop-picker" style="display:none;">
 									<p class="description"><strong><?php esc_html_e( 'This picture is a different shape than needed.', 'rapm' ); ?></strong> <?php esc_html_e( 'Pick which part to keep, or upload a different picture instead.', 'rapm' ); ?></p>
 									<div class="rapm-crop-layout">
@@ -396,7 +419,14 @@ class RAPM_Upload_Handler {
 					} )();
 				</script>
 				<?php endif; // $has_images ?>
+				<p class="rapm-wizard-next-warning" id="rapm-step-1-warning"></p>
+				<p class="rapm-wizard-nav">
+					<button type="button" class="button button-primary rapm-wizard-next" data-goto="2"><?php esc_html_e( 'Next', 'rapm' ); ?></button>
+				</p>
+				</div><!-- .rapm-step[data-step="1"] -->
 
+				<div class="rapm-step" id="rapm-step-2" data-step="2" <?php echo $is_edit ? '' : 'hidden'; ?>>
+				<h2 class="rapm-step-heading">2. <?php esc_html_e( 'Your Message', 'rapm' ); ?></h2>
 				<?php if ( $has_images ) : ?>
 				<h2><?php esc_html_e( 'Sale Text', 'rapm' ); ?></h2>
 				<table class="form-table">
@@ -492,201 +522,14 @@ class RAPM_Upload_Handler {
 					} )();
 				</script>
 				<?php endif; ?>
-
-				<?php if ( $has_images ) : ?>
-				<h2><?php esc_html_e( 'Live Preview', 'rapm' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'This shows exactly what visitors will see, updating as you type or choose a picture. If something looks off — text overlapping, hard to read, etc. — fix it here before saving.', 'rapm' ); ?></p>
-				<p>
-					<button type="button" class="button button-small rapm-preview-toggle-btn" id="rapm-preview-toggle-desktop" aria-pressed="true"><?php esc_html_e( 'Desktop', 'rapm' ); ?></button>
-					<button type="button" class="button button-small rapm-preview-toggle-btn" id="rapm-preview-toggle-mobile" aria-pressed="false"><?php esc_html_e( 'Mobile', 'rapm' ); ?></button>
+				<p class="rapm-wizard-nav">
+					<button type="button" class="button rapm-wizard-back" data-goto="1"><?php esc_html_e( '← Back', 'rapm' ); ?></button>
+					<button type="button" class="button button-primary rapm-wizard-next" data-goto="3"><?php esc_html_e( 'Next', 'rapm' ); ?></button>
 				</p>
-				<div id="rapm-preview-wrap" style="max-width:600px;margin-bottom:24px;transition:max-width .2s;">
-					<div id="rapm-preview" class="rapm-hero" style="aspect-ratio:<?php echo esc_attr( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;background:#333;">
-						<div class="rapm-slide" style="width:100%;height:100%;">
-							<img id="rapm-preview-img" src="<?php echo $img_desktop ? esc_url( wp_get_attachment_image_url( $img_desktop, 'full' ) ) : ''; ?>" alt="" style="width:100%;height:100%;object-fit:cover;display:<?php echo $img_desktop ? 'block' : 'none'; ?>;" />
-							<?php
-							$preview_font_map    = RAPM_Elementor::font_family_map();
-							$preview_font_family = isset( $preview_font_map[ $m( '_rapm_text_font' ) ] ) ? $preview_font_map[ $m( '_rapm_text_font' ) ] : '';
-							?>
-							<div class="rapm-slide-copy" id="rapm-preview-copy" data-align="<?php echo esc_attr( $m( '_rapm_text_align', 'left' ) ); ?>" data-style="<?php echo esc_attr( $m( '_rapm_text_style', 'bold' ) ); ?>" style="color:<?php echo esc_attr( $m( '_rapm_text_color', '#ffffff' ) ); ?>;<?php echo $preview_font_family ? 'font-family:' . esc_attr( $preview_font_family ) . ';' : ''; ?>">
-								<h2 class="rapm-headline" id="rapm-preview-headline"></h2>
-								<p class="rapm-subhead" id="rapm-preview-subhead"></p>
-								<span class="rapm-cta-btn" id="rapm-preview-cta"></span>
-							</div>
-						</div>
-					</div>
-					<p class="description" id="rapm-preview-empty" style="<?php echo $img_desktop ? 'display:none;' : ''; ?>"><?php esc_html_e( 'Choose a desktop image above to preview it here.', 'rapm' ); ?></p>
-					<p class="description" id="rapm-preview-no-mobile" style="display:none;color:#b32d2e;"><?php esc_html_e( 'No mobile picture uploaded yet — phones will show the desktop picture instead, until you add one.', 'rapm' ); ?></p>
-				</div>
-				<style>
-					.rapm-preview-toggle-btn[aria-pressed="true"] { background: #2271b1; border-color: #2271b1; color: #fff; }
-				</style>
-				<script>
-					( function () {
-						var headlineInput = document.getElementById( 'rapm_headline' );
-						var subheadInput  = document.getElementById( 'rapm_subhead' );
-						var ctaInput      = document.getElementById( 'rapm_cta_text' );
-						var alignInput    = document.getElementById( 'rapm_text_align' );
-						var colorInput    = document.getElementById( 'rapm_text_color' );
-						var styleInput    = document.getElementById( 'rapm_text_style' );
-						var desktopFile   = document.getElementById( 'rapm_image_desktop' );
-						var mobileFile    = document.getElementById( 'rapm_image_mobile' );
-						var desktopUrlInput = document.getElementById( 'rapm_image_desktop_url' );
-						var mobileUrlInput  = document.getElementById( 'rapm_image_mobile_url' );
-						var previewWrap   = document.getElementById( 'rapm-preview-wrap' );
-						var previewBox    = document.getElementById( 'rapm-preview' );
-						var previewImg    = document.getElementById( 'rapm-preview-img' );
-						var previewCopy   = document.getElementById( 'rapm-preview-copy' );
-						var previewEmpty  = document.getElementById( 'rapm-preview-empty' );
-						var previewNoMobile = document.getElementById( 'rapm-preview-no-mobile' );
-						var toggleDesktop = document.getElementById( 'rapm-preview-toggle-desktop' );
-						var toggleMobile  = document.getElementById( 'rapm-preview-toggle-mobile' );
+				</div><!-- .rapm-step[data-step="2"] -->
 
-						var desktopRatio = <?php echo wp_json_encode( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;
-						var mobileRatio  = <?php echo wp_json_encode( $mobile_slot['width'] . '/' . $mobile_slot['height'] ); ?>;
-						// Read from PHP directly, not previewImg.src — when the
-						// src attribute is empty, the DOM resolves .src to the
-						// current page's own URL instead of '', which would
-						// wrongly count as "an image is set."
-						var desktopSrc   = <?php echo $img_desktop ? wp_json_encode( esc_url_raw( wp_get_attachment_image_url( $img_desktop, 'full' ) ) ) : "''"; ?>;
-						var mobileSrc    = <?php echo $img_mobile ? wp_json_encode( esc_url_raw( wp_get_attachment_image_url( $img_mobile, 'full' ) ) ) : "''"; ?>;
-						var mode         = 'desktop';
-
-						function setText( el, value ) {
-							el.textContent = value;
-							el.style.display = value ? '' : 'none';
-						}
-						var fontInput   = document.getElementById( 'rapm_text_font' );
-						var fontFamilyMap = <?php echo wp_json_encode( RAPM_Elementor::font_family_map() ); ?>;
-
-						function updateCopy() {
-							setText( document.getElementById( 'rapm-preview-headline' ), headlineInput.value );
-							setText( document.getElementById( 'rapm-preview-subhead' ), subheadInput.value );
-							setText( document.getElementById( 'rapm-preview-cta' ), ctaInput.value );
-							previewCopy.setAttribute( 'data-align', alignInput.value );
-							previewCopy.setAttribute( 'data-style', styleInput.value );
-							previewCopy.style.color = colorInput.value;
-							previewCopy.style.fontFamily = ( fontInput && fontFamilyMap[ fontInput.value ] ) ? fontFamilyMap[ fontInput.value ] : '';
-						}
-						[ headlineInput, subheadInput, ctaInput ].forEach( function ( el ) {
-							el.addEventListener( 'input', updateCopy );
-						} );
-						[ alignInput, styleInput ].forEach( function ( el ) {
-							el.addEventListener( 'change', updateCopy );
-						} );
-						if ( fontInput ) {
-							fontInput.addEventListener( 'change', updateCopy );
-						}
-						colorInput.addEventListener( 'input', updateCopy );
-						updateCopy();
-
-						function updateImageDisplay() {
-							var isFallback = 'mobile' === mode && ! mobileSrc && !! desktopSrc;
-							var showingSrc = 'mobile' === mode && mobileSrc ? mobileSrc : desktopSrc;
-							previewImg.src = showingSrc;
-							previewImg.style.display = showingSrc ? 'block' : 'none';
-							// Matches the live site: a dedicated mobile picture
-							// fills the frame edge-to-edge (it was cropped
-							// exactly for this shape on purpose); the desktop
-							// picture used as a fallback shrinks to fit instead,
-							// so it's never cropped down to just its center.
-							previewImg.style.objectFit = isFallback ? 'contain' : 'cover';
-							previewEmpty.style.display = showingSrc ? 'none' : '';
-							previewNoMobile.style.display = isFallback ? '' : 'none';
-						}
-
-						function applyMode() {
-							previewBox.style.aspectRatio = 'mobile' === mode ? mobileRatio : desktopRatio;
-							previewWrap.style.maxWidth = 'mobile' === mode ? '260px' : '600px';
-							toggleDesktop.setAttribute( 'aria-pressed', 'desktop' === mode ? 'true' : 'false' );
-							toggleMobile.setAttribute( 'aria-pressed', 'mobile' === mode ? 'true' : 'false' );
-							updateImageDisplay();
-						}
-						toggleDesktop.addEventListener( 'click', function () { mode = 'desktop'; applyMode(); } );
-						toggleMobile.addEventListener( 'click', function () { mode = 'mobile'; applyMode(); } );
-
-						// Optional crop-anchor picker: only appears when an
-						// uploaded picture is a genuinely different SHAPE than
-						// the slot needs (not just a different resolution — that
-						// case already resizes automatically, server-side, with
-						// nothing cropped). Defaults to "center" the moment it
-						// appears, so submitting without touching it still
-						// works — picking a different anchor is optional
-						// fine-tuning, not a requirement.
-						function setupCropPicker( target, slotWidth, slotHeight, tolerance ) {
-							var fileInput  = document.getElementById( 'rapm_image_' + target );
-							var picker     = document.getElementById( 'rapm-' + target + '-crop-picker' );
-							var previewImg = document.getElementById( 'rapm-' + target + '-crop-preview-img' );
-							var anchorField = document.getElementById( 'rapm_image_' + target + '_crop_anchor' );
-							if ( ! fileInput || ! picker ) { return; }
-							var buttons = picker.querySelectorAll( '.rapm-crop-anchors button' );
-
-							function selectAnchor( anchor ) {
-								anchorField.value = anchor;
-								previewImg.style.objectPosition = anchor;
-								Array.prototype.forEach.call( buttons, function ( btn ) {
-									btn.classList.toggle( 'is-selected', btn.getAttribute( 'data-anchor' ) === anchor );
-								} );
-							}
-							Array.prototype.forEach.call( buttons, function ( btn ) {
-								btn.addEventListener( 'click', function () { selectAnchor( btn.getAttribute( 'data-anchor' ) ); } );
-							} );
-
-							fileInput.addEventListener( 'change', function () {
-								picker.style.display = 'none';
-								anchorField.value = '';
-								if ( ! this.files || ! this.files[0] ) { return; }
-								var url = URL.createObjectURL( this.files[0] );
-								var probe = new Image();
-								probe.onload = function () {
-									var targetRatio = slotWidth / slotHeight;
-									var actualRatio = probe.naturalWidth / probe.naturalHeight;
-									var withinTolerance = Math.abs( actualRatio - targetRatio ) / targetRatio <= tolerance;
-									if ( withinTolerance ) { return; } // same shape (or exact match) — no picker needed
-									previewImg.src = url;
-									selectAnchor( 'center center' );
-									picker.style.display = '';
-								};
-								probe.src = url;
-							} );
-						}
-						setupCropPicker( 'desktop', <?php echo (int) $desktop_slot['width']; ?>, <?php echo (int) $desktop_slot['height']; ?>, <?php echo wp_json_encode( (float) ( $desktop_slot['aspect_ratio_tolerance'] ?? 0.02 ) ); ?> );
-						<?php if ( $mobile_slot ) : ?>
-						setupCropPicker( 'mobile', <?php echo (int) $mobile_slot['width']; ?>, <?php echo (int) $mobile_slot['height']; ?>, <?php echo wp_json_encode( (float) ( $mobile_slot['aspect_ratio_tolerance'] ?? 0.02 ) ); ?> );
-						<?php endif; ?>
-
-						desktopFile.addEventListener( 'change', function () {
-							if ( ! this.files || ! this.files[0] ) { return; }
-							desktopSrc = URL.createObjectURL( this.files[0] );
-							updateImageDisplay();
-						} );
-						if ( mobileFile ) {
-							mobileFile.addEventListener( 'change', function () {
-								if ( ! this.files || ! this.files[0] ) { return; }
-								mobileSrc = URL.createObjectURL( this.files[0] );
-								updateImageDisplay();
-							} );
-						}
-						// Link-sourced images: use the pasted URL directly as a
-						// best-effort preview — it hasn't been fetched/validated
-						// yet, so a source that blocks hotlinking may not render
-						// here even though it'll work fine once saved.
-						if ( desktopUrlInput ) {
-							desktopUrlInput.addEventListener( 'input', function () {
-								desktopSrc = this.value;
-								updateImageDisplay();
-							} );
-						}
-						if ( mobileUrlInput ) {
-							mobileUrlInput.addEventListener( 'input', function () {
-								mobileSrc = this.value;
-								updateImageDisplay();
-							} );
-						}
-					} )();
-				</script>
-				<?php endif; // $has_images ?>
-
+				<div class="rapm-step" id="rapm-step-3" data-step="3" <?php echo $is_edit ? '' : 'hidden'; ?>>
+				<h2 class="rapm-step-heading">3. <?php esc_html_e( 'Where It Links', 'rapm' ); ?></h2>
 				<h2><?php esc_html_e( 'Where It Goes When Clicked', 'rapm' ); ?></h2>
 				<?php $curated = RAPM_Destination::decode_curated_value( 'curated' === $dest_type ? $dest_value : '' ); ?>
 				<table class="form-table">
@@ -1008,6 +851,209 @@ class RAPM_Upload_Handler {
 					} )();
 				</script>
 
+				<p class="rapm-wizard-nav">
+					<button type="button" class="button rapm-wizard-back" data-goto="2"><?php esc_html_e( '← Back', 'rapm' ); ?></button>
+					<button type="button" class="button button-primary rapm-wizard-next" data-goto="4"><?php esc_html_e( 'Next', 'rapm' ); ?></button>
+				</p>
+				</div><!-- .rapm-step[data-step="3"] -->
+
+				<div class="rapm-step" id="rapm-step-4" data-step="4" <?php echo $is_edit ? '' : 'hidden'; ?>>
+				<h2 class="rapm-step-heading">4. <?php esc_html_e( 'Review & Schedule', 'rapm' ); ?></h2>
+
+				<?php if ( $has_images ) : ?>
+				<h2><?php esc_html_e( 'Live Preview', 'rapm' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'This shows exactly what visitors will see, updating as you type or choose a picture. If something looks off — text overlapping, hard to read, etc. — fix it here before saving.', 'rapm' ); ?></p>
+				<p>
+					<button type="button" class="button button-small rapm-preview-toggle-btn" id="rapm-preview-toggle-desktop" aria-pressed="true"><?php esc_html_e( 'Desktop', 'rapm' ); ?></button>
+					<button type="button" class="button button-small rapm-preview-toggle-btn" id="rapm-preview-toggle-mobile" aria-pressed="false"><?php esc_html_e( 'Mobile', 'rapm' ); ?></button>
+				</p>
+				<div id="rapm-preview-wrap" style="max-width:600px;margin-bottom:24px;transition:max-width .2s;">
+					<div id="rapm-preview" class="rapm-hero" style="aspect-ratio:<?php echo esc_attr( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;background:#333;">
+						<div class="rapm-slide" style="width:100%;height:100%;">
+							<img id="rapm-preview-img" src="<?php echo $img_desktop ? esc_url( wp_get_attachment_image_url( $img_desktop, 'full' ) ) : ''; ?>" alt="" style="width:100%;height:100%;object-fit:cover;display:<?php echo $img_desktop ? 'block' : 'none'; ?>;" />
+							<?php
+							$preview_font_map    = RAPM_Elementor::font_family_map();
+							$preview_font_family = isset( $preview_font_map[ $m( '_rapm_text_font' ) ] ) ? $preview_font_map[ $m( '_rapm_text_font' ) ] : '';
+							?>
+							<div class="rapm-slide-copy" id="rapm-preview-copy" data-align="<?php echo esc_attr( $m( '_rapm_text_align', 'left' ) ); ?>" data-style="<?php echo esc_attr( $m( '_rapm_text_style', 'bold' ) ); ?>" style="color:<?php echo esc_attr( $m( '_rapm_text_color', '#ffffff' ) ); ?>;<?php echo $preview_font_family ? 'font-family:' . esc_attr( $preview_font_family ) . ';' : ''; ?>">
+								<h2 class="rapm-headline" id="rapm-preview-headline"></h2>
+								<p class="rapm-subhead" id="rapm-preview-subhead"></p>
+								<span class="rapm-cta-btn" id="rapm-preview-cta"></span>
+							</div>
+						</div>
+					</div>
+					<p class="description" id="rapm-preview-empty" style="<?php echo $img_desktop ? 'display:none;' : ''; ?>"><?php esc_html_e( 'Choose a desktop image above to preview it here.', 'rapm' ); ?></p>
+					<p class="description" id="rapm-preview-no-mobile" style="display:none;color:#b32d2e;"><?php esc_html_e( 'No mobile picture uploaded yet — phones will show the desktop picture instead, until you add one.', 'rapm' ); ?></p>
+				</div>
+				<style>
+					.rapm-preview-toggle-btn[aria-pressed="true"] { background: #2271b1; border-color: #2271b1; color: #fff; }
+				</style>
+				<script>
+					( function () {
+						var headlineInput = document.getElementById( 'rapm_headline' );
+						var subheadInput  = document.getElementById( 'rapm_subhead' );
+						var ctaInput      = document.getElementById( 'rapm_cta_text' );
+						var alignInput    = document.getElementById( 'rapm_text_align' );
+						var colorInput    = document.getElementById( 'rapm_text_color' );
+						var styleInput    = document.getElementById( 'rapm_text_style' );
+						var desktopFile   = document.getElementById( 'rapm_image_desktop' );
+						var mobileFile    = document.getElementById( 'rapm_image_mobile' );
+						var desktopUrlInput = document.getElementById( 'rapm_image_desktop_url' );
+						var mobileUrlInput  = document.getElementById( 'rapm_image_mobile_url' );
+						var previewWrap   = document.getElementById( 'rapm-preview-wrap' );
+						var previewBox    = document.getElementById( 'rapm-preview' );
+						var previewImg    = document.getElementById( 'rapm-preview-img' );
+						var previewCopy   = document.getElementById( 'rapm-preview-copy' );
+						var previewEmpty  = document.getElementById( 'rapm-preview-empty' );
+						var previewNoMobile = document.getElementById( 'rapm-preview-no-mobile' );
+						var toggleDesktop = document.getElementById( 'rapm-preview-toggle-desktop' );
+						var toggleMobile  = document.getElementById( 'rapm-preview-toggle-mobile' );
+
+						var desktopRatio = <?php echo wp_json_encode( $desktop_slot['width'] . '/' . $desktop_slot['height'] ); ?>;
+						var mobileRatio  = <?php echo wp_json_encode( $mobile_slot['width'] . '/' . $mobile_slot['height'] ); ?>;
+						// Read from PHP directly, not previewImg.src — when the
+						// src attribute is empty, the DOM resolves .src to the
+						// current page's own URL instead of '', which would
+						// wrongly count as "an image is set."
+						var desktopSrc   = <?php echo $img_desktop ? wp_json_encode( esc_url_raw( wp_get_attachment_image_url( $img_desktop, 'full' ) ) ) : "''"; ?>;
+						var mobileSrc    = <?php echo $img_mobile ? wp_json_encode( esc_url_raw( wp_get_attachment_image_url( $img_mobile, 'full' ) ) ) : "''"; ?>;
+						var mode         = 'desktop';
+
+						function setText( el, value ) {
+							el.textContent = value;
+							el.style.display = value ? '' : 'none';
+						}
+						var fontInput   = document.getElementById( 'rapm_text_font' );
+						var fontFamilyMap = <?php echo wp_json_encode( RAPM_Elementor::font_family_map() ); ?>;
+
+						function updateCopy() {
+							setText( document.getElementById( 'rapm-preview-headline' ), headlineInput.value );
+							setText( document.getElementById( 'rapm-preview-subhead' ), subheadInput.value );
+							setText( document.getElementById( 'rapm-preview-cta' ), ctaInput.value );
+							previewCopy.setAttribute( 'data-align', alignInput.value );
+							previewCopy.setAttribute( 'data-style', styleInput.value );
+							previewCopy.style.color = colorInput.value;
+							previewCopy.style.fontFamily = ( fontInput && fontFamilyMap[ fontInput.value ] ) ? fontFamilyMap[ fontInput.value ] : '';
+						}
+						[ headlineInput, subheadInput, ctaInput ].forEach( function ( el ) {
+							el.addEventListener( 'input', updateCopy );
+						} );
+						[ alignInput, styleInput ].forEach( function ( el ) {
+							el.addEventListener( 'change', updateCopy );
+						} );
+						if ( fontInput ) {
+							fontInput.addEventListener( 'change', updateCopy );
+						}
+						colorInput.addEventListener( 'input', updateCopy );
+						updateCopy();
+
+						function updateImageDisplay() {
+							var isFallback = 'mobile' === mode && ! mobileSrc && !! desktopSrc;
+							var showingSrc = 'mobile' === mode && mobileSrc ? mobileSrc : desktopSrc;
+							previewImg.src = showingSrc;
+							previewImg.style.display = showingSrc ? 'block' : 'none';
+							// Matches the live site: a dedicated mobile picture
+							// fills the frame edge-to-edge (it was cropped
+							// exactly for this shape on purpose); the desktop
+							// picture used as a fallback shrinks to fit instead,
+							// so it's never cropped down to just its center.
+							previewImg.style.objectFit = isFallback ? 'contain' : 'cover';
+							previewEmpty.style.display = showingSrc ? 'none' : '';
+							previewNoMobile.style.display = isFallback ? '' : 'none';
+						}
+
+						function applyMode() {
+							previewBox.style.aspectRatio = 'mobile' === mode ? mobileRatio : desktopRatio;
+							previewWrap.style.maxWidth = 'mobile' === mode ? '260px' : '600px';
+							toggleDesktop.setAttribute( 'aria-pressed', 'desktop' === mode ? 'true' : 'false' );
+							toggleMobile.setAttribute( 'aria-pressed', 'mobile' === mode ? 'true' : 'false' );
+							updateImageDisplay();
+						}
+						toggleDesktop.addEventListener( 'click', function () { mode = 'desktop'; applyMode(); } );
+						toggleMobile.addEventListener( 'click', function () { mode = 'mobile'; applyMode(); } );
+
+						// Optional crop-anchor picker: only appears when an
+						// uploaded picture is a genuinely different SHAPE than
+						// the slot needs (not just a different resolution — that
+						// case already resizes automatically, server-side, with
+						// nothing cropped). Defaults to "center" the moment it
+						// appears, so submitting without touching it still
+						// works — picking a different anchor is optional
+						// fine-tuning, not a requirement.
+						function setupCropPicker( target, slotWidth, slotHeight, tolerance ) {
+							var fileInput  = document.getElementById( 'rapm_image_' + target );
+							var picker     = document.getElementById( 'rapm-' + target + '-crop-picker' );
+							var previewImg = document.getElementById( 'rapm-' + target + '-crop-preview-img' );
+							var anchorField = document.getElementById( 'rapm_image_' + target + '_crop_anchor' );
+							if ( ! fileInput || ! picker ) { return; }
+							var buttons = picker.querySelectorAll( '.rapm-crop-anchors button' );
+
+							function selectAnchor( anchor ) {
+								anchorField.value = anchor;
+								previewImg.style.objectPosition = anchor;
+								Array.prototype.forEach.call( buttons, function ( btn ) {
+									btn.classList.toggle( 'is-selected', btn.getAttribute( 'data-anchor' ) === anchor );
+								} );
+							}
+							Array.prototype.forEach.call( buttons, function ( btn ) {
+								btn.addEventListener( 'click', function () { selectAnchor( btn.getAttribute( 'data-anchor' ) ); } );
+							} );
+
+							fileInput.addEventListener( 'change', function () {
+								picker.style.display = 'none';
+								anchorField.value = '';
+								if ( ! this.files || ! this.files[0] ) { return; }
+								var url = URL.createObjectURL( this.files[0] );
+								var probe = new Image();
+								probe.onload = function () {
+									var targetRatio = slotWidth / slotHeight;
+									var actualRatio = probe.naturalWidth / probe.naturalHeight;
+									var withinTolerance = Math.abs( actualRatio - targetRatio ) / targetRatio <= tolerance;
+									if ( withinTolerance ) { return; } // same shape (or exact match) — no picker needed
+									previewImg.src = url;
+									selectAnchor( 'center center' );
+									picker.style.display = '';
+								};
+								probe.src = url;
+							} );
+						}
+						setupCropPicker( 'desktop', <?php echo (int) $desktop_slot['width']; ?>, <?php echo (int) $desktop_slot['height']; ?>, <?php echo wp_json_encode( (float) ( $desktop_slot['aspect_ratio_tolerance'] ?? 0.02 ) ); ?> );
+						<?php if ( $mobile_slot ) : ?>
+						setupCropPicker( 'mobile', <?php echo (int) $mobile_slot['width']; ?>, <?php echo (int) $mobile_slot['height']; ?>, <?php echo wp_json_encode( (float) ( $mobile_slot['aspect_ratio_tolerance'] ?? 0.02 ) ); ?> );
+						<?php endif; ?>
+
+						desktopFile.addEventListener( 'change', function () {
+							if ( ! this.files || ! this.files[0] ) { return; }
+							desktopSrc = URL.createObjectURL( this.files[0] );
+							updateImageDisplay();
+						} );
+						if ( mobileFile ) {
+							mobileFile.addEventListener( 'change', function () {
+								if ( ! this.files || ! this.files[0] ) { return; }
+								mobileSrc = URL.createObjectURL( this.files[0] );
+								updateImageDisplay();
+							} );
+						}
+						// Link-sourced images: use the pasted URL directly as a
+						// best-effort preview — it hasn't been fetched/validated
+						// yet, so a source that blocks hotlinking may not render
+						// here even though it'll work fine once saved.
+						if ( desktopUrlInput ) {
+							desktopUrlInput.addEventListener( 'input', function () {
+								desktopSrc = this.value;
+								updateImageDisplay();
+							} );
+						}
+						if ( mobileUrlInput ) {
+							mobileUrlInput.addEventListener( 'input', function () {
+								mobileSrc = this.value;
+								updateImageDisplay();
+							} );
+						}
+					} )();
+				</script>
+				<?php endif; // $has_images ?>
+
 				<h2><?php esc_html_e( 'When It Should Show', 'rapm' ); ?></h2>
 				<table class="form-table">
 					<tr>
@@ -1024,7 +1070,126 @@ class RAPM_Upload_Handler {
 					</tr>
 				</table>
 
+				<p class="rapm-wizard-nav">
+					<button type="button" class="button rapm-wizard-back" data-goto="3"><?php esc_html_e( '← Back', 'rapm' ); ?></button>
+				</p>
 				<?php submit_button( $is_edit ? __( 'Save Asset', 'rapm' ) : __( 'Create Asset', 'rapm' ) ); ?>
+				</div><!-- .rapm-step[data-step="4"] -->
+
+				<script>
+					( function () {
+						var isEditMode  = <?php echo $is_edit ? 'true' : 'false'; ?>;
+						var steps       = Array.prototype.slice.call( document.querySelectorAll( '.rapm-step' ) );
+						var stepPills   = Array.prototype.slice.call( document.querySelectorAll( '.rapm-wizard-step' ) );
+						var navBars     = document.querySelectorAll( '.rapm-wizard-nav' );
+						var currentStep = 1;
+						var highestReached = 1;
+
+						function stepEl( n ) {
+							return document.getElementById( 'rapm-step-' + n );
+						}
+
+						// Editing an existing promotion should never require
+						// walking back through the whole setup guide again —
+						// every section is shown at once, and the step pills
+						// above just jump-scroll to the matching section
+						// instead of hiding/showing panels.
+						if ( isEditMode ) {
+							navBars.forEach( function ( el ) {
+								el.style.display = 'none';
+							} );
+							stepPills.forEach( function ( btn ) {
+								btn.classList.remove( 'is-current' );
+								btn.addEventListener( 'click', function () {
+									var target = stepEl( btn.getAttribute( 'data-step' ) );
+									if ( target ) {
+										target.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+									}
+								} );
+							} );
+							return;
+						}
+
+						function updatePills() {
+							stepPills.forEach( function ( btn ) {
+								var n = parseInt( btn.getAttribute( 'data-step' ), 10 );
+								btn.classList.toggle( 'is-current', n === currentStep );
+								btn.classList.toggle( 'is-done', n < currentStep );
+								btn.disabled = n > highestReached;
+							} );
+						}
+
+						function showStep( n ) {
+							steps.forEach( function ( el ) {
+								el.hidden = parseInt( el.getAttribute( 'data-step' ), 10 ) !== n;
+							} );
+							currentStep     = n;
+							highestReached  = Math.max( highestReached, n );
+							updatePills();
+							window.scrollTo( { top: 0, behavior: 'smooth' } );
+						}
+
+						// Only the two things that would otherwise let someone
+						// reach the end and get a confusing rejection are
+						// gated here — everything else is still fully
+						// enforced server-side (see RAPM_Upload_Handler::
+						// handle_save()), this is just a friendlier, earlier
+						// heads-up for a non-technical audience.
+						function validateStep1() {
+							var warning = document.getElementById( 'rapm-step-1-warning' );
+							var title   = document.getElementById( 'rapm_title' );
+							var messages = [];
+							if ( ! title.value.trim() ) {
+								messages.push( <?php echo wp_json_encode( __( 'Please type an internal name for this promotion before moving on.', 'rapm' ) ); ?> );
+							}
+							<?php if ( $has_images ) : ?>
+							var desktopSourceChecked = document.querySelector( 'input[name="rapm_image_desktop_source"]:checked' );
+							var usingLink             = desktopSourceChecked && 'link' === desktopSourceChecked.value;
+							var desktopFileInput      = document.getElementById( 'rapm_image_desktop' );
+							var desktopUrlField       = document.getElementById( 'rapm_image_desktop_url' );
+							var hasExistingDesktop    = <?php echo $img_desktop ? 'true' : 'false'; ?>;
+							if ( usingLink ) {
+								if ( ! hasExistingDesktop && ! ( desktopUrlField && desktopUrlField.value.trim() ) ) {
+									messages.push( <?php echo wp_json_encode( __( 'Please paste a link to a desktop picture before moving on.', 'rapm' ) ); ?> );
+								}
+							} else if ( ! hasExistingDesktop && ! ( desktopFileInput.files && desktopFileInput.files[0] ) ) {
+								messages.push( <?php echo wp_json_encode( __( 'Please upload a desktop picture before moving on.', 'rapm' ) ); ?> );
+							}
+							<?php endif; ?>
+							if ( messages.length ) {
+								warning.textContent   = messages.join( ' ' );
+								warning.style.display = 'block';
+								return false;
+							}
+							warning.style.display = 'none';
+							return true;
+						}
+
+						Array.prototype.forEach.call( document.querySelectorAll( '.rapm-wizard-next' ), function ( btn ) {
+							btn.addEventListener( 'click', function () {
+								if ( 1 === currentStep && ! validateStep1() ) {
+									return;
+								}
+								showStep( parseInt( btn.getAttribute( 'data-goto' ), 10 ) );
+							} );
+						} );
+						Array.prototype.forEach.call( document.querySelectorAll( '.rapm-wizard-back' ), function ( btn ) {
+							btn.addEventListener( 'click', function () {
+								showStep( parseInt( btn.getAttribute( 'data-goto' ), 10 ) );
+							} );
+						} );
+						stepPills.forEach( function ( btn ) {
+							btn.addEventListener( 'click', function () {
+								var n = parseInt( btn.getAttribute( 'data-step' ), 10 );
+								if ( n <= highestReached ) {
+									showStep( n );
+								}
+							} );
+						} );
+
+						updatePills();
+					} )();
+				</script>
 			</form>
 		</div>
 		<?php
