@@ -69,7 +69,11 @@ class RAPM_Help {
 			</details>
 			<details>
 				<summary><?php esc_html_e( 'What does "Which Spot on the Site" actually do?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'It groups promotions into one rotating carousel. Every promotion left on "default" shares one carousel and takes turns rotating together, wherever that carousel is placed on the site. Only type something different here if you specifically want a second, separate carousel — for example, one set of promotions rotating on the homepage, and a completely different set rotating on a category page. As you type, the box below shows exactly which other promotions (by name) already share whatever you\'ve typed, so you can see it working with your own real promotions instead of just reading a description of it.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'It groups promotions into one rotating carousel — that\'s all it is, just a label. It is not connected to any page\'s actual web address, and typing a real URL here does nothing. Every promotion left on "default" shares one carousel and takes turns rotating together, wherever that carousel gets placed. Only type something different here if you specifically want a second, separate carousel — for example, one set of promotions rotating on the homepage, and a completely different set rotating on a category page. As you type, the box below shows exactly which other promotions (by name) already share whatever you\'ve typed, so you can see it working with your own real promotions instead of just reading a description of it.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'So how does the promotion actually end up on the right page?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Through the code shown below the "Which Spot on the Site" field, not through anything you type into that field itself. That code gets pasted, by hand, onto whichever page you want the carousel to appear on — that\'s the one and only thing that controls which page it shows on. Naming your spot after that page (like "dining-room") is a good habit purely so you remember what it\'s for, but it has no technical effect.', 'rapm' ); ?></p>
 			</details>
 			<details>
 				<summary><?php esc_html_e( 'How do I show a calendar of upcoming promotions?', 'rapm' ); ?></summary>

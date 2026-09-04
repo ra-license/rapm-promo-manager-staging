@@ -193,7 +193,8 @@ class RAPM_Upload_Handler {
 					<tr>
 						<th><label for="rapm_placement"><?php esc_html_e( 'Which Spot on the Site', 'rapm' ); ?></label></th>
 						<td><input type="text" id="rapm_placement" name="rapm_placement" value="<?php echo esc_attr( $placement ); ?>" />
-							<p class="description"><?php echo esc_html( sprintf( __( 'Just leave this as "default" unless someone has told you this site shows more than one %s in different spots (like one on the homepage and a different one on a category page) and asked you to type a specific name here.', 'rapm' ), strtolower( $kind['label'] ) ) ); ?></p>
+							<p class="description"><?php echo esc_html( sprintf( __( 'This is just a label for grouping — it has nothing to do with any page\'s actual web address. Every %s left with the same name here shares one carousel and rotates together, wherever that carousel ends up placed.', 'rapm' ), strtolower( $kind['label'] ) ) ); ?></p>
+							<p class="description"><?php esc_html_e( 'What actually decides which page it shows on is separate — it\'s the code shown below, pasted by hand onto whatever page you want. Naming this to match that page (like "dining-room" for a page about dining rooms) is a helpful habit for your own memory, but the site never reads or checks any real web address here — leave it as "default" unless you specifically need a second, separate carousel somewhere else.', 'rapm' ); ?></p>
 							<?php if ( $has_images ) : ?>
 								<p class="description"><strong><?php esc_html_e( 'This is not about phones vs. computers', 'rapm' ); ?></strong> — <?php esc_html_e( 'every promotion already shows the right picture on both automatically once you upload one of each below. Leave this as "default" for that.', 'rapm' ); ?></p>
 							<?php endif; ?>

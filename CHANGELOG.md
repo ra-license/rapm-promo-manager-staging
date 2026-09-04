@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.16.1
+
+**Fix: named the actual misconception behind the Placement confusion, rather than rewording around it again.** Direct user hypothesis: they assumed "Which Spot on the Site" was defined by the target page's real URL slug. It isn't, and never has been — it's a purely arbitrary grouping label with zero connection to any page's web address; the *only* thing that determines which page a carousel appears on is where its shortcode gets pasted by hand. Confirmed this was a genuine misconception (not a copy gap) before writing anything, rather than reinforcing an incorrect mental model in the UI.
+
+- Rewrote the field's description to state this directly: it's just a label, typing a real URL does nothing, and what actually controls the page is the shortcode shown below it.
+- Kept the one part of the original instinct that *is* good practice: naming a spot to match its target page (e.g. "dining-room") is a genuinely helpful memory aid — just not a technical requirement, and now framed that way explicitly instead of left ambiguous.
+- Updated the matching Help & FAQ entry, and added a new one directly answering "so how does the promotion actually end up on the right page?"
+
 ## 1.16.0
 
 **Feature: a live "who else shares this spot" summary, since three rounds of rewording "Which Spot on the Site" still hadn't made the concept land.** Confirmed the underlying capability was already fully built (multiple slides auto-rotating on a fully adjustable timer, on both desktop and mobile — same mechanism either way since only the *image* differs by device, not the carousel itself; independent carousels via separate Placements) — the actual gap was that the abstract idea of "a shared Placement" wasn't landing through description alone, no matter how it was worded.
