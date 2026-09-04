@@ -4,6 +4,15 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.20.0
+
+**Feature: the Promotions Calendar is now discoverable, and every promotion tells you directly whether it's on it.** Direct follow-up after the user pointed out the calendar shortcode kept getting glossed over across this project's own documentation — a fair critique: unlike every other display mode, it has no menu item, no Kind of its own, and nothing in the admin UI ever surfaces it. The feature itself was complete; only its visibility was missing.
+- **New "Promotions Calendar" banner on the Sliders dashboard** (`Promo Manager > Sliders`) — shows the `[rapm_promotions_calendar]` shortcode, the optional `placement=`/`kind=` scoping attributes, and a live count (`RAPM_Calendar::count_scheduled()`) of how many published promotions currently qualify. The calendar still has no dedicated settings screen, on purpose — there's nothing to configure, so the banner just surfaces what already exists rather than adding a redundant management page.
+- **New live indicator on Step 4 (Review & Schedule)** of the Add/Edit Asset screen, right below the start/stop date fields: a note that says outright whether *this* promotion will show up on the Promotions Calendar or not, and updates instantly as the two date fields are filled in or cleared. Doubles as a safety net against the specific mistake that prompted this — someone assuming a promotion is on the calendar when it's actually missing a start or end date; the note makes that state impossible to miss rather than a silent gap you'd only notice by checking the calendar itself.
+- Deliberately **not** a blocking validation — a promotion with no dates (evergreen, "runs until I turn it off") is a fully valid, common, and already-documented default; this only ever informs, never prevents saving.
+- Updated Help & FAQ (two entries: the existing calendar one now points at the Sliders banner, plus a new one for the Step 4 indicator) and the in-plugin Training Guide (a new "Showing a Calendar of Your Promotions" section — it did not previously exist there at all, unlike the standalone reference document, which is the discoverability gap this release actually closes).
+- Verified in a browser against the real shipped markup/CSS/JS: the Step 4 indicator switches between its two states correctly and instantly as both date fields are set/cleared (verified via both fields independently and together); the Sliders banner lays out correctly side-by-side at realistic admin width and wraps sensibly narrower.
+
 ## 1.19.0
 
 **Feature: a plain-language Training Guide, built into the plugin itself, for someone using it for the very first time.** Direct request for a "service and feature guide along with fool-proof instructions for someone with a 5th grade reading and comprehension level" to onboard new employees — first delivered as a standalone Artifact page, then brought inside the plugin on request so it's reachable from the WordPress backend without a separate link to find or keep updated.

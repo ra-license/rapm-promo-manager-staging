@@ -80,6 +80,19 @@ class RAPM_Sliders_Dashboard {
 		<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=rapm_asset&page=rapm-add-asset' ) ); ?>" class="page-title-action"><?php esc_html_e( 'Add New Asset', 'rapm' ); ?></a>
 		<p class="description" style="max-width:640px;margin:12px 0 24px;"><?php esc_html_e( 'Each card below is one rotating carousel — every promotion inside it shares the same "Which Spot on the Site" value and takes turns rotating together. Click a card to see and reorder its slides.', 'rapm' ); ?></p>
 
+		<div class="rapm-calendar-promo">
+			<div class="rapm-calendar-promo-body">
+				<h3><?php esc_html_e( 'Promotions Calendar', 'rapm' ); ?></h3>
+				<p class="description"><?php esc_html_e( 'A different way to show your promotions — a month calendar visitors can browse, instead of a rotating carousel. It automatically includes any promotion (any type) that has both a start date and an end date set, and updates itself with no extra work whenever you add, edit, or reschedule one.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Paste this code onto any page to add it there:', 'rapm' ); ?> <code>[rapm_promotions_calendar]</code></p>
+				<p class="description"><?php esc_html_e( 'Want just one type, or one spot? Add placement="..." or kind="..." inside the brackets to narrow it down.', 'rapm' ); ?></p>
+			</div>
+			<div class="rapm-calendar-promo-count">
+				<span class="rapm-calendar-promo-num"><?php echo esc_html( RAPM_Calendar::count_scheduled() ); ?></span>
+				<span class="rapm-calendar-promo-label"><?php esc_html_e( 'promotions currently show on it', 'rapm' ); ?></span>
+			</div>
+		</div>
+
 		<?php if ( ! $sliders ) : ?>
 			<p><?php esc_html_e( 'No promotions yet.', 'rapm' ); ?> <a href="<?php echo esc_url( admin_url( 'edit.php?post_type=rapm_asset&page=rapm-add-asset' ) ); ?>"><?php esc_html_e( 'Add your first one.', 'rapm' ); ?></a></p>
 		<?php else : ?>
@@ -155,6 +168,14 @@ class RAPM_Sliders_Dashboard {
 		</div>
 		<?php endif; ?>
 		<style>
+			.rapm-calendar-promo { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; background: #f0f6fc; border-left: 4px solid #72aee6; border-radius: 4px; padding: 14px 18px; margin-bottom: 22px; }
+			.rapm-calendar-promo-body { flex: 1 1 420px; min-width: 280px; }
+			.rapm-calendar-promo-body h3 { margin: 0 0 6px; font-size: 14px; }
+			.rapm-calendar-promo-body p { margin: 0 0 6px; font-size: 12.5px; }
+			.rapm-calendar-promo-body p:last-child { margin-bottom: 0; }
+			.rapm-calendar-promo-count { flex: none; text-align: center; padding: 6px 20px; }
+			.rapm-calendar-promo-num { display: block; font-size: 28px; font-weight: 600; line-height: 1; color: #2271b1; }
+			.rapm-calendar-promo-label { display: block; font-size: 11.5px; color: #646970; max-width: 110px; margin-top: 4px; }
 			.rapm-slider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 8px; }
 			.rapm-slider-card { background: #fff; border: 1px solid #dcdcde; border-radius: 6px; overflow: hidden; }
 			.rapm-slider-card-thumb { display: block; background: #f0f0f1; }

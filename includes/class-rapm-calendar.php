@@ -24,6 +24,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class RAPM_Calendar {
 
+	/**
+	 * How many published promotions currently qualify to appear on
+	 * [rapm_promotions_calendar] (both a start and end date set) — the
+	 * same rule the shortcode itself applies. Used by the Sliders
+	 * dashboard to show a live count next to the shortcode, rather than
+	 * just describing what it does.
+	 */
+	public static function count_scheduled() {
+		$posts = get_posts(
+			array(
+				'post_type'      => 'rapm_asset',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery
+					'relation' => 'AND',
+					array( 'key' => '_rapm_starts_at', 'value' => '', 'compare' => '!=' ),
+					array( 'key' => '_rapm_ends_at', 'value' => '', 'compare' => '!=' ),
+				),
+			)
+		);
+		return count( $posts );
+	}
+
 	public static function shortcode( $atts ) {
 		$atts = shortcode_atts(
 			array(

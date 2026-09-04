@@ -88,6 +88,11 @@ class RAPM_Help {
 			<details>
 				<summary><?php esc_html_e( 'How do I show a calendar of upcoming promotions?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'Ask whoever manages the website to add [rapm_promotions_calendar] to a page. It automatically shows every promotion that has both a start date and an end date set — nothing else to configure. This is a calendar of your own promotions, separate from any community events calendar the site might also have.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'You can also find this code, plus a live count of how many promotions currently show on it, on the Sliders page.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'How do I know if a promotion will show up on the calendar?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'On the last step of the form (Review & Schedule), right below the start/stop date fields, a note tells you directly — it says whether this specific promotion will show on the Promotions Calendar or not, and updates the moment you add or remove a date. A promotion needs both a start date and an end date to show up there; if either is blank, it simply won\'t appear on the calendar, which is completely fine if you\'re not using it for that promotion.', 'rapm' ); ?></p>
 			</details>
 
 			<h2><?php esc_html_e( 'Pictures — Questions and Answers', 'rapm' ); ?></h2>

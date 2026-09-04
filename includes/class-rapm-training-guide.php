@@ -207,6 +207,7 @@ class RAPM_Training_Guide {
 						<li><a href="#rapm-tg-types"><?php esc_html_e( 'The 4 Types of Promotions', 'rapm' ); ?></a></li>
 						<li><a href="#rapm-tg-adding"><?php esc_html_e( 'Adding a New Promotion', 'rapm' ); ?></a></li>
 						<li><a href="#rapm-tg-editing"><?php esc_html_e( 'Changing One Already Made', 'rapm' ); ?></a></li>
+						<li><a href="#rapm-tg-calendar"><?php esc_html_e( 'Showing a Calendar', 'rapm' ); ?></a></li>
 						<li><a href="#rapm-tg-sizes"><?php esc_html_e( 'Picture Size Cheat Sheet', 'rapm' ); ?></a></li>
 						<li><a href="#rapm-tg-sliders"><?php esc_html_e( 'The Sliders Page', 'rapm' ); ?></a></li>
 						<li><a href="#rapm-tg-problems"><?php esc_html_e( 'Common Problems', 'rapm' ); ?></a></li>
@@ -417,6 +418,7 @@ class RAPM_Training_Guide {
 										<div class="mk-input"></div>
 										<div class="mk-label" style="margin-top:8px;"><?php esc_html_e( 'Stop showing on', 'rapm' ); ?></div>
 										<div class="mk-input"></div>
+										<div class="mk-note" style="margin-top:8px;background:#edfaef;border-left-color:#00a32a;color:#00450c;"><span class="rapm-tg-chip" style="width:18px;height:18px;font-size:10px;background:#00a32a;">2</span> <?php esc_html_e( 'This will show up on the Promotions Calendar...', 'rapm' ); ?></div>
 									</div>
 									<div class="mk-btn mk-btn-primary"><?php esc_html_e( 'Save Asset', 'rapm' ); ?></div>
 								</div>
@@ -425,6 +427,7 @@ class RAPM_Training_Guide {
 								<ol>
 									<li><span class="rapm-tg-chip">&#10003;</span><span class="rapm-tg-txt"><strong><?php esc_html_e( 'Check the preview.', 'rapm' ); ?></strong><span><?php esc_html_e( 'Click the Desktop / Mobile buttons to see exactly what each visitor will see. If text overlaps a picture, fix it before saving.', 'rapm' ); ?></span></span></li>
 									<li><span class="rapm-tg-chip">1</span><span class="rapm-tg-txt"><strong><?php esc_html_e( 'Start and stop dates are optional.', 'rapm' ); ?></strong><span><?php esc_html_e( 'Leave blank to start right away and run until you turn it off yourself.', 'rapm' ); ?></span></span></li>
+									<li><span class="rapm-tg-chip">2</span><span class="rapm-tg-txt"><strong><?php esc_html_e( 'Watch this note.', 'rapm' ); ?></strong><span><?php esc_html_e( "It tells you right away whether this promotion will show up on the Promotions Calendar (see §14) or not, based on whether you've filled in both dates. If you expect to see it there and this note says it won't, that's your sign a date is missing.", 'rapm' ); ?></span></span></li>
 								</ol>
 								<div class="rapm-tg-callout rapm-tg-callout-tip" style="margin-top:12px;">
 									<span class="rapm-tg-callout-title"><?php esc_html_e( "You'll know it worked", 'rapm' ); ?></span>
@@ -444,6 +447,21 @@ class RAPM_Training_Guide {
 							<li><span><?php esc_html_e( 'The 4 numbered boxes at the top still work — click one to jump straight down to that part of the page.', 'rapm' ); ?></span></li>
 							<li><span><?php esc_html_e( 'Click', 'rapm' ); ?> <strong><?php esc_html_e( 'Save Asset', 'rapm' ); ?></strong> <?php esc_html_e( "when you're done.", 'rapm' ); ?></span></li>
 						</ul>
+					</section>
+
+					<section class="rapm-tg-section" id="rapm-tg-calendar">
+						<p class="rapm-tg-kicker"><?php esc_html_e( 'A second way to show promotions', 'rapm' ); ?></p>
+						<h2><?php esc_html_e( 'Showing a Calendar of Your Promotions', 'rapm' ); ?></h2>
+						<p class="rapm-tg-intro"><?php esc_html_e( 'Ask whoever manages the website to add [rapm_promotions_calendar] to a page. It automatically shows every promotion that has both a start date and an end date set — nothing else to configure.', 'rapm' ); ?></p>
+						<ul class="rapm-tg-plain">
+							<li><span><?php esc_html_e( "It's a good way to let potential customers see everything you have scheduled at a glance, in one place, without you maintaining a second list by hand.", 'rapm' ); ?></span></li>
+							<li><span><?php esc_html_e( 'It updates itself automatically as you add, edit, or reschedule promotions elsewhere in the tool — nothing to keep in sync yourself.', 'rapm' ); ?></span></li>
+							<li><span><?php esc_html_e( 'Go to', 'rapm' ); ?> <strong><?php esc_html_e( 'Promo Manager → Sliders', 'rapm' ); ?></strong> <?php esc_html_e( 'to find this code again any time, along with a live count of how many promotions currently show on it.', 'rapm' ); ?></span></li>
+						</ul>
+						<div class="rapm-tg-callout rapm-tg-callout-tip">
+							<span class="rapm-tg-callout-title"><?php esc_html_e( 'How do I know if a promotion will be on it?', 'rapm' ); ?></span>
+							<p><?php esc_html_e( 'On the last step of the Add/Edit form, right below the start/stop date fields, a note tells you directly whether that specific promotion will show up on the calendar or not — and updates the moment you add or remove a date. See §12, Step 4.', 'rapm' ); ?></p>
+						</div>
 					</section>
 
 					<section class="rapm-tg-section" id="rapm-tg-sizes">

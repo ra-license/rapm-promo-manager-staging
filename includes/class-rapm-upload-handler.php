@@ -1073,6 +1073,44 @@ class RAPM_Upload_Handler {
 					</tr>
 				</table>
 
+				<?php
+				$rapm_on_calendar = $m( '_rapm_starts_at' ) && $m( '_rapm_ends_at' );
+				?>
+				<div class="rapm-calendar-indicator <?php echo $rapm_on_calendar ? 'is-on' : 'is-off'; ?>" id="rapm-calendar-indicator">
+					<p id="rapm-calendar-indicator-text">
+						<?php if ( $rapm_on_calendar ) : ?>
+							<?php esc_html_e( 'This will show up on the Promotions Calendar, on any page with the [rapm_promotions_calendar] code on it.', 'rapm' ); ?>
+						<?php else : ?>
+							<?php esc_html_e( "This will NOT show up on the Promotions Calendar — it needs both a start date and an end date above. That's fine if you don't use the calendar.", 'rapm' ); ?>
+						<?php endif; ?>
+					</p>
+				</div>
+				<style>
+					.rapm-calendar-indicator { max-width: 500px; margin: -6px 0 16px; padding: 8px 12px; border-radius: 4px; font-size: 12.5px; }
+					.rapm-calendar-indicator p { margin: 0; }
+					.rapm-calendar-indicator.is-on { background: #edfaef; color: #00450c; }
+					.rapm-calendar-indicator.is-off { background: #f6f7f7; color: #646970; }
+				</style>
+				<script>
+					( function () {
+						var startInput = document.getElementById( 'rapm_starts_at' );
+						var endInput   = document.getElementById( 'rapm_ends_at' );
+						var box        = document.getElementById( 'rapm-calendar-indicator' );
+						var text       = document.getElementById( 'rapm-calendar-indicator-text' );
+						var ON_TEXT    = <?php echo wp_json_encode( __( 'This will show up on the Promotions Calendar, on any page with the [rapm_promotions_calendar] code on it.', 'rapm' ) ); ?>;
+						var OFF_TEXT   = <?php echo wp_json_encode( __( "This will NOT show up on the Promotions Calendar — it needs both a start date and an end date above. That's fine if you don't use the calendar.", 'rapm' ) ); ?>;
+
+						function update() {
+							var onCalendar = !! ( startInput.value && endInput.value );
+							box.classList.toggle( 'is-on', onCalendar );
+							box.classList.toggle( 'is-off', ! onCalendar );
+							text.textContent = onCalendar ? ON_TEXT : OFF_TEXT;
+						}
+						startInput.addEventListener( 'input', update );
+						endInput.addEventListener( 'input', update );
+					} )();
+				</script>
+
 				<p class="rapm-wizard-nav">
 					<button type="button" class="button rapm-wizard-back" data-goto="3"><?php esc_html_e( '← Back', 'rapm' ); ?></button>
 				</p>
