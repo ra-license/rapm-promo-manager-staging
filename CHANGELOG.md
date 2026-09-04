@@ -4,6 +4,10 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.21.1
+
+**Fix: the Training Guide's calendar-indicator mockup (added in 1.20.0) rendered broken — a numbered chip stacked above its text instead of sitting beside it.** Found while updating the standalone client-facing guide artifact for a broader request and actually re-rendering the real shipped screen to check it, rather than trusting an earlier isolated test harness that happened to define more CSS than the real file did. Root cause: `.mk-note` was never actually defined as a CSS class in `class-rapm-training-guide.php` — only `.mk-warn` was — and the chip (`.rapm-tg-chip`) is `display:flex`, which makes it a block-level box; without a flex container around it and the text, the two stack instead of sitting side by side. Added the missing `.rapm-tg-mockup .mk-note` rule (mirroring `.mk-warn`, plus `display:flex; align-items:center; gap:7px`) and wrapped the trailing text in its own `<span>` so the flex layout has two proper children. No functional/data impact — this is a single admin-only illustration, not the live front end.
+
 ## 1.21.0
 
 **Feature: the Promotions Calendar now matches a site's actual brand color, instead of a fixed hardcoded accent.** Direct follow-up after the user asked to preview the calendar and "make sure it... is pulling the brand colors from the website." It wasn't — a full audit of every display mode's CSS found the Calendar was the *only* place in the plugin with a genuinely hardcoded, non-brand-aware accent color (`#b5651d`, used for the has-promotion highlight, the day count, and — previously unstyled — the day-detail links, which fell back to plain browser-default blue). Hero's CTA button and Marquee's arrows were checked too and left alone: they're deliberately neutral white/black or use `color: inherit` already, for photo-legibility reasons, not an oversight.

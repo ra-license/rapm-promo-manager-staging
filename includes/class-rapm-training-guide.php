@@ -150,6 +150,7 @@ class RAPM_Training_Guide {
 				.rapm-tg-mockup .mk-anchor-grid div { border: 1px solid #C3C4C7; border-radius: 3px; background: #fff; }
 				.rapm-tg-mockup .mk-anchor-grid div.on { background: #2271B1; border-color: #2271B1; }
 				.rapm-tg-mockup .mk-warn { background: #FCF0F1; border-left: 3px solid #D63638; padding: 7px 9px; font-size: 11px; margin-bottom: 8px; }
+				.rapm-tg-mockup .mk-note { background: #F0F6FC; border-left: 3px solid #72AEE6; padding: 7px 9px; font-size: 11px; display: flex; align-items: center; gap: 7px; }
 				.rapm-tg-mockup .mk-preview { background: #333; border-radius: 5px; aspect-ratio: 16/5; display: flex; align-items: flex-end; padding: 9px; margin-bottom: 8px; }
 				.rapm-tg-mockup .mk-preview span { color: #fff; font-weight: 700; font-size: 12px; }
 
@@ -418,7 +419,7 @@ class RAPM_Training_Guide {
 										<div class="mk-input"></div>
 										<div class="mk-label" style="margin-top:8px;"><?php esc_html_e( 'Stop showing on', 'rapm' ); ?></div>
 										<div class="mk-input"></div>
-										<div class="mk-note" style="margin-top:8px;background:#edfaef;border-left-color:#00a32a;color:#00450c;"><span class="rapm-tg-chip" style="width:18px;height:18px;font-size:10px;background:#00a32a;">2</span> <?php esc_html_e( 'This will show up on the Promotions Calendar...', 'rapm' ); ?></div>
+										<div class="mk-note" style="margin-top:8px;background:#edfaef;border-left-color:#00a32a;color:#00450c;"><span class="rapm-tg-chip" style="width:18px;height:18px;font-size:10px;background:#00a32a;flex:none;">2</span><span><?php esc_html_e( 'This will show up on the Promotions Calendar...', 'rapm' ); ?></span></div>
 									</div>
 									<div class="mk-btn mk-btn-primary"><?php esc_html_e( 'Save Asset', 'rapm' ); ?></div>
 								</div>
