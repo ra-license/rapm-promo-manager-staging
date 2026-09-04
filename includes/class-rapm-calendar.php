@@ -156,6 +156,11 @@ class RAPM_Calendar {
 						detailEl.appendChild( ul );
 					}
 
+					// How many promotions can stack in one week before the rest
+					// collapse into a "+N more" note (click any day that week
+					// to see everything active that day, including overflow).
+					var MAX_LANES = 3;
+
 					function render() {
 						gridEl.innerHTML = '';
 						detailEl.hidden = true;
@@ -167,45 +172,130 @@ class RAPM_Calendar {
 
 						titleEl.textContent = new Intl.DateTimeFormat( undefined, { month: 'long', year: 'numeric' } ).format( first );
 
+						var weekdayRow = document.createElement( 'div' );
+						weekdayRow.className = 'rapm-calendar-weekdays';
 						weekdayLabels.forEach( function ( label ) {
 							var el = document.createElement( 'div' );
 							el.className = 'rapm-calendar-weekday';
 							el.textContent = label;
-							gridEl.appendChild( el );
+							weekdayRow.appendChild( el );
 						} );
+						gridEl.appendChild( weekdayRow );
 
-						for ( var i = 0; i < startDay; i++ ) {
-							var blank = document.createElement( 'div' );
-							blank.className = 'rapm-calendar-cell is-empty';
-							gridEl.appendChild( blank );
-						}
+						var totalWeeks = Math.ceil( ( startDay + daysInMonth ) / 7 );
 
-						for ( var day = 1; day <= daysInMonth; day++ ) {
-							var iso = toISO( viewYear, viewMonth, day );
-							var todays = data.filter( function ( item ) { return item.start <= iso && iso <= item.end; } );
+						for ( var w = 0; w < totalWeeks; w++ ) {
+							var weekEl = document.createElement( 'div' );
+							weekEl.className = 'rapm-calendar-week';
 
-							var cell = document.createElement( 'button' );
-							cell.type = 'button';
-							cell.className = 'rapm-calendar-cell'
-								+ ( todays.length ? ' has-promo' : '' )
-								+ ( iso === todayIso ? ' is-today' : '' );
+							// Day-number cells for this week (row 1 of the week's
+							// own mini-grid) — same button-per-day the detail-list
+							// click-through has always used, now also serving as
+							// the overflow escape hatch for a week with more
+							// promotions than visible bar lanes.
+							var weekDates = [];
+							for ( var c = 0; c < 7; c++ ) {
+								var dayNum = w * 7 + c - startDay + 1;
+								var dayCell = document.createElement( 'button' );
+								dayCell.type = 'button';
+								dayCell.className = 'rapm-calendar-daynum-cell';
+								dayCell.style.gridColumn = String( c + 1 );
+								dayCell.style.gridRow = '1';
 
-							var num = document.createElement( 'span' );
-							num.className = 'rapm-calendar-daynum';
-							num.textContent = day;
-							cell.appendChild( num );
+								if ( dayNum < 1 || dayNum > daysInMonth ) {
+									dayCell.classList.add( 'is-empty' );
+									dayCell.disabled = true;
+									weekDates.push( null );
+								} else {
+									var iso = toISO( viewYear, viewMonth, dayNum );
+									weekDates.push( iso );
+									var num = document.createElement( 'span' );
+									num.className = 'rapm-calendar-daynum' + ( iso === todayIso ? ' is-today' : '' );
+									num.textContent = dayNum;
+									dayCell.appendChild( num );
 
-							if ( todays.length ) {
-								var dot = document.createElement( 'span' );
-								dot.className = 'rapm-calendar-dot';
-								dot.textContent = todays.length;
-								cell.appendChild( dot );
-								cell.addEventListener( 'click', ( function ( list ) {
-									return function () { showDetail( list ); };
-								} )( todays ) );
+									var dayItems = data.filter( function ( item ) { return item.start <= iso && iso <= item.end; } );
+									if ( dayItems.length ) {
+										dayCell.addEventListener( 'click', ( function ( list ) {
+											return function () { showDetail( list ); };
+										} )( dayItems ) );
+									}
+								}
+								weekEl.appendChild( dayCell );
 							}
 
-							gridEl.appendChild( cell );
+							// Every promotion active anywhere in this week becomes
+							// one bar, spanning the columns it's active on within
+							// this week (clipped at the week boundary — a
+							// promotion running longer than one week just
+							// continues as its own bar on the next row, with
+							// square instead of rounded ends where it's cut).
+							var activeItems = data.filter( function ( item ) {
+								return weekDates.some( function ( iso ) { return iso && item.start <= iso && iso <= item.end; } );
+							} );
+							activeItems.sort( function ( a, b ) {
+								if ( a.start !== b.start ) { return a.start < b.start ? -1 : 1; }
+								return a.label < b.label ? -1 : ( a.label > b.label ? 1 : 0 );
+							} );
+
+							var laneEnds     = [];
+							var overflowItems = [];
+
+							activeItems.forEach( function ( item ) {
+								var colStart = -1, colEnd = -1;
+								for ( var c2 = 0; c2 < 7; c2++ ) {
+									if ( weekDates[ c2 ] && item.start <= weekDates[ c2 ] && weekDates[ c2 ] <= item.end ) {
+										if ( colStart === -1 ) { colStart = c2; }
+										colEnd = c2;
+									}
+								}
+								if ( colStart === -1 ) { return; }
+
+								var lane = 0;
+								while ( laneEnds[ lane ] !== undefined && laneEnds[ lane ] >= colStart ) { lane++; }
+								if ( lane >= MAX_LANES ) {
+									overflowItems.push( item );
+									return;
+								}
+								laneEnds[ lane ] = colEnd;
+
+								var isTrueStart = weekDates[ colStart ] === item.start;
+								var isTrueEnd   = weekDates[ colEnd ] === item.end;
+
+								var bar = document.createElement( item.url ? 'a' : 'span' );
+								bar.className = 'rapm-calendar-bar' + ( isTrueStart ? ' is-start' : '' ) + ( isTrueEnd ? ' is-end' : '' );
+								bar.style.gridColumn = ( colStart + 1 ) + ' / ' + ( colEnd + 2 );
+								bar.style.gridRow    = String( lane + 2 );
+								bar.textContent      = item.label;
+								bar.title            = item.label;
+								if ( item.url ) { bar.href = item.url; }
+								weekEl.appendChild( bar );
+							} );
+
+							if ( overflowItems.length > 0 ) {
+								var more = document.createElement( 'button' );
+								more.type = 'button';
+								more.className = 'rapm-calendar-more';
+								more.style.gridColumn = '1 / 8';
+								more.style.gridRow    = String( MAX_LANES + 2 );
+								more.textContent      = 1 === overflowItems.length
+									? <?php echo wp_json_encode( __( '+1 more', 'rapm' ) ); ?>
+									: '+' + overflowItems.length + <?php echo wp_json_encode( ' ' . __( 'more', 'rapm' ) ); ?>;
+								// Shows exactly the promotion(s) that didn't fit a
+								// bar this week — not just whatever else happens
+								// to be active on some day nearby, which could
+								// easily be a different, unrelated promotion.
+								// The IIFE below matters: overflowItems is a
+								// plain `var`, so without it every week's button
+								// would share the same (last-written) value
+								// instead of its own week's overflow list.
+								more.addEventListener( 'click', ( function ( list ) {
+									return function () { showDetail( list ); };
+								} )( overflowItems ) );
+								weekEl.appendChild( more );
+							}
+
+							gridEl.appendChild( weekEl );
 						}
 					}
 

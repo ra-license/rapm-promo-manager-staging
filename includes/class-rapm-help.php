@@ -88,6 +88,7 @@ class RAPM_Help {
 			<details>
 				<summary><?php esc_html_e( 'How do I show a calendar of upcoming promotions?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'Ask whoever manages the website to add [rapm_promotions_calendar] to a page. It automatically shows every promotion that has both a start date and an end date set — nothing else to configure. This is a calendar of your own promotions, separate from any community events calendar the site might also have.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( "Each promotion shows as a named bar stretching across the days it runs, so a visitor can see what's happening at a glance without clicking anything — the same way a personal calendar app shows a multi-day trip or event. If more promotions overlap on the same days than there's room to show, a small \"+N more\" link appears — clicking it, or clicking any day, lists everything active then.", 'rapm' ); ?></p>
 				<p><?php esc_html_e( 'You can also find this code, plus a live count of how many promotions currently show on it, on the Sliders page.', 'rapm' ); ?></p>
 			</details>
 			<details>

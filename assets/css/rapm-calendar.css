@@ -1,5 +1,6 @@
 .rapm-calendar {
 	max-width: 480px;
+	font-size: 13px;
 }
 
 .rapm-calendar-header {
@@ -26,10 +27,22 @@
 	line-height: 1;
 }
 
+/* ---------- Grid shell ---------- */
+/* A month is a column of independent week-blocks rather than one flat
+   7-column grid of day cells — each week needs its own "day numbers on
+   top, promotion bars stacked below" mini-layout, and different weeks
+   need different numbers of bar rows depending how many promotions
+   overlap that week. */
 .rapm-calendar-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.rapm-calendar-weekdays {
 	display: grid;
 	grid-template-columns: repeat(7, 1fr);
-	gap: 4px;
+	margin-bottom: 2px;
 }
 
 .rapm-calendar-weekday {
@@ -40,48 +53,110 @@
 	padding-bottom: 4px;
 }
 
-.rapm-calendar-cell {
-	aspect-ratio: 1;
-	border: 1px solid #eee;
-	border-radius: 4px;
-	background: #fff;
-	display: flex;
-	flex-direction: column;
+.rapm-calendar-week {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	grid-auto-rows: min-content;
+	row-gap: 1px;
+	border-top: 1px solid #f0f0f0;
+	padding-top: 3px;
+	padding-bottom: 4px;
+}
+
+/* ---------- Day numbers ---------- */
+.rapm-calendar-daynum-cell {
+	background: none;
+	border: none;
+	padding: 1px 3px 3px;
+	margin: 0;
+	text-align: right;
+	font-family: inherit;
+	cursor: pointer;
+}
+
+.rapm-calendar-daynum-cell.is-empty {
+	visibility: hidden;
+	cursor: default;
+}
+
+.rapm-calendar-daynum {
+	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	cursor: default;
-	font-size: 13px;
-	padding: 2px;
-	font-family: inherit;
+	min-width: 20px;
+	height: 20px;
+	padding: 0 4px;
+	border-radius: 50%;
+	font-size: 12px;
+	color: #333;
 }
 
-.rapm-calendar-cell.is-empty {
-	border-color: transparent;
-	background: none;
-}
-
-.rapm-calendar-cell.has-promo {
-	cursor: pointer;
-	border-color: var(--rapm-calendar-accent, #b5651d);
-	background: #fdf3ea;
-	/* Same tint, re-derived from the accent itself rather than a second
-	   hardcoded hex, so it can never end up mismatched with the border
-	   color above once that starts tracking a site's own brand color.
-	   Browsers without color-mix() simply keep the plain hex above. */
-	background: color-mix(in srgb, var(--rapm-calendar-accent, #b5651d) 12%, white);
-}
-
-.rapm-calendar-cell.is-today .rapm-calendar-daynum {
+.rapm-calendar-daynum.is-today {
+	background: var(--rapm-calendar-accent, #b5651d);
+	color: #fff;
 	font-weight: 700;
-	text-decoration: underline;
 }
 
-.rapm-calendar-dot {
-	font-size: 9px;
-	color: var(--rapm-calendar-accent, #b5651d);
-	margin-top: 2px;
+/* ---------- Promotion bars ---------- */
+/* Each bar is one promotion, spanning the columns (days) it's active on
+   within this week — clipped at the week boundary, so a promotion
+   longer than a week continues as its own bar on the next row. Rounded
+   only at its true start/end; a clipped edge (continuing from the
+   previous or into the next week) stays square, a small but real visual
+   cue that it keeps going. */
+.rapm-calendar-bar {
+	display: block;
+	background: var(--rapm-calendar-accent, #b5651d);
+	color: #fff;
+	font-size: 10.5px;
+	line-height: 1.7;
+	padding: 0 6px;
+	margin: 0 0 1px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	text-decoration: none;
 }
 
+.rapm-calendar-bar:hover {
+	filter: brightness(0.92);
+}
+
+.rapm-calendar-bar.is-start {
+	border-top-left-radius: 3px;
+	border-bottom-left-radius: 3px;
+	margin-left: 1px;
+}
+
+.rapm-calendar-bar.is-end {
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+	margin-right: 1px;
+}
+
+/* A promotion with no destination link isn't clickable, so it shouldn't
+   look like it is. */
+span.rapm-calendar-bar {
+	cursor: default;
+	opacity: 0.92;
+}
+
+.rapm-calendar-more {
+	background: none;
+	border: none;
+	font-family: inherit;
+	font-size: 10.5px;
+	color: #666;
+	text-align: left;
+	padding: 0 6px;
+	cursor: pointer;
+}
+
+.rapm-calendar-more:hover {
+	color: #333;
+}
+
+/* ---------- Day detail (click-through / overflow) ---------- */
 .rapm-calendar-day-detail {
 	margin-top: 12px;
 	padding: 10px;

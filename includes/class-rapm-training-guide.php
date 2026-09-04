@@ -455,6 +455,7 @@ class RAPM_Training_Guide {
 						<h2><?php esc_html_e( 'Showing a Calendar of Your Promotions', 'rapm' ); ?></h2>
 						<p class="rapm-tg-intro"><?php esc_html_e( 'Ask whoever manages the website to add [rapm_promotions_calendar] to a page. It automatically shows every promotion that has both a start date and an end date set — nothing else to configure.', 'rapm' ); ?></p>
 						<ul class="rapm-tg-plain">
+							<li><span><?php esc_html_e( "Each promotion shows as its own named bar, stretching across the days it runs — like a trip or event on a personal calendar app — so a visitor sees what's happening without clicking anything.", 'rapm' ); ?></span></li>
 							<li><span><?php esc_html_e( "It's a good way to let potential customers see everything you have scheduled at a glance, in one place, without you maintaining a second list by hand.", 'rapm' ); ?></span></li>
 							<li><span><?php esc_html_e( 'It updates itself automatically as you add, edit, or reschedule promotions elsewhere in the tool — nothing to keep in sync yourself.', 'rapm' ); ?></span></li>
 							<li><span><?php esc_html_e( 'Go to', 'rapm' ); ?> <strong><?php esc_html_e( 'Promo Manager → Sliders', 'rapm' ); ?></strong> <?php esc_html_e( 'to find this code again any time, along with a live count of how many promotions currently show on it.', 'rapm' ); ?></span></li>
