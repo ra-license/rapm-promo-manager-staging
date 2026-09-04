@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RA Promo Manager
  * Description: Validated, scheduled promotional assets (hero banners and more) for client sites — enforces correct image dimensions/format/size on upload, schedules reliably even behind full-page caching, and links out to WordPress content, Elementor pages, or WooCommerce products/categories. Shortcode: [rapm_hero placement="default"].
- * Version: 1.15.0
+ * Version: 1.16.0
  * Author: RA Marketing
  * Text Domain: rapm
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RAPM_VERSION', '1.15.0' );
+define( 'RAPM_VERSION', '1.16.0' );
 define( 'RAPM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RAPM_URL', plugin_dir_url( __FILE__ ) );
 
@@ -59,6 +59,7 @@ final class RAPM_Plugin {
 		add_action( 'admin_post_rapm_save_asset', array( 'RAPM_Upload_Handler', 'handle_save' ) );
 		add_action( 'wp_ajax_rapm_search_destination', array( 'RAPM_Destination', 'ajax_search' ) );
 		add_action( 'wp_ajax_rapm_import_skus', array( 'RAPM_Destination', 'ajax_import_skus' ) );
+		add_action( 'wp_ajax_rapm_placement_summary', array( 'RAPM_Upload_Handler', 'ajax_placement_summary' ) );
 
 		add_action( 'init', array( 'RAPM_Sync', 'schedule' ) );
 		add_action( RAPM_Sync::HOOK, array( 'RAPM_Sync', 'run' ) );

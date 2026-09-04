@@ -206,6 +206,7 @@ class RAPM_Upload_Handler {
 							<div class="rapm-shortcode-hint" style="margin-top:10px;padding:10px 12px;background:#f0f6fc;border-left:4px solid #72aee6;max-width:480px;">
 								<p style="margin:0 0 4px;"><?php esc_html_e( 'This is what actually puts this promotion on the website — this exact code, pasted onto a page:', 'rapm' ); ?></p>
 								<p style="margin:0 0 4px;"><code id="rapm-shortcode-preview"><?php echo esc_html( $shortcode_text ); ?></code></p>
+								<p style="margin:0 0 4px;font-style:italic;" id="rapm-placement-summary"></p>
 								<?php if ( $kind['has_elementor_widget'] ) : ?>
 									<p style="margin:0 0 4px;"><?php esc_html_e( 'If this site uses Elementor, the "Promo Carousel" widget (under the Promo Manager category) can add it instead of typing that code.', 'rapm' ); ?></p>
 								<?php endif; ?>
@@ -218,15 +219,50 @@ class RAPM_Upload_Handler {
 					( function () {
 						var placementInput = document.getElementById( 'rapm_placement' );
 						var preview         = document.getElementById( 'rapm-shortcode-preview' );
+						var summaryEl       = document.getElementById( 'rapm-placement-summary' );
 						var shortcodeTag    = <?php echo wp_json_encode( $kind['shortcode'] ); ?>;
+						var kindKey         = <?php echo wp_json_encode( $kind_key ); ?>;
+						var assetId         = <?php echo (int) $asset_id; ?>;
+						var ajaxUrl         = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+						var summaryNonce    = <?php echo wp_json_encode( wp_create_nonce( 'rapm_placement_summary' ) ); ?>;
+						var debounceTimer;
+
 						function slugify( value ) {
 							return value.toLowerCase().trim().replace( /[^a-z0-9]+/g, '-' ).replace( /^-+|-+$/g, '' );
 						}
+
+						function fetchSummary( slug ) {
+							clearTimeout( debounceTimer );
+							debounceTimer = setTimeout( function () {
+								var url = ajaxUrl + '?action=rapm_placement_summary&nonce=' + encodeURIComponent( summaryNonce )
+									+ '&kind=' + encodeURIComponent( kindKey ) + '&placement=' + encodeURIComponent( slug )
+									+ '&exclude_id=' + encodeURIComponent( assetId );
+								fetch( url ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+									if ( ! res.success ) { return; }
+									var count = res.data.count;
+									if ( 0 === count ) {
+										summaryEl.textContent = <?php echo wp_json_encode( __( 'Nothing else is using this spot yet — this will be its own, separate carousel.', 'rapm' ) ); ?>;
+										return;
+									}
+									var names = res.data.titles.map( function ( t ) { return '"' + t + '"'; } ).join( ', ' );
+									if ( count > res.data.titles.length ) {
+										names += ' +' + ( count - res.data.titles.length ) + <?php echo wp_json_encode( __( ' more', 'rapm' ) ); ?>;
+									}
+									var lead = 1 === count
+										? <?php echo wp_json_encode( __( '1 other promotion already uses this spot', 'rapm' ) ); ?>
+										: count + <?php echo wp_json_encode( __( ' other promotions already use this spot', 'rapm' ) ); ?>;
+									summaryEl.textContent = lead + ' (' + names + <?php echo wp_json_encode( __( ') — they\'ll all take turns rotating together in the same carousel.', 'rapm' ) ); ?>;
+								} );
+							}, 300 );
+						}
+
 						function updatePreview() {
 							var slug = slugify( placementInput.value ) || 'default';
 							preview.textContent = 'default' === slug ? '[' + shortcodeTag + ']' : '[' + shortcodeTag + ' placement="' + slug + '"]';
+							fetchSummary( slug );
 						}
 						placementInput.addEventListener( 'input', updatePreview );
+						updatePreview();
 					} )();
 				</script>
 
@@ -1249,6 +1285,56 @@ class RAPM_Upload_Handler {
 	public static function sanitize_text_font( $value ) {
 		$available = RAPM_Elementor::global_fonts();
 		return isset( $available[ $value ] ) ? $value : '';
+	}
+
+	/**
+	 * Backs the Add/Edit Asset form's live "who else shares this spot"
+	 * summary — turns the abstract idea of a shared Placement into a
+	 * concrete list of the other real promotions (by name, on this actual
+	 * site) that would rotate together with this one, since prose
+	 * explanations of what Placement does have repeatedly not landed on
+	 * their own.
+	 */
+	public static function ajax_placement_summary() {
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Not allowed.', 'rapm' ) ), 403 );
+		}
+		check_ajax_referer( 'rapm_placement_summary', 'nonce' );
+
+		$kind_key   = isset( $_GET['kind'] ) ? sanitize_key( wp_unslash( $_GET['kind'] ) ) : 'hero';
+		$placement  = isset( $_GET['placement'] ) ? sanitize_title( wp_unslash( $_GET['placement'] ) ) : '';
+		$exclude_id = isset( $_GET['exclude_id'] ) ? absint( $_GET['exclude_id'] ) : 0;
+
+		if ( '' === $placement ) {
+			$placement = 'default';
+		}
+
+		$args = array(
+			'post_type'      => 'rapm_asset',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'orderby'        => 'menu_order date',
+			'order'          => 'ASC',
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery
+				'relation' => 'AND',
+				array( 'key' => '_rapm_kind', 'value' => $kind_key ),
+				array( 'key' => '_rapm_placement', 'value' => $placement ),
+			),
+			'fields'         => 'ids',
+		);
+		if ( $exclude_id ) {
+			$args['post__not_in'] = array( $exclude_id );
+		}
+
+		$query  = new WP_Query( $args );
+		$titles = array_map( 'get_the_title', array_slice( $query->posts, 0, 5 ) );
+
+		wp_send_json_success(
+			array(
+				'count'  => count( $query->posts ),
+				'titles' => array_values( $titles ),
+			)
+		);
 	}
 
 	private static function fail( $back_url, $message ) {

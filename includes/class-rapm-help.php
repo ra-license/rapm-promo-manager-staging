@@ -68,6 +68,10 @@ class RAPM_Help {
 				<p><?php esc_html_e( 'So every tile in the row looks the same size. If different tiles used pictures with different shapes, the row would look uneven — one tile taller than the next. A square picture (the same width and height) crops predictably no matter what you upload.', 'rapm' ); ?></p>
 			</details>
 			<details>
+				<summary><?php esc_html_e( 'What does "Which Spot on the Site" actually do?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'It groups promotions into one rotating carousel. Every promotion left on "default" shares one carousel and takes turns rotating together, wherever that carousel is placed on the site. Only type something different here if you specifically want a second, separate carousel — for example, one set of promotions rotating on the homepage, and a completely different set rotating on a category page. As you type, the box below shows exactly which other promotions (by name) already share whatever you\'ve typed, so you can see it working with your own real promotions instead of just reading a description of it.', 'rapm' ); ?></p>
+			</details>
+			<details>
 				<summary><?php esc_html_e( 'How do I show a calendar of upcoming promotions?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'Ask whoever manages the website to add [rapm_promotions_calendar] to a page. It automatically shows every promotion that has both a start date and an end date set — nothing else to configure. This is a calendar of your own promotions, separate from any community events calendar the site might also have.', 'rapm' ); ?></p>
 			</details>

@@ -4,6 +4,15 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.16.0
+
+**Feature: a live "who else shares this spot" summary, since three rounds of rewording "Which Spot on the Site" still hadn't made the concept land.** Confirmed the underlying capability was already fully built (multiple slides auto-rotating on a fully adjustable timer, on both desktop and mobile — same mechanism either way since only the *image* differs by device, not the carousel itself; independent carousels via separate Placements) — the actual gap was that the abstract idea of "a shared Placement" wasn't landing through description alone, no matter how it was worded.
+
+- As "Which Spot on the Site" is typed into, a box now shows — live, using this site's *actual* other promotions by name — exactly what would happen: "Nothing else is using this spot yet," or "2 other promotions already use this spot ('Labor Day Sale', 'Summer Clearance') — they'll all take turns rotating together in the same carousel." Turns an abstract rule into a concrete fact about this specific site, rather than one more paragraph to read.
+- New `wp_ajax_rapm_placement_summary` endpoint (`RAPM_Upload_Handler::ajax_placement_summary()`).
+- New Help & FAQ entry explaining what Placement actually does, pointing at this live summary as the way to see it working.
+- Verified the message-building logic (singular/plural wording, and the "+N more" case when more than 5 promotions share a spot) in a browser against mocked data for all four cases before shipping.
+
 ## 1.15.0
 
 **Feature: the "hand-picked list" bulk import now accepts real Excel (.xlsx) files, not just .csv.** Direct follow-up to confirming the CSV importer (v1.7.0) still didn't cover Excel — every `.xlsx` was rejected with a message asking to re-save as CSV first.
