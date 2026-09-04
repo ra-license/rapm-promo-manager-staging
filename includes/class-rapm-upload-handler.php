@@ -117,6 +117,9 @@ class RAPM_Upload_Handler {
 		<div class="wrap">
 			<h1>
 				<?php echo $is_edit ? esc_html__( 'Edit Promotional Asset', 'rapm' ) : esc_html__( 'Add New Promotional Asset', 'rapm' ); ?>
+				<?php if ( ! $is_edit ) : ?>
+				<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=rapm_asset&page=rapm-training-guide' ) ); ?>" class="page-title-action"><?php esc_html_e( 'Training Guide', 'rapm' ); ?></a>
+				<?php endif; ?>
 				<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=rapm_asset&page=rapm-help' ) ); ?>" class="page-title-action"><?php esc_html_e( 'Help & FAQ', 'rapm' ); ?></a>
 			</h1>
 			<style>

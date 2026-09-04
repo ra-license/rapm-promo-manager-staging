@@ -29,6 +29,15 @@ class RAPM_Help {
 		<div class="wrap rapm-help">
 			<h1><?php esc_html_e( 'Help & FAQ', 'rapm' ); ?></h1>
 			<p class="rapm-help-intro"><?php esc_html_e( 'This page answers the questions people ask most when adding a new promotion. Read the steps below, then check the questions and answers if you get stuck.', 'rapm' ); ?></p>
+			<p class="description">
+				<?php
+				printf(
+					/* translators: %s: link to the Training Guide admin page */
+					esc_html__( 'Brand new to this tool? Start with the %s instead — it walks through everything with pictures.', 'rapm' ),
+					'<a href="' . esc_url( admin_url( 'edit.php?post_type=rapm_asset&page=rapm-training-guide' ) ) . '">' . esc_html__( 'Training Guide', 'rapm' ) . '</a>'
+				);
+				?>
+			</p>
 
 			<style>
 				.rapm-help { max-width: 800px; font-size: 15px; line-height: 1.7; }
