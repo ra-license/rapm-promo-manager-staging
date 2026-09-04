@@ -276,12 +276,12 @@ class RAPM_Destination {
 	}
 
 	/**
-	 * Backs the "hand-picked list" form's optional CSV bulk-import — a
-	 * client's own spreadsheet of SKUs (a column titled "SKU") instead of
-	 * searching for each product one at a time. Every SKU is checked
-	 * against this site's actual catalog; a SKU that doesn't match any
-	 * product is reported back rather than silently dropped, so the client
-	 * can see exactly what wasn't found and follow up on it.
+	 * Backs the "hand-picked list" form's optional bulk-import (.csv or
+	 * .xlsx) — a client's own spreadsheet of SKUs (a column titled "SKU")
+	 * instead of searching for each product one at a time. Every SKU is
+	 * checked against this site's actual catalog; a SKU that doesn't match
+	 * any product is reported back rather than silently dropped, so the
+	 * client can see exactly what wasn't found and follow up on it.
 	 */
 	public static function ajax_import_skus() {
 		if ( ! current_user_can( 'edit_posts' ) ) {
@@ -293,45 +293,28 @@ class RAPM_Destination {
 			wp_send_json_error( array( 'message' => __( 'That file didn\'t upload correctly — please try again.', 'rapm' ) ) );
 		}
 
-		if ( 'csv' !== strtolower( pathinfo( sanitize_file_name( $_FILES['file']['name'] ), PATHINFO_EXTENSION ) ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please upload a .csv file (a spreadsheet saved as "CSV").', 'rapm' ) ) );
+		$extension = strtolower( pathinfo( sanitize_file_name( $_FILES['file']['name'] ), PATHINFO_EXTENSION ) );
+
+		if ( 'csv' === $extension ) {
+			$result = self::read_csv_skus( $_FILES['file']['tmp_name'] );
+		} elseif ( 'xlsx' === $extension ) {
+			$result = self::read_xlsx_skus( $_FILES['file']['tmp_name'] );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Please upload a .csv or .xlsx (Excel) file.', 'rapm' ) ) );
 		}
 
-		$handle = fopen( $_FILES['file']['tmp_name'], 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
-		if ( ! $handle ) {
-			wp_send_json_error( array( 'message' => __( 'Could not read that file.', 'rapm' ) ) );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
 		}
 
-		$header = fgetcsv( $handle );
-		if ( ! $header ) {
-			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
-			wp_send_json_error( array( 'message' => __( 'That file looks empty.', 'rapm' ) ) );
-		}
-
-		$sku_col = null;
-		foreach ( $header as $i => $col ) {
-			if ( 'sku' === strtolower( trim( $col ) ) ) {
-				$sku_col = $i;
-				break;
-			}
-		}
-		if ( null === $sku_col ) {
-			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
-			wp_send_json_error( array( 'message' => __( 'Couldn\'t find a column titled "SKU" in that file\'s first row.', 'rapm' ) ) );
-		}
+		list( $raw_skus, $truncated ) = $result;
 
 		$found     = array();
 		$not_found = array();
 		$seen      = array();
-		$row_count = 0;
-		$max_rows  = 2000;
 
-		while ( $row_count < $max_rows && ( $row = fgetcsv( $handle ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition
-			++$row_count;
-			if ( ! isset( $row[ $sku_col ] ) ) {
-				continue;
-			}
-			$sku = trim( $row[ $sku_col ] );
+		foreach ( $raw_skus as $raw_sku ) {
+			$sku = trim( $raw_sku );
 			if ( '' === $sku || isset( $seen[ $sku ] ) ) {
 				continue;
 			}
@@ -344,15 +327,193 @@ class RAPM_Destination {
 				$not_found[] = $sku;
 			}
 		}
-		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
 
 		wp_send_json_success(
 			array(
 				'found'     => $found,
 				'not_found' => $not_found,
-				'truncated' => $row_count >= $max_rows,
+				'truncated' => $truncated,
 			)
 		);
+	}
+
+	/**
+	 * Reads the "SKU" column of an uploaded .csv file. Returns
+	 * array( $raw_skus, $was_truncated ), or a WP_Error.
+	 */
+	private static function read_csv_skus( $path ) {
+		$handle = fopen( $path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
+		if ( ! $handle ) {
+			return new WP_Error( 'rapm_csv_unreadable', __( 'Could not read that file.', 'rapm' ) );
+		}
+
+		$header = fgetcsv( $handle );
+		if ( ! $header ) {
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+			return new WP_Error( 'rapm_csv_empty', __( 'That file looks empty.', 'rapm' ) );
+		}
+
+		$sku_col = null;
+		foreach ( $header as $i => $col ) {
+			if ( 'sku' === strtolower( trim( $col ) ) ) {
+				$sku_col = $i;
+				break;
+			}
+		}
+		if ( null === $sku_col ) {
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+			return new WP_Error( 'rapm_csv_no_sku_column', __( 'Couldn\'t find a column titled "SKU" in that file\'s first row.', 'rapm' ) );
+		}
+
+		$skus      = array();
+		$row_count = 0;
+		$max_rows  = 2000;
+
+		while ( $row_count < $max_rows && ( $row = fgetcsv( $handle ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition
+			++$row_count;
+			if ( isset( $row[ $sku_col ] ) ) {
+				$skus[] = $row[ $sku_col ];
+			}
+		}
+		$truncated = $row_count >= $max_rows;
+		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+
+		return array( $skus, $truncated );
+	}
+
+	/**
+	 * Reads the "SKU" column of an uploaded .xlsx file — a small,
+	 * purpose-built reader (ZipArchive + the XML inside, both built into
+	 * PHP core) rather than pulling in a full spreadsheet library, since
+	 * all that's actually needed is one column of one sheet. Returns
+	 * array( $raw_skus, $was_truncated ), or a WP_Error.
+	 */
+	private static function read_xlsx_skus( $path ) {
+		if ( ! class_exists( 'ZipArchive' ) ) {
+			return new WP_Error( 'rapm_xlsx_unavailable', __( 'This server can\'t read Excel files (the ZipArchive extension is missing). Please save it as a .csv file instead.', 'rapm' ) );
+		}
+
+		$zip = new ZipArchive();
+		if ( true !== $zip->open( $path ) ) {
+			return new WP_Error( 'rapm_xlsx_unreadable', __( 'Could not open that Excel file — it may be corrupted, or not really an .xlsx file.', 'rapm' ) );
+		}
+
+		// Text cells are usually stored as an index into this shared table
+		// rather than the literal text, so it has to be read first.
+		$shared_strings = array();
+		$shared_xml     = $zip->getFromName( 'xl/sharedStrings.xml' );
+		if ( false !== $shared_xml ) {
+			$shared = simplexml_load_string( $shared_xml, 'SimpleXMLElement', LIBXML_NOCDATA );
+			if ( $shared ) {
+				foreach ( $shared->si as $si ) {
+					$text = '';
+					foreach ( $si->xpath( './/t' ) as $t ) {
+						$text .= (string) $t;
+					}
+					$shared_strings[] = $text;
+				}
+			}
+		}
+
+		// The first sheet isn't reliably xl/worksheets/sheet1.xml — resolve
+		// it properly via the workbook's own relationship mapping.
+		$sheet_path   = 'xl/worksheets/sheet1.xml';
+		$workbook_xml = $zip->getFromName( 'xl/workbook.xml' );
+		$rels_xml     = $zip->getFromName( 'xl/_rels/workbook.xml.rels' );
+		if ( $workbook_xml && $rels_xml ) {
+			$workbook = simplexml_load_string( $workbook_xml );
+			$rels     = simplexml_load_string( $rels_xml );
+			if ( $workbook && $rels && isset( $workbook->sheets->sheet[0] ) ) {
+				$r_attrs = $workbook->sheets->sheet[0]->attributes( 'http://schemas.openxmlformats.org/officeDocument/2006/relationships' );
+				$rid     = isset( $r_attrs['id'] ) ? (string) $r_attrs['id'] : '';
+				foreach ( $rels->Relationship as $rel ) {
+					if ( (string) $rel['Id'] === $rid ) {
+						$target = (string) $rel['Target'];
+						// Target is either relative to the xl/ folder (the
+						// common case, e.g. "worksheets/sheet1.xml") or an
+						// absolute in-zip path (e.g. "/xl/worksheets/sheet1.xml")
+						// — treating a relative one as absolute would double
+						// up the xl/ prefix and fail to find the real file.
+						$sheet_path = 0 === strpos( $target, '/' ) ? ltrim( $target, '/' ) : 'xl/' . $target;
+						break;
+					}
+				}
+			}
+		}
+
+		$sheet_xml = $zip->getFromName( $sheet_path );
+		$zip->close();
+
+		if ( false === $sheet_xml ) {
+			return new WP_Error( 'rapm_xlsx_unreadable', __( 'Could not read that Excel file\'s data.', 'rapm' ) );
+		}
+
+		$sheet = simplexml_load_string( $sheet_xml, 'SimpleXMLElement', LIBXML_NOCDATA );
+		if ( ! $sheet || ! isset( $sheet->sheetData ) ) {
+			return new WP_Error( 'rapm_xlsx_unreadable', __( 'Could not read that Excel file\'s data.', 'rapm' ) );
+		}
+
+		$rows = array();
+		foreach ( $sheet->sheetData->row as $row ) {
+			$cells = array();
+			foreach ( $row->c as $c ) {
+				$ref = (string) $c['r']; // e.g. "B7"
+				if ( ! preg_match( '/^([A-Z]+)/', $ref, $col_match ) ) {
+					continue;
+				}
+				$type = (string) $c['t'];
+				if ( 's' === $type ) {
+					// Shared string: <v> holds an index into sharedStrings.xml,
+					// not the text itself — the common case from Excel/Google Sheets.
+					$idx                     = (int) $c->v;
+					$cells[ $col_match[1] ] = isset( $shared_strings[ $idx ] ) ? $shared_strings[ $idx ] : '';
+				} elseif ( 'inlineStr' === $type ) {
+					// Inline string: the text lives in <is><t>, not <v> at all —
+					// what tools like openpyxl write by default instead of
+					// using the shared string table. Checked directly against
+					// a real generated file rather than assumed.
+					$text = '';
+					foreach ( $c->xpath( './/t' ) as $t ) {
+						$text .= (string) $t;
+					}
+					$cells[ $col_match[1] ] = $text;
+				} else {
+					// Numbers, formula-result strings (t="str"), etc. — the
+					// literal value is already in <v>.
+					$cells[ $col_match[1] ] = (string) $c->v;
+				}
+			}
+			$rows[] = $cells;
+		}
+
+		if ( ! $rows ) {
+			return new WP_Error( 'rapm_xlsx_empty', __( 'That file looks empty.', 'rapm' ) );
+		}
+
+		$header  = array_shift( $rows );
+		$sku_col = null;
+		foreach ( $header as $col => $label ) {
+			if ( 'sku' === strtolower( trim( $label ) ) ) {
+				$sku_col = $col;
+				break;
+			}
+		}
+		if ( null === $sku_col ) {
+			return new WP_Error( 'rapm_xlsx_no_sku_column', __( 'Couldn\'t find a column titled "SKU" in that file\'s first row.', 'rapm' ) );
+		}
+
+		$max_rows  = 2000;
+		$truncated = count( $rows ) > $max_rows;
+		$rows      = array_slice( $rows, 0, $max_rows );
+
+		$skus = array();
+		foreach ( $rows as $row ) {
+			if ( isset( $row[ $sku_col ] ) ) {
+				$skus[] = $row[ $sku_col ];
+			}
+		}
+
+		return array( $skus, $truncated );
 	}
 
 	private static function label_for( $type, $id ) {

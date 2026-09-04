@@ -4,6 +4,16 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.15.0
+
+**Feature: the "hand-picked list" bulk import now accepts real Excel (.xlsx) files, not just .csv.** Direct follow-up to confirming the CSV importer (v1.7.0) still didn't cover Excel — every `.xlsx` was rejected with a message asking to re-save as CSV first.
+
+- New small, purpose-built `.xlsx` reader (`RAPM_Destination::read_xlsx_skus()`) — `ZipArchive` + the XML inside, both built into PHP core, rather than pulling in a full spreadsheet library for what's really just "read one column of one sheet."
+- **Verified against real generated files, not just reasoned about**, since there's no PHP interpreter in this environment to run the code directly: generated an actual `.xlsx` with Python's `openpyxl` and inspected its real internal XML, then hand-built a second test file matching real Excel/Google Sheets' own encoding (shared strings, including a multi-run rich-text string) — and simulated the exact read algorithm against both in Python before writing the final PHP.
+- **That testing caught two real bugs before shipping**: (1) `openpyxl` — and likely other real tools — writes text cells as inline strings (`t="inlineStr"`, text inside `<is><t>`), not shared-string references; the first version only handled shared strings, which would have silently failed to find the "SKU" column header at all on a file like that. (2) The worksheet's relationship `Target` path came back as an *absolute* in-zip path (`/xl/worksheets/sheet1.xml`) in the generated file, not the relative path assumed; the original resolution logic would have doubled the `xl/` prefix and pointed at a file that doesn't exist. Both fixed and re-verified against both test files before shipping.
+- Same 2,000-row cap and not-found reporting as the existing CSV path. Added a tip in the field's own help text: a SKU column with leading zeros should be formatted as Text in Excel before saving, or Excel silently drops them — a real, well-known spreadsheet gotcha no importer can recover from after the fact.
+- Also fixed a stale Help & FAQ entry along the way — it still described the old manual SKU-textarea flow that the search picker replaced back in 1.6.0.
+
 ## 1.14.1
 
 **Fix: the "where this shows up" shortcode box only appeared after saving, and sat far from the field it explains.** Direct feedback on a screenshot of the Add New form: the box only rendered on the *edit* screen (after a first save), so it wasn't there yet when someone was actually filling in "Which Spot on the Site" and wondering what it was for — and even on the edit screen, it sat well below that field, down near the Images section, rather than right next to it.

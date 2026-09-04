@@ -595,8 +595,8 @@ class RAPM_Upload_Handler {
 							<ul id="rapm-curated-selected-list" style="list-style:none;margin:10px 0 0;padding:0;"></ul>
 							<textarea id="rapm_curated_skus" name="rapm_curated_skus" rows="3" class="large-text" style="display:none;"><?php echo esc_textarea( implode( "\n", $curated['skus'] ) ); ?></textarea>
 
-							<p class="description" style="margin-top:14px;"><?php esc_html_e( 'Have a lot of SKUs? Upload a spreadsheet instead of searching one at a time — save it as a .csv file with a column titled "SKU" containing the product SKUs.', 'rapm' ); ?></p>
-							<input type="file" id="rapm_curated_csv" accept=".csv" />
+							<p class="description" style="margin-top:14px;"><?php esc_html_e( 'Have a lot of SKUs? Upload a spreadsheet (.csv or Excel .xlsx) instead of searching one at a time — it needs a column titled "SKU" containing the product SKUs. Tip: if any SKUs start with a zero, format that column as Text in Excel first, or Excel may quietly drop the leading zero.', 'rapm' ); ?></p>
+							<input type="file" id="rapm_curated_csv" accept=".csv,.xlsx" />
 							<p class="description" id="rapm-curated-csv-status"></p>
 							<p style="margin-top:16px;">
 								<label for="rapm_curated_fallback_type"><strong><?php esc_html_e( 'Then fill in the rest of the page with...', 'rapm' ); ?></strong></label><br />

@@ -161,7 +161,11 @@ class RAPM_Help {
 
 			<details>
 				<summary><?php esc_html_e( 'How do I link to a specific list of SKUs?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'Pick "A hand-picked list of products." Type or paste your SKU numbers into the box, one per line. Those exact products will show first, in the order you typed them. If you want more products to fill in the rest of the page automatically, choose search words, a category, or a brand under "Then fill in the rest of the page with." If you don\'t want anything else added, leave that set to "Nothing else."', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Pick "A hand-picked list of products." Search by product name or SKU and click each one to add it — they\'ll show first, in the order you add them. If you want more products to fill in the rest of the page automatically, choose search words, a category, or a brand under "Then fill in the rest of the page with." If you don\'t want anything else added, leave that set to "Nothing else."', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'I have a long list of SKUs already in a spreadsheet — do I have to search for each one?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'No. Under "Specific products," there\'s an option to upload a spreadsheet (.csv or Excel .xlsx) instead — it needs one column titled "SKU." Every SKU that matches a real product gets added automatically; any that don\'t match anything are listed separately so you can double-check them, rather than being silently skipped.', 'rapm' ); ?></p>
 			</details>
 
 			<details>
