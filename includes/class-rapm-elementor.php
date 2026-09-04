@@ -119,4 +119,97 @@ class RAPM_Elementor {
 		}
 		return 'font-family:var(--e-global-typography-' . sanitize_html_class( $font_id ) . '-font-family, inherit);';
 	}
+
+	/**
+	 * The site's own Elementor Global Colors (Site Settings > Global
+	 * Colors — the 4 built-in slots plus any custom-named ones an editor
+	 * added), keyed by _id and valued by their human-readable title.
+	 * Same shape and same reasoning as global_fonts() above. Empty on any
+	 * site without Elementor active, or one where no kit has been
+	 * touched.
+	 */
+	public static function global_colors() {
+		if ( ! did_action( 'elementor/loaded' ) || ! class_exists( '\Elementor\Plugin' ) ) {
+			return array();
+		}
+		$kits_manager = \Elementor\Plugin::$instance->kits_manager;
+		if ( ! $kits_manager ) {
+			return array();
+		}
+		$kit = $kits_manager->get_active_kit_for_frontend();
+		if ( ! $kit ) {
+			return array();
+		}
+
+		$entries = array_merge(
+			(array) $kit->get_settings( 'system_colors' ),
+			(array) $kit->get_settings( 'custom_colors' )
+		);
+
+		$colors = array();
+		foreach ( $entries as $entry ) {
+			if ( ! empty( $entry['_id'] ) && ! empty( $entry['title'] ) ) {
+				$colors[ $entry['_id'] ] = $entry['title'];
+			}
+		}
+		return $colors;
+	}
+
+	/**
+	 * The literal hex value behind each global color id — for admin-side
+	 * previews only (Settings' "detected" hint), same reasoning as
+	 * font_family_map(): Elementor's --e-global-color-* variables are
+	 * only ever declared on the real front end.
+	 */
+	public static function color_value_map() {
+		if ( ! did_action( 'elementor/loaded' ) || ! class_exists( '\Elementor\Plugin' ) ) {
+			return array();
+		}
+		$kits_manager = \Elementor\Plugin::$instance->kits_manager;
+		if ( ! $kits_manager ) {
+			return array();
+		}
+		$kit = $kits_manager->get_active_kit_for_frontend();
+		if ( ! $kit ) {
+			return array();
+		}
+
+		$entries = array_merge(
+			(array) $kit->get_settings( 'system_colors' ),
+			(array) $kit->get_settings( 'custom_colors' )
+		);
+
+		$map = array();
+		foreach ( $entries as $entry ) {
+			if ( ! empty( $entry['_id'] ) && ! empty( $entry['color'] ) ) {
+				$map[ $entry['_id'] ] = $entry['color'];
+			}
+		}
+		return $map;
+	}
+
+	/**
+	 * The one value every front-end accent color in this plugin (right
+	 * now: the Promotions Calendar) should resolve to, in priority order:
+	 * 1) an explicit hex typed under Promo Manager > Settings — a
+	 *    deliberate human choice always wins, since Elementor's "Accent"
+	 *    or "Primary" slot isn't guaranteed to be the color a site
+	 *    actually wants used here;
+	 * 2) Elementor's own Global "Accent" color if set, else "Primary" —
+	 *    auto-detected via a live var() reference (not a resolved hex),
+	 *    so it keeps tracking Elementor if that color is ever changed;
+	 * 3) $fallback, on any site with neither.
+	 */
+	public static function resolve_accent_color_css( $fallback = '#b5651d' ) {
+		$manual = trim( (string) RAPM_Admin_Settings::get( 'accent_color' ) );
+		if ( $manual ) {
+			return $manual;
+		}
+		$colors  = self::global_colors();
+		$auto_id = isset( $colors['accent'] ) ? 'accent' : ( isset( $colors['primary'] ) ? 'primary' : '' );
+		if ( $auto_id ) {
+			return 'var(--e-global-color-' . sanitize_html_class( $auto_id ) . ', ' . $fallback . ')';
+		}
+		return $fallback;
+	}
 }

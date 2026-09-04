@@ -94,6 +94,10 @@ class RAPM_Help {
 				<summary><?php esc_html_e( 'How do I know if a promotion will show up on the calendar?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'On the last step of the form (Review & Schedule), right below the start/stop date fields, a note tells you directly — it says whether this specific promotion will show on the Promotions Calendar or not, and updates the moment you add or remove a date. A promotion needs both a start date and an end date to show up there; if either is blank, it simply won\'t appear on the calendar, which is completely fine if you\'re not using it for that promotion.', 'rapm' ); ?></p>
 			</details>
+			<details>
+				<summary><?php esc_html_e( 'Does the calendar match the colors on our website?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Yes, automatically, on sites built with Elementor — it uses whichever color is set as this site\'s Elementor "Accent" color (or "Primary" if there\'s no Accent color set), with no setup needed. If it\'s using the wrong color, or the site doesn\'t use Elementor, whoever manages the website can set an exact color for it under Promo Manager > Settings > Brand Color.', 'rapm' ); ?></p>
+			</details>
 
 			<h2><?php esc_html_e( 'Pictures — Questions and Answers', 'rapm' ); ?></h2>
 

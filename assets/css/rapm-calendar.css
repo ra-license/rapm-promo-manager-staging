@@ -62,8 +62,13 @@
 
 .rapm-calendar-cell.has-promo {
 	cursor: pointer;
-	border-color: #b5651d;
+	border-color: var(--rapm-calendar-accent, #b5651d);
 	background: #fdf3ea;
+	/* Same tint, re-derived from the accent itself rather than a second
+	   hardcoded hex, so it can never end up mismatched with the border
+	   color above once that starts tracking a site's own brand color.
+	   Browsers without color-mix() simply keep the plain hex above. */
+	background: color-mix(in srgb, var(--rapm-calendar-accent, #b5651d) 12%, white);
 }
 
 .rapm-calendar-cell.is-today .rapm-calendar-daynum {
@@ -73,7 +78,7 @@
 
 .rapm-calendar-dot {
 	font-size: 9px;
-	color: #b5651d;
+	color: var(--rapm-calendar-accent, #b5651d);
 	margin-top: 2px;
 }
 
@@ -87,6 +92,10 @@
 .rapm-calendar-day-detail ul {
 	margin: 0;
 	padding-left: 18px;
+}
+
+.rapm-calendar-day-detail a {
+	color: var(--rapm-calendar-accent, #b5651d);
 }
 
 .rapm-calendar-empty {

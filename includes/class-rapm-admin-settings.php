@@ -31,6 +31,13 @@ class RAPM_Admin_Settings {
 			// Simon at all, should leave this blank.
 			'search_results_base_url'   => '',
 			'search_results_query_param' => 's',
+			// Empty = auto-detect from Elementor's Global "Accent" or
+			// "Primary" color when available, else a neutral default —
+			// see RAPM_Elementor::resolve_accent_color_css(). Only needs
+			// setting here if that auto-detected color isn't the one a
+			// site actually wants used (or the site doesn't run
+			// Elementor at all).
+			'accent_color'            => '',
 		);
 	}
 
@@ -77,6 +84,9 @@ class RAPM_Admin_Settings {
 		$out['search_results_query_param'] = isset( $input['search_results_query_param'] ) && '' !== trim( $input['search_results_query_param'] )
 			? sanitize_key( $input['search_results_query_param'] )
 			: $out['search_results_query_param'];
+
+		$accent = isset( $input['accent_color'] ) ? trim( $input['accent_color'] ) : '';
+		$out['accent_color'] = ( $accent && preg_match( '/^#[0-9a-fA-F]{6}$/', $accent ) ) ? $accent : '';
 
 		$overrides = array();
 		if ( isset( $input['slot_overrides'] ) && is_array( $input['slot_overrides'] ) ) {
@@ -156,6 +166,52 @@ class RAPM_Admin_Settings {
 						</td>
 					</tr>
 				</table>
+
+				<h2><?php esc_html_e( 'Brand Color', 'rapm' ); ?></h2>
+				<?php
+				$elementor_colors = RAPM_Elementor::color_value_map();
+				$elementor_titles = RAPM_Elementor::global_colors();
+				$auto_id          = isset( $elementor_titles['accent'] ) ? 'accent' : ( isset( $elementor_titles['primary'] ) ? 'primary' : '' );
+				?>
+				<p class="description">
+					<?php if ( $auto_id ) : ?>
+						<?php
+						printf(
+							/* translators: 1: Elementor global color title (e.g. "Accent"), 2: its hex value */
+							esc_html__( 'Right now, the Promotions Calendar automatically uses this site\'s Elementor "%1$s" color (%2$s) — nothing to do here unless you want a different color used instead.', 'rapm' ),
+							esc_html( $elementor_titles[ $auto_id ] ),
+							esc_html( $elementor_colors[ $auto_id ] ?? '' )
+						);
+						?>
+					<?php else : ?>
+						<?php esc_html_e( 'No Elementor site color was found to match automatically, so a neutral default color is used. Set one below if you\'d like it to match your brand instead.', 'rapm' ); ?>
+					<?php endif; ?>
+				</p>
+				<table class="form-table">
+					<tr>
+						<th><label for="rapm_accent_color"><?php esc_html_e( 'Use this color instead', 'rapm' ); ?></label></th>
+						<td>
+							<input type="color" id="rapm_accent_color" name="<?php echo esc_attr( self::OPTION ); ?>[accent_color]" value="<?php echo esc_attr( $opts['accent_color'] ?: '#b5651d' ); ?>" style="height:32px;width:60px;padding:2px;vertical-align:middle;" />
+							<button type="button" class="button" id="rapm_accent_color_clear"><?php esc_html_e( 'Clear (use automatic)', 'rapm' ); ?></button>
+							<input type="hidden" id="rapm_accent_color_enabled" value="<?php echo esc_attr( $opts['accent_color'] ? '1' : '0' ); ?>" />
+							<p class="description"><?php esc_html_e( 'Only used on the Promotions Calendar for now. Leave cleared to keep it matching your Elementor color automatically.', 'rapm' ); ?></p>
+						</td>
+					</tr>
+				</table>
+				<script>
+					( function () {
+						var enabledField = document.getElementById( 'rapm_accent_color_enabled' );
+						var colorField   = document.getElementById( 'rapm_accent_color' );
+						var clearBtn     = document.getElementById( 'rapm_accent_color_clear' );
+						colorField.addEventListener( 'input', function () { enabledField.value = '1'; } );
+						clearBtn.addEventListener( 'click', function () { enabledField.value = '0'; } );
+						colorField.form.addEventListener( 'submit', function () {
+							if ( '0' === enabledField.value ) {
+								colorField.disabled = true; // omits it from the POST entirely, so sanitize() clears it.
+							}
+						} );
+					} )();
+				</script>
 
 				<h2><?php esc_html_e( 'Marquee Defaults', 'rapm' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Applied to [rapm_marquee] unless a specific one overrides it with its own items="..." attribute.', 'rapm' ); ?></p>

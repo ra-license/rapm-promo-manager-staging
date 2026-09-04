@@ -457,6 +457,7 @@ class RAPM_Training_Guide {
 							<li><span><?php esc_html_e( "It's a good way to let potential customers see everything you have scheduled at a glance, in one place, without you maintaining a second list by hand.", 'rapm' ); ?></span></li>
 							<li><span><?php esc_html_e( 'It updates itself automatically as you add, edit, or reschedule promotions elsewhere in the tool — nothing to keep in sync yourself.', 'rapm' ); ?></span></li>
 							<li><span><?php esc_html_e( 'Go to', 'rapm' ); ?> <strong><?php esc_html_e( 'Promo Manager → Sliders', 'rapm' ); ?></strong> <?php esc_html_e( 'to find this code again any time, along with a live count of how many promotions currently show on it.', 'rapm' ); ?></span></li>
+							<li><span><?php esc_html_e( "Its color automatically matches this website's own brand color, if the site is built with Elementor. Whoever manages the website can set an exact color instead under Promo Manager → Settings → Brand Color.", 'rapm' ); ?></span></li>
 						</ul>
 						<div class="rapm-tg-callout rapm-tg-callout-tip">
 							<span class="rapm-tg-callout-title"><?php esc_html_e( 'How do I know if a promotion will be on it?', 'rapm' ); ?></span>

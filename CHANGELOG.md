@@ -4,6 +4,15 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.21.0
+
+**Feature: the Promotions Calendar now matches a site's actual brand color, instead of a fixed hardcoded accent.** Direct follow-up after the user asked to preview the calendar and "make sure it... is pulling the brand colors from the website." It wasn't — a full audit of every display mode's CSS found the Calendar was the *only* place in the plugin with a genuinely hardcoded, non-brand-aware accent color (`#b5651d`, used for the has-promotion highlight, the day count, and — previously unstyled — the day-detail links, which fell back to plain browser-default blue). Hero's CTA button and Marquee's arrows were checked too and left alone: they're deliberately neutral white/black or use `color: inherit` already, for photo-legibility reasons, not an oversight.
+- New **Elementor Global Colors bridge** (`RAPM_Elementor::global_colors()` / `color_value_map()`), the exact structural twin of the existing Global Fonts bridge (`system_colors`/`custom_colors` kit settings instead of `system_typography`/`custom_typography`).
+- New `RAPM_Elementor::resolve_accent_color_css()` — the single function every accent-colored element in the plugin should call, in priority order: (1) an explicit hex set under **Promo Manager > Settings > Brand Color**, (2) Elementor's Global "Accent" color if set, else "Primary," referenced live via `var(--e-global-color-*, ...)` so it keeps tracking Elementor rather than freezing a resolved value, (3) the original neutral default, on any site with neither.
+- New **Brand Color** section on the Settings screen: a single color field plus a "Clear (use automatic)" button, with a live-computed hint showing exactly which Elementor color (name + hex) is currently being auto-detected, if any.
+- `assets/css/rapm-calendar.css` now reads `var(--rapm-calendar-accent, #b5651d)` everywhere it previously hardcoded the accent, including a `color-mix()`-derived tint for the has-promotion background (so it can never drift out of sync with the border color it's paired with) and the previously-unstyled day-detail links.
+- Verified in a browser against the real shipped CSS: swapping the resolved `--rapm-calendar-accent` value updates the border, background tint, day-count, and day-detail links consistently and immediately; the Settings screen's enable/clear/submit logic (untouched → stays automatic, Clear → explicitly stays automatic, a color actually picked → sent and saved) verified for all three states.
+
 ## 1.20.0
 
 **Feature: the Promotions Calendar is now discoverable, and every promotion tells you directly whether it's on it.** Direct follow-up after the user pointed out the calendar shortcode kept getting glossed over across this project's own documentation — a fair critique: unlike every other display mode, it has no menu item, no Kind of its own, and nothing in the admin UI ever surfaces it. The feature itself was complete; only its visibility was missing.
