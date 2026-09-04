@@ -84,11 +84,15 @@ class RAPM_Help {
 
 			<details>
 				<summary><?php esc_html_e( 'Why did my picture get rejected?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'Each spot on the website needs a picture with a specific shape (like a wide banner, or a tall phone picture). If your picture is the right shape but a different resolution, it\'s automatically resized for you — nothing to fix. If it\'s rejected, it means the picture is a different shape entirely (like a square photo where a wide banner is needed) — crop or export it again in the right shape, then try uploading it a second time.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Each spot on the website needs a picture with a specific shape (like a wide banner, or a tall phone picture). If your picture is the right shape but a different resolution, it\'s automatically resized for you — nothing to fix. If it\'s a different shape entirely (like a square photo where a wide banner is needed), you\'ll usually be offered a way to pick which part of the picture to keep — see the next question. If that option doesn\'t appear, crop or export the picture again in the right shape and try uploading it a second time.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'What is the 3x3 grid of buttons that sometimes shows up under a picture?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'That\'s the crop picker. It only appears when the picture you chose is a different shape than the spot needs (not just a different size — that case is already handled for you automatically). Click the button for the part of the picture you want kept — top-left, center, bottom-right, and so on — and the rest is trimmed away automatically when you save. It starts on the middle button, so if the middle of your picture is the important part, you don\'t need to touch it at all.', 'rapm' ); ?></p>
 			</details>
 			<details>
 				<summary><?php esc_html_e( 'Does it ever resize my picture for me?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'Yes, but only when it\'s safe to do automatically: if your picture is already the right shape (say, exported at twice the size needed), it scales it down for you with nothing lost or cropped out. It never automatically crops a picture that\'s a different shape — that could cut off part of the photo that matters, so that always needs a person to decide, not the computer.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Yes, in two situations: if your picture is already the right shape (say, exported at twice the size needed), it\'s scaled down automatically with nothing lost or cropped out. And if it\'s a different shape, but you\'ve picked a spot on the crop picker described above, it\'s trimmed to that spot and resized. A picture is only ever cropped when you\'ve chosen where from — the computer never guesses which part of a photo matters.', 'rapm' ); ?></p>
 			</details>
 
 			<details>
@@ -112,6 +116,31 @@ class RAPM_Help {
 			<details>
 				<summary><?php esc_html_e( 'How do I check what the mobile version will actually look like?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'Use the Desktop/Mobile buttons above the Live Preview box. Switching to Mobile shows your Mobile Promotion picture — or, if you haven\'t added one yet, it shows what phone visitors would see instead: your desktop picture, shrunk to fit the phone shape. Nothing gets cropped off, but you\'ll see empty space above and below it, which usually looks better with a dedicated mobile picture instead.', 'rapm' ); ?></p>
+			</details>
+
+			<h2><?php esc_html_e( 'The Sliders Page', 'rapm' ); ?></h2>
+			<p><?php esc_html_e( 'The Sliders page (on the left menu, under Promo Manager) is the easiest way to see and manage everything — better than the plain "All Assets" list for most day-to-day work.', 'rapm' ); ?></p>
+			<details>
+				<summary><?php esc_html_e( 'What am I looking at on the Sliders page?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'One card per carousel — every card is a group of promotions that share the same type and the same "Which Spot on the Site" value, and rotate together wherever that carousel is placed. Each card shows a thumbnail, how many promotions are in it, how many are live right now, and the shortcode that displays it.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'How do I change the order promotions rotate in?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Click "Manage Slides" on a card to open that carousel\'s slide list, then drag a slide up or down by its handle on the left. The new order saves automatically — no need to click anything else.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'Can I edit, duplicate, or delete a slide from this page?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Yes — each slide in the list has Edit, Duplicate, and Trash links on the right, the same actions available from "All Assets."', 'rapm' ); ?></p>
+			</details>
+
+			<h2><?php esc_html_e( 'Finding and Managing Promotions in "All Assets"', 'rapm' ); ?></h2>
+			<details>
+				<summary><?php esc_html_e( 'How do I find just the Hero banners, or just one spot\'s promotions?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'At the top of "All Assets," use the Type and Spot dropdowns to narrow the list down, then click Filter. This is especially useful once you have a lot of promotions saved.', 'rapm' ); ?></p>
+			</details>
+			<details>
+				<summary><?php esc_html_e( 'How do I make a new promotion that\'s almost the same as one I already have?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Hover over the promotion in "All Assets" (or find it on the Sliders page) and click "Duplicate." A copy is created as a draft with the same picture, text, and settings — open it, change what\'s different, and publish it.', 'rapm' ); ?></p>
 			</details>
 
 			<h2><?php esc_html_e( 'Linking to an Outside Picture — Questions and Answers', 'rapm' ); ?></h2>

@@ -11,12 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * and higher quality across shared hosting than GD's WebP support, which
  * many hosts compile without); GD is the fallback.
  *
- * Dimensions are only ever touched via resize_to() — a plain, lossless
- * scale, called by RAPM_Upload_Handler only when the source is already
- * the right shape (see RAPM_Slots::aspect_ratio_matches()). A wrong
- * *shape* still needs a human to fix (cropping or squashing it
- * automatically risks cutting off or warping whatever the photo is of),
- * so that's validated and rejected before this class is ever reached.
+ * Dimensions are touched two ways, both opt-in from RAPM_Upload_Handler,
+ * never silently: resize_to() is a plain, lossless scale for a source
+ * that's already the right shape (see RAPM_Slots::aspect_ratio_matches()).
+ * crop_to() is for a genuinely different shape — only ever used when the
+ * person uploading explicitly picked which part of the picture to keep
+ * via the crop-anchor picker; without that explicit choice, a wrong shape
+ * is still rejected rather than guessed at.
  */
 class RAPM_Webp_Converter {
 
@@ -85,6 +86,106 @@ class RAPM_Webp_Converter {
 		}
 
 		return new WP_Error( 'rapm_resize_unavailable', __( 'This server can\'t automatically resize images (no Imagick or GD found).', 'rapm' ) );
+	}
+
+	/**
+	 * Crops $source_path down to $target_width x $target_height, anchored
+	 * at $anchor (e.g. 'center center', 'left top') — the same nine
+	 * positions offered by the crop-anchor picker on the Add/Edit Asset
+	 * form. Only ever called with an anchor the person uploading actually
+	 * picked; see the class docblock for why this is opt-in.
+	 */
+	public static function crop_to( $source_path, $target_width, $target_height, $anchor = 'center center' ) {
+		$parts = array_pad( explode( ' ', trim( $anchor ) ), 2, 'center' );
+		$x_key = $parts[0];
+		$y_key = $parts[1];
+
+		if ( extension_loaded( 'imagick' ) && class_exists( 'Imagick' ) ) {
+			try {
+				$image = new Imagick( $source_path );
+				$sw    = $image->getImageWidth();
+				$sh    = $image->getImageHeight();
+				list( $crop_w, $crop_h, $crop_x, $crop_y ) = self::compute_crop_box( $sw, $sh, $target_width, $target_height, $x_key, $y_key );
+				$image->cropImage( $crop_w, $crop_h, $crop_x, $crop_y );
+				$image->resizeImage( $target_width, $target_height, Imagick::FILTER_LANCZOS, 1, false );
+				$tmp = wp_tempnam( 'rapm-cropped' );
+				$image->writeImage( $tmp );
+				$image->clear();
+				$image->destroy();
+				return $tmp;
+			} catch ( Exception $e ) {
+				return new WP_Error( 'rapm_crop_failed', $e->getMessage() );
+			}
+		}
+
+		if ( function_exists( 'imagecreatetruecolor' ) ) {
+			$info = getimagesize( $source_path );
+			if ( ! $info ) {
+				return new WP_Error( 'rapm_crop_failed', __( 'Could not read the image to crop it.', 'rapm' ) );
+			}
+			switch ( $info['mime'] ) {
+				case 'image/jpeg':
+					$src = imagecreatefromjpeg( $source_path );
+					break;
+				case 'image/png':
+					$src = imagecreatefrompng( $source_path );
+					break;
+				case 'image/webp':
+					$src = function_exists( 'imagecreatefromwebp' ) ? imagecreatefromwebp( $source_path ) : false;
+					break;
+				case 'image/gif':
+					$src = imagecreatefromgif( $source_path );
+					break;
+				default:
+					$src = false;
+			}
+			if ( ! $src ) {
+				return new WP_Error( 'rapm_crop_failed', __( 'Unsupported image type to crop.', 'rapm' ) );
+			}
+
+			$sw = imagesx( $src );
+			$sh = imagesy( $src );
+			list( $crop_w, $crop_h, $crop_x, $crop_y ) = self::compute_crop_box( $sw, $sh, $target_width, $target_height, $x_key, $y_key );
+
+			$dst = imagecreatetruecolor( $target_width, $target_height );
+			imagecopyresampled( $dst, $src, 0, 0, $crop_x, $crop_y, $target_width, $target_height, $crop_w, $crop_h );
+			imagedestroy( $src );
+
+			$tmp = wp_tempnam( 'rapm-cropped' );
+			imagepng( $dst, $tmp ); // Format doesn't matter here — convert() re-encodes to WebP right after this.
+			imagedestroy( $dst );
+			return $tmp;
+		}
+
+		return new WP_Error( 'rapm_crop_unavailable', __( 'This server can\'t automatically crop images (no Imagick or GD found).', 'rapm' ) );
+	}
+
+	/**
+	 * Works out the largest crop box matching the target's aspect ratio
+	 * that still fits inside the source image, positioned per the chosen
+	 * anchor — the same "crop to fill" math object-fit:cover does in CSS,
+	 * just computed here since the actual file needs to end up genuinely
+	 * that size (a live visitor never downloads the untrimmed original).
+	 */
+	private static function compute_crop_box( $sw, $sh, $tw, $th, $x_key, $y_key ) {
+		$target_ratio = $tw / $th;
+		$source_ratio = $sw / $sh;
+
+		if ( $source_ratio > $target_ratio ) {
+			$crop_h = $sh;
+			$crop_w = (int) round( $sh * $target_ratio );
+		} else {
+			$crop_w = $sw;
+			$crop_h = (int) round( $sw / $target_ratio );
+		}
+
+		$x_frac = 'left' === $x_key ? 0 : ( 'right' === $x_key ? 1 : 0.5 );
+		$y_frac = 'top' === $y_key ? 0 : ( 'bottom' === $y_key ? 1 : 0.5 );
+
+		$crop_x = (int) round( ( $sw - $crop_w ) * $x_frac );
+		$crop_y = (int) round( ( $sh - $crop_h ) * $y_frac );
+
+		return array( $crop_w, $crop_h, $crop_x, $crop_y );
 	}
 
 	private static function imagick_supports_webp() {
