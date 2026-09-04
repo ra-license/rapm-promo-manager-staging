@@ -62,8 +62,16 @@
 			}
 
 			var config = {
-				loop:   active.length >= ( options.loopMinSlides || 2 ),
-				effect: options.effect || 'slide',
+				loop:       active.length >= ( options.loopMinSlides || 2 ),
+				effect:     options.effect || 'slide',
+				// Each slide sets its own height via CSS aspect-ratio (see
+				// RAPM_Hero_Carousel) rather than inheriting a single fixed
+				// height for the whole carousel — a slide with no dedicated
+				// mobile picture uses its desktop image's own shape on
+				// phones instead of being shrunk inside a taller box sized
+				// for a mobile picture it doesn't have. autoHeight keeps the
+				// visible carousel sized to match whichever slide is active.
+				autoHeight: true,
 			};
 			if ( 'fade' === config.effect ) {
 				config.fadeEffect = { crossFade: true };

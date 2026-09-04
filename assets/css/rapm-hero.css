@@ -5,9 +5,17 @@
 }
 
 .rapm-slide {
+	/* No height:100% here on purpose — with Swiper's autoHeight option
+	   (see assets/js/rapm-schedule.js), each slide's real height comes
+	   from its own aspect-ratio, set per-instance in
+	   RAPM_Hero_Carousel::render() and gated per-slide by whether that
+	   slide actually has a dedicated mobile picture (.has-mobile-img).
+	   This is what lets a slide with no mobile picture use the desktop
+	   image's own shape on phones instead of being shrunk inside a much
+	   taller box sized for a mobile picture it doesn't have — the exact
+	   cause of the large empty/black area that showed up otherwise. */
 	position: relative;
 	width: 100%;
-	height: 100%;
 }
 
 .rapm-slide picture {

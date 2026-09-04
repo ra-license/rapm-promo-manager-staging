@@ -71,8 +71,20 @@ class RAPM_Hero_Carousel {
 		ob_start();
 		?>
 		<style>
-			.<?php echo esc_attr( $instance_id ); ?> { width: 100%; margin: 0 auto; overflow: hidden; position: relative; aspect-ratio: <?php echo esc_html( $desktop_slot['width'] . ' / ' . $desktop_slot['height'] ); ?>; }
-			@media (max-width: 768px) { .<?php echo esc_attr( $instance_id ); ?> { aspect-ratio: <?php echo esc_html( $mobile_slot['width'] . ' / ' . $mobile_slot['height'] ); ?>; } }
+			.<?php echo esc_attr( $instance_id ); ?> { width: 100%; margin: 0 auto; overflow: hidden; position: relative; }
+			/* Every slide defaults to the desktop shape — including on phones,
+			   for a slide with no dedicated mobile picture, so the fallback
+			   image (see render_slide()) fills a box shaped for it instead of
+			   being shrunk inside a much taller one meant for a mobile
+			   picture that doesn't exist. A slide that DOES have a real
+			   mobile picture switches to the mobile shape on phones, same as
+			   before. Swiper's autoHeight option (rapm-schedule.js) resizes
+			   the carousel to match whichever shape the active slide is
+			   actually using. */
+			.<?php echo esc_attr( $instance_id ); ?> .rapm-slide { aspect-ratio: <?php echo esc_html( $desktop_slot['width'] . ' / ' . $desktop_slot['height'] ); ?>; }
+			@media (max-width: 768px) {
+				.<?php echo esc_attr( $instance_id ); ?> .rapm-slide.has-mobile-img { aspect-ratio: <?php echo esc_html( $mobile_slot['width'] . ' / ' . $mobile_slot['height'] ); ?>; }
+			}
 		</style>
 		<div class="swiper rapm-hero <?php echo esc_attr( $instance_id ); ?>" style="display:none;" data-rapm-carousel>
 			<div class="swiper-wrapper">
@@ -133,7 +145,7 @@ class RAPM_Hero_Carousel {
 			return; // No usable image — nothing to show for this asset.
 		}
 		?>
-		<div class="swiper-slide rapm-slide" data-rapm-start="<?php echo esc_attr( $starts_at ); ?>" data-rapm-end="<?php echo esc_attr( $ends_at ); ?>">
+		<div class="swiper-slide rapm-slide<?php echo $mobile_src ? ' has-mobile-img' : ''; ?>" data-rapm-start="<?php echo esc_attr( $starts_at ); ?>" data-rapm-end="<?php echo esc_attr( $ends_at ); ?>">
 			<picture>
 				<?php if ( $mobile_src ) : ?>
 					<source media="(max-width: 768px)" srcset="<?php echo esc_url( $mobile_src ); ?>" />
