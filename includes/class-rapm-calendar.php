@@ -188,12 +188,34 @@ class RAPM_Calendar {
 							var weekEl = document.createElement( 'div' );
 							weekEl.className = 'rapm-calendar-week';
 
+							// Every day this week resolves first, since the cell
+							// backgrounds below need to know which column is
+							// today/out-of-month before any buttons exist.
+							var weekDates = [];
+							for ( var c = 0; c < 7; c++ ) {
+								var dayNum = w * 7 + c - startDay + 1;
+								weekDates.push( ( dayNum < 1 || dayNum > daysInMonth ) ? null : toISO( viewYear, viewMonth, dayNum ) );
+							}
+
+							// One full-height background box per day, appended
+							// before anything else so it paints behind the day
+							// number and any bars sharing its column — this is
+							// what gives the week its boxed, Google Calendar
+							// look without changing the bar-stacking layout.
+							for ( var bgc = 0; bgc < 7; bgc++ ) {
+								var cellBg = document.createElement( 'div' );
+								cellBg.className = 'rapm-calendar-cellbg' +
+									( ! weekDates[ bgc ] ? ' is-empty' : '' ) +
+									( weekDates[ bgc ] === todayIso ? ' is-today' : '' );
+								cellBg.style.gridColumn = String( bgc + 1 );
+								weekEl.appendChild( cellBg );
+							}
+
 							// Day-number cells for this week (row 1 of the week's
 							// own mini-grid) — same button-per-day the detail-list
 							// click-through has always used, now also serving as
 							// the overflow escape hatch for a week with more
 							// promotions than visible bar lanes.
-							var weekDates = [];
 							for ( var c = 0; c < 7; c++ ) {
 								var dayNum = w * 7 + c - startDay + 1;
 								var dayCell = document.createElement( 'button' );
@@ -202,13 +224,11 @@ class RAPM_Calendar {
 								dayCell.style.gridColumn = String( c + 1 );
 								dayCell.style.gridRow = '1';
 
-								if ( dayNum < 1 || dayNum > daysInMonth ) {
+								if ( ! weekDates[ c ] ) {
 									dayCell.classList.add( 'is-empty' );
 									dayCell.disabled = true;
-									weekDates.push( null );
 								} else {
-									var iso = toISO( viewYear, viewMonth, dayNum );
-									weekDates.push( iso );
+									var iso = weekDates[ c ];
 									var num = document.createElement( 'span' );
 									num.className = 'rapm-calendar-daynum' + ( iso === todayIso ? ' is-today' : '' );
 									num.textContent = dayNum;
