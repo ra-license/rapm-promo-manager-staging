@@ -55,6 +55,31 @@ class RAPM_Upload_Handler {
 		}
 	}
 
+	/**
+	 * Same problem, the "Edit" side: WordPress's own default row action
+	 * and clickable title on Promo Manager > All Assets both point at
+	 * post.php?action=edit — the native post-edit screen, which for this
+	 * post type is just as bare (no image, destination, or schedule
+	 * fields live there; every real field is on this plugin's own form).
+	 * Without this, the only correct way to edit an existing asset was
+	 * the small "Edit" button in the dedicated column added in
+	 * class-rapm-admin-list.php — leaving two differently-behaving "Edit"
+	 * links on the very same row, one of which silently went nowhere
+	 * useful. Redirect the native one to the real form, exactly like
+	 * maybe_redirect_native_add_new() already does for "Add New."
+	 */
+	public static function maybe_redirect_native_edit() {
+		global $pagenow;
+		if ( 'post.php' !== $pagenow || ! isset( $_GET['action'], $_GET['post'] ) || 'edit' !== $_GET['action'] ) {
+			return;
+		}
+		$post_id = absint( $_GET['post'] );
+		if ( $post_id && 'rapm_asset' === get_post_type( $post_id ) ) {
+			wp_safe_redirect( admin_url( 'edit.php?post_type=rapm_asset&page=rapm-add-asset&edit=' . $post_id ) );
+			exit;
+		}
+	}
+
 	public static function render_page() {
 		$asset_id = isset( $_GET['edit'] ) ? absint( $_GET['edit'] ) : 0;
 		$is_edit  = $asset_id && 'rapm_asset' === get_post_type( $asset_id );

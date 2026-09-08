@@ -141,12 +141,38 @@ class RAPM_Admin_List {
 		if ( 'rapm_asset' !== $post->post_type || ! current_user_can( 'edit_posts' ) ) {
 			return $actions;
 		}
+
+		// "Quick Edit" is WordPress's own native inline editor — title,
+		// slug, date, status. None of this post type's real fields
+		// (image, headline, destination, schedule) live there, so it's
+		// the same trap as the native post-edit screen fixed below: a
+		// second, different-looking "edit" path that silently doesn't
+		// touch what someone actually came to change.
+		unset( $actions['inline hide-if-no-js'] );
+
 		$url                   = wp_nonce_url(
 			admin_url( 'admin-post.php?action=rapm_duplicate_asset&rapm_duplicate=' . $post->ID ),
 			'rapm_duplicate_' . $post->ID
 		);
 		$actions['rapm_duplicate'] = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Duplicate', 'rapm' ) . '</a>';
 		return $actions;
+	}
+
+	/**
+	 * WordPress builds both the post title's own link and the default
+	 * "Edit" row action from get_edit_post_link() — pointing both at
+	 * post.php?action=edit, the bare native editor this post type
+	 * deliberately has no real fields on (see class-rapm-post-types.php).
+	 * The dedicated "Edit" button added by the rapm_edit column above
+	 * already linked to the real form; this makes every other built-in
+	 * "Edit" entry point resolve to the exact same URL instead of a
+	 * second, silently non-functional one.
+	 */
+	public static function filter_edit_post_link( $link, $post_id ) {
+		if ( 'rapm_asset' !== get_post_type( $post_id ) ) {
+			return $link;
+		}
+		return admin_url( 'edit.php?post_type=rapm_asset&page=rapm-add-asset&edit=' . $post_id );
 	}
 
 	public static function handle_duplicate() {

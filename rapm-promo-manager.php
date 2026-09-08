@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RA Promo Manager
  * Description: Validated, scheduled promotional assets (hero banners and more) for client sites — enforces correct image dimensions/format/size on upload, schedules reliably even behind full-page caching, and links out to WordPress content, Elementor pages, or WooCommerce products/categories. Shortcode: [rapm_hero placement="default"].
- * Version: 1.22.1
+ * Version: 1.22.2
  * Author: RA Marketing
  * Text Domain: rapm
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RAPM_VERSION', '1.22.1' );
+define( 'RAPM_VERSION', '1.22.2' );
 define( 'RAPM_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RAPM_URL', plugin_dir_url( __FILE__ ) );
 
@@ -56,6 +56,7 @@ final class RAPM_Plugin {
 		add_action( 'restrict_manage_posts', array( 'RAPM_Admin_List', 'restrict_manage_posts' ) );
 		add_action( 'pre_get_posts', array( 'RAPM_Admin_List', 'filter_query' ) );
 		add_filter( 'post_row_actions', array( 'RAPM_Admin_List', 'row_actions' ), 10, 2 );
+		add_filter( 'get_edit_post_link', array( 'RAPM_Admin_List', 'filter_edit_post_link' ), 10, 2 );
 		add_action( 'admin_post_rapm_duplicate_asset', array( 'RAPM_Admin_List', 'handle_duplicate' ) );
 
 		add_action( 'admin_menu', array( 'RAPM_Upload_Handler', 'add_menu' ) );
@@ -64,6 +65,7 @@ final class RAPM_Plugin {
 		add_action( 'admin_menu', array( 'RAPM_Training_Guide', 'add_menu' ) );
 		add_action( 'wp_ajax_rapm_reorder_slides', array( 'RAPM_Sliders_Dashboard', 'ajax_reorder' ) );
 		add_action( 'admin_init', array( 'RAPM_Upload_Handler', 'maybe_redirect_native_add_new' ) );
+		add_action( 'admin_init', array( 'RAPM_Upload_Handler', 'maybe_redirect_native_edit' ) );
 		add_action( 'admin_enqueue_scripts', array( 'RAPM_Upload_Handler', 'enqueue_admin_assets' ) );
 		add_action( 'admin_enqueue_scripts', array( 'RAPM_Training_Guide', 'enqueue_admin_assets' ) );
 		add_action( 'admin_post_rapm_save_asset', array( 'RAPM_Upload_Handler', 'handle_save' ) );

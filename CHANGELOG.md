@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.22.2
+
+**Fix: on Promo Manager > All Assets, the post title and the default "Edit" row action silently opened a different, useless screen than the plugin's own "Edit" button in the same row.** Surfaced by the user noticing a calendar promotion had no destination link and asking why — investigation traced it to this: `rapm_asset` deliberately supports only `title` (no image/editor meta boxes — real fields live entirely on this plugin's own custom form, per `class-rapm-post-types.php`), but WordPress's *default* title link and "Edit" row action always point at the native `post.php?action=edit` screen regardless. That screen shows nothing but a bare title field — no image, headline, destination, or schedule — so anyone using the standard, more prominent "Edit" entry point (rather than the small button in the dedicated "Edit" column added for exactly this reason) landed somewhere that looks like editing but silently can't touch any real field.
+- This plugin already had the identical fix for the "Add New" side (`maybe_redirect_native_add_new()`, shipped early on) — the "Edit" side of the same problem had just never been covered.
+- Fixed at the source with a `get_edit_post_link` filter (`RAPM_Admin_List::filter_edit_post_link()`) so the title link and the default "Edit" row action both resolve directly to the real Add/Edit Asset screen — no redirect bounce needed. Added `maybe_redirect_native_edit()` (`admin_init`, mirroring the existing "Add New" redirect) as a safety net for anyone with the native edit URL already bookmarked or typed directly.
+- Also removed the native "Quick Edit" row action for this post type — same category of trap (title/slug/date/status only, none of the plugin's real fields), and now the only remaining native shortcut that could look like a working edit path while not being one.
+- **No PHP execution environment available to run this live** (standing constraint for this project) — verified by tracing `get_edit_post_link()`'s actual call sites in WordPress core (`WP_Posts_List_Table::handle_row_actions()` and the title column) to confirm both consume this filter, plus brace/paren balance on every touched file. Real end-to-end confirmation happens once this is installed on the live site — flag if the title link and the dedicated "Edit" button don't yet match after updating.
+
 ## 1.22.1
 
 **Fix: the calendar shipped in 1.22.0 rendered broken on a real live site — nearly every day cell solid-filled in the site's own brand purple — even though it passed every local check.** All of that session's verification used a mocked example page with fabricated colors; it never touched a real WordPress theme's CSS, which is exactly what exposed the gap. Confirmed via a real screenshot from the client's actual staging site (`/promo-calendar/`), then root-caused directly rather than guessed at.
