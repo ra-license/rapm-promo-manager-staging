@@ -372,6 +372,7 @@ class RAPM_Upload_Handler {
 								<input type="url" id="rapm_image_desktop_url" name="rapm_image_desktop_url" class="regular-text" value="<?php echo esc_attr( $desktop_url ); ?>" placeholder="https://…" />
 								<p class="description"><?php esc_html_e( 'Paste a link to a Google Drive folder, a Google Drive link to one picture, or a direct link to a picture. Set its sharing to "Anyone with the link."', 'rapm' ); ?></p>
 								<p class="description"><?php esc_html_e( 'With a folder, the newest picture in it that is the right shape is used. To change the promotion, just add a new picture to the folder. It can have any file name. You can paste the same folder in both Desktop and Mobile: wide pictures go to Desktop and tall ones to Mobile. We check every hour, or use "Check link now" below.', 'rapm' ); ?></p>
+								<p class="description rapm-link-status" id="rapm-desktop-link-status" aria-live="polite"></p>
 								<?php if ( $is_edit && 'link' === $desktop_source ) : ?>
 									<p><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rapm_check_link_now&asset_id=' . $asset_id ), 'rapm_check_link_now_' . $asset_id ) ); ?>"><?php esc_html_e( 'Check link now', 'rapm' ); ?></a></p>
 								<?php endif; ?>
@@ -419,6 +420,7 @@ class RAPM_Upload_Handler {
 							<div id="rapm-mobile-link-row" style="margin-top:8px;<?php echo 'link' === $mobile_source ? '' : 'display:none;'; ?>">
 								<input type="url" id="rapm_image_mobile_url" name="rapm_image_mobile_url" class="regular-text" value="<?php echo esc_attr( $mobile_url ); ?>" placeholder="https://…" />
 								<p class="description"><?php esc_html_e( 'Paste a link to a Google Drive folder (it can be the same folder as Desktop — the newest tall picture in it is used here), a Google Drive link to one picture, or a direct link to a picture. Set its sharing to "Anyone with the link." We check every hour.', 'rapm' ); ?></p>
+								<p class="description rapm-link-status" id="rapm-mobile-link-status" aria-live="polite"></p>
 								<?php if ( $is_edit && 'link' === $mobile_source && 'link' !== $desktop_source ) : ?>
 									<p><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rapm_check_link_now&asset_id=' . $asset_id ), 'rapm_check_link_now_' . $asset_id ) ); ?>"><?php esc_html_e( 'Check link now', 'rapm' ); ?></a></p>
 								<?php endif; ?>
@@ -1079,22 +1081,64 @@ class RAPM_Upload_Handler {
 								updateImageDisplay();
 							} );
 						}
-						// Link-sourced images: use the pasted URL directly as a
-						// best-effort preview — it hasn't been fetched/validated
-						// yet, so a source that blocks hotlinking may not render
-						// here even though it'll work fine once saved.
-						if ( desktopUrlInput ) {
-							desktopUrlInput.addEventListener( 'input', function () {
-								desktopSrc = this.value;
-								updateImageDisplay();
+						// Link-sourced images: ask the server for the picture the
+						// link really resolves to. Pasting the URL straight into
+						// the preview only ever worked for direct image links —
+						// a Drive folder link or Drive share link is a web page,
+						// not an image, so it showed as a broken picture.
+						var linkPreviewNonce = <?php echo wp_json_encode( wp_create_nonce( 'rapm_preview_link' ) ); ?>;
+						var linkPreviewAjax  = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+						function setupLinkPreview( input, which ) {
+							if ( ! input ) { return; }
+							var status = document.getElementById( 'rapm-' + which + '-link-status' );
+							var timer = null, seq = 0;
+							function show( text, isError ) {
+								if ( ! status ) { return; }
+								status.textContent = text;
+								status.style.color = isError ? '#b32d2e' : '';
+							}
+							function check() {
+								var url = input.value.trim();
+								var mine = ++seq;
+								if ( ! /^https?:\/\/\S+$/i.test( url ) ) { show( '', false ); return; }
+								show( <?php echo wp_json_encode( __( 'Checking the link…', 'rapm' ) ); ?>, false );
+								var body = new FormData();
+								body.append( 'action', 'rapm_preview_link' );
+								body.append( 'nonce', linkPreviewNonce );
+								body.append( 'url', url );
+								body.append( 'which', which );
+								body.append( 'kind', <?php echo wp_json_encode( $kind_key ); ?> );
+								body.append( 'asset_id', <?php echo (int) $asset_id; ?> );
+								fetch( linkPreviewAjax, { method: 'POST', body: body, credentials: 'same-origin' } )
+									.then( function ( r ) { return r.json(); } )
+									.then( function ( res ) {
+										if ( mine !== seq ) { return; } // a newer link was typed since
+										if ( ! res || ! res.success ) {
+											show( ( res && res.data && res.data.message ) || <?php echo wp_json_encode( __( 'Couldn\'t check that link.', 'rapm' ) ); ?>, true );
+											return;
+										}
+										var d = res.data;
+										if ( 'mobile' === which ) { mobileSrc = d.src; } else { desktopSrc = d.src; }
+										updateImageDisplay();
+										var msg = d.is_folder
+											? <?php echo wp_json_encode( __( 'Using the newest picture in the folder that fits: %s', 'rapm' ) ); ?>.replace( '%s', d.name )
+											: <?php echo wp_json_encode( __( 'Found the picture: %s', 'rapm' ) ); ?>.replace( '%s', d.name || url );
+										if ( ! d.fits ) {
+											msg += ' ' + <?php echo wp_json_encode( __( '(This picture is a different shape than needed, so it will be turned down when you save.)', 'rapm' ) ); ?>;
+										}
+										show( msg, ! d.fits );
+									} )
+									.catch( function () {
+										if ( mine === seq ) { show( <?php echo wp_json_encode( __( 'Couldn\'t check that link.', 'rapm' ) ); ?>, true ); }
+									} );
+							}
+							input.addEventListener( 'input', function () {
+								clearTimeout( timer );
+								timer = setTimeout( check, 700 );
 							} );
 						}
-						if ( mobileUrlInput ) {
-							mobileUrlInput.addEventListener( 'input', function () {
-								mobileSrc = this.value;
-								updateImageDisplay();
-							} );
-						}
+						setupLinkPreview( desktopUrlInput, 'desktop' );
+						setupLinkPreview( mobileUrlInput, 'mobile' );
 					} )();
 				</script>
 				<?php endif; // $has_images ?>
@@ -1666,6 +1710,51 @@ class RAPM_Upload_Handler {
 	 * explanations of what Placement does have repeatedly not landed on
 	 * their own.
 	 */
+	/**
+	 * Live preview for "Use a link": fetches the picture the pasted link
+	 * really points to (for a Drive folder, the one that would be chosen)
+	 * and returns it as a data URL, since neither a folder link nor a Drive
+	 * share link is itself an image a browser can show. Nothing is saved.
+	 */
+	public static function ajax_preview_link() {
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Not allowed.', 'rapm' ) ), 403 );
+		}
+		check_ajax_referer( 'rapm_preview_link', 'nonce' );
+
+		$url      = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
+		$which    = isset( $_POST['which'] ) && 'mobile' === $_POST['which'] ? 'mobile' : 'desktop';
+		$kind     = RAPM_Slots::kind( isset( $_POST['kind'] ) ? sanitize_key( wp_unslash( $_POST['kind'] ) ) : 'hero' );
+		$asset_id = isset( $_POST['asset_id'] ) ? absint( $_POST['asset_id'] ) : 0;
+		$slots    = RAPM_Slots::all();
+		if ( ! $url || empty( $kind[ $which ] ) || ! isset( $slots[ $kind[ $which ] ] ) ) {
+			wp_send_json_error( array( 'message' => __( 'That doesn\'t look like a valid web address.', 'rapm' ) ) );
+		}
+		$slot = $slots[ $kind[ $which ] ];
+
+		$picked = RAPM_Link_Source::resolve_to_tmp( $url, $slot, $asset_id, $which, false );
+		if ( is_wp_error( $picked ) ) {
+			wp_send_json_error( array( 'message' => $picked->get_error_message() ) );
+		}
+		$dims = getimagesize( $picked['tmp_path'] );
+		$data = file_get_contents( $picked['tmp_path'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		wp_delete_file( $picked['tmp_path'] );
+		if ( ! $dims || false === $data ) {
+			wp_send_json_error( array( 'message' => __( 'That link didn\'t return a picture.', 'rapm' ) ) );
+		}
+
+		wp_send_json_success(
+			array(
+				'src'       => 'data:' . $dims['mime'] . ';base64,' . base64_encode( $data ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions
+				'name'      => $picked['name'],
+				'width'     => (int) $dims[0],
+				'height'    => (int) $dims[1],
+				'is_folder' => RAPM_Link_Source::is_folder_url( $url ),
+				'fits'      => RAPM_Slots::aspect_ratio_matches( $slot, $dims[0], $dims[1] ),
+			)
+		);
+	}
+
 	public static function ajax_placement_summary() {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Not allowed.', 'rapm' ) ), 403 );

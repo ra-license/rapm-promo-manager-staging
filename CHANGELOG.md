@@ -4,6 +4,14 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.24.1
+
+**Fix: the Add/Edit Asset live preview showed a broken image whenever "Use a link" had a Google Drive link.** Phil pasted the England folder link and got an empty dark box. The preview set the pasted text directly as the picture's address. That only ever worked for direct image links: a Drive folder link, and even a normal Drive file share link (`…/file/d/…/view`), is a web page rather than an image. This is preview-only; saving always fetched the link server-side correctly.
+- New `rapm_preview_link` AJAX check. As you paste (after a short pause), the server resolves the link exactly the way saving will. For a folder, that's the newest right-shape picture. It returns that picture for the preview, plus a plain-language line under the box: "Using the newest picture in the folder that fits: england-hero-fall-sale.webp", or the real reason it can't be used (folder not shared, empty, no picture of the right shape, or the picture is a different shape and will be turned down on save). Previewing never marks folder files as "seen", so it can't affect which picture a later sync picks.
+- Refactor: the "find and download what this link points to" step is now `RAPM_Link_Source::resolve_to_tmp()`, shared by saving, the hourly sync and the preview, so the preview can't disagree with what actually gets saved.
+- **Caught before shipping:** an unescaped apostrophe in a new message (`'Couldn't check that link.'`) was a PHP syntax error. Since this file loads on every request, that would have taken down the whole site after updating, not just this form. Found by checking the new strings. Every plugin PHP file (and the 1.24.0 already on staging) was then run through a PHP-aware syntax checker (strings, comments, heredocs and `<?php ?>` blocks). It was proven to flag this exact bug before being trusted, and it reports zero issues. The new JavaScript was parsed by Chrome's own JS engine.
+- **Still not run in real PHP** (standing constraint). Final confirmation is on staging: paste the folder link and the England picture should appear in the preview with the "Using…" line.
+
 ## 1.24.0
 
 **Feature: "Use a link" now accepts a Google Drive folder, so clients can change a promotion by just dropping a new picture into a folder, under any file name.** Phil's request, while setting up a link-swap demo: file links only swap when the new picture replaces the old file under the same link, which in Drive means re-uploading with the exact same file name and choosing "Replace". That's not realistic to expect from a client every time.

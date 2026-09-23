@@ -103,38 +103,12 @@ class RAPM_Link_Source {
 			return new WP_Error( 'rapm_bad_url', __( 'That doesn\'t look like a valid web address.', 'rapm' ) );
 		}
 
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-
-		if ( self::is_folder_url( $url ) ) {
-			$picked = self::pick_from_folder( self::drive_folder_id( $url ), $slot, $parent_id, $which );
-			if ( is_wp_error( $picked ) ) {
-				return $picked;
-			}
-			$tmp_path      = $picked['tmp_path'];
-			$filename_hint = $picked['name'];
-		} else {
-			$is_drive = self::is_drive_url( $url );
-			$tmp_path = download_url( self::normalize_url( $url ), 45 );
-
-			if ( is_wp_error( $tmp_path ) ) {
-				return self::download_error( $tmp_path );
-			}
-
-			if ( ! getimagesize( $tmp_path ) ) {
-				wp_delete_file( $tmp_path );
-				if ( $is_drive ) {
-					return new WP_Error(
-						'rapm_not_an_image',
-						__( 'That Google Drive link didn\'t return a picture directly. Make sure the file\'s sharing setting is "Anyone with the link," and try again — very large files can also get blocked behind a "can\'t scan for viruses" warning page instead of downloading directly.', 'rapm' )
-					);
-				}
-				return new WP_Error(
-					'rapm_not_an_image',
-					__( 'That link didn\'t return a picture — double check it\'s a direct link to the image file itself, not a page that shows the image.', 'rapm' )
-				);
-			}
-			$filename_hint = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$picked = self::resolve_to_tmp( $url, $slot, $parent_id, $which );
+		if ( is_wp_error( $picked ) ) {
+			return $picked;
 		}
+		$tmp_path      = $picked['tmp_path'];
+		$filename_hint = $picked['name'];
 
 		$result = RAPM_Upload_Handler::validate_convert_sideload( $tmp_path, $filename_hint ?: 'linked-image', $slot, $parent_id );
 
@@ -143,6 +117,54 @@ class RAPM_Link_Source {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Downloads the picture a link points to (for a folder link, the one
+	 * pick_from_folder() chooses) and returns array( 'tmp_path', 'name' ),
+	 * or a WP_Error. The caller owns the temp file and must delete it.
+	 *
+	 * Shared by saving/syncing and by the Add/Edit Asset form's live
+	 * preview; the preview passes $remember = false so just looking at a
+	 * folder never marks its files as seen.
+	 */
+	public static function resolve_to_tmp( $url, $slot, $asset_id, $which = 'desktop', $remember = true ) {
+		$url = esc_url_raw( $url );
+		if ( ! $url ) {
+			return new WP_Error( 'rapm_bad_url', __( 'That doesn\'t look like a valid web address.', 'rapm' ) );
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		if ( self::is_folder_url( $url ) ) {
+			return self::pick_from_folder( self::drive_folder_id( $url ), $slot, $asset_id, $which, $remember );
+		}
+
+		$is_drive = self::is_drive_url( $url );
+		$tmp_path = download_url( self::normalize_url( $url ), 45 );
+
+		if ( is_wp_error( $tmp_path ) ) {
+			return self::download_error( $tmp_path );
+		}
+
+		if ( ! getimagesize( $tmp_path ) ) {
+			wp_delete_file( $tmp_path );
+			if ( $is_drive ) {
+				return new WP_Error(
+					'rapm_not_an_image',
+					__( 'That Google Drive link didn\'t return a picture directly. Make sure the file\'s sharing setting is "Anyone with the link," and try again — very large files can also get blocked behind a "can\'t scan for viruses" warning page instead of downloading directly.', 'rapm' )
+				);
+			}
+			return new WP_Error(
+				'rapm_not_an_image',
+				__( 'That link didn\'t return a picture — double check it\'s a direct link to the image file itself, not a page that shows the image.', 'rapm' )
+			);
+		}
+
+		return array(
+			'tmp_path' => $tmp_path,
+			'name'     => basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ),
+		);
 	}
 
 	/**
@@ -156,7 +178,7 @@ class RAPM_Link_Source {
 	 * wrong shape are skipped rather than treated as errors — that's what
 	 * lets one folder hold both the wide desktop and tall mobile picture.
 	 */
-	private static function pick_from_folder( $folder_id, $slot, $asset_id, $which ) {
+	private static function pick_from_folder( $folder_id, $slot, $asset_id, $which, $remember = true ) {
 		$entries = self::list_drive_folder( $folder_id );
 		if ( is_wp_error( $entries ) ) {
 			return $entries;
@@ -178,9 +200,11 @@ class RAPM_Link_Source {
 			}
 		);
 
-		self::$folder_state[ $which ] = wp_list_pluck( $entries, 'id' );
-		if ( $asset_id ) {
-			self::remember_folder_state( $asset_id, $which );
+		if ( $remember ) {
+			self::$folder_state[ $which ] = wp_list_pluck( $entries, 'id' );
+			if ( $asset_id ) {
+				self::remember_folder_state( $asset_id, $which );
+			}
 		}
 
 		$checked = 0;
