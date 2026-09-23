@@ -56,6 +56,9 @@ Marquee, Coupon Book, and Calendar don't have their own Elementor widgets yet �
 
 The hero numbers were checked against real Core Web Vitals/LCP guidance, not picked arbitrarily. The fold banner and coupon card numbers are documented starting points, not external standards — no established industry convention exists for either shape (checked directly) — adjust freely if a site's own data says otherwise. See CHANGELOG.md for the full research trail.
 
+== Updates ==
+Promo Manager updates itself from a private GitHub repo, just like any plugin from WordPress.org, once a site has been set up for it one time: under **Promo Manager > Settings > Auto-Update Settings**, paste the GitHub Update Key from R&A Marketing and leave Update Channel on "Production." (Or set `RAPM_GITHUB_UPDATE_TOKEN` in wp-config.php instead.) Only the one staging/test site should ever be set to "Staging." New versions go there first and reach live sites only after they've been checked.
+
 == Requirements ==
 PHP with either the Imagick extension (preferred) or GD's WebP support, for automatic format conversion. If a host has neither, the plugin will clearly say so and ask for a pre-converted .webp file instead of failing silently.
 

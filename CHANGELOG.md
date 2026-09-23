@@ -4,6 +4,16 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.23.0
+
+**Infrastructure: RA Promo Manager can now update itself from GitHub, the same way Universal Room Planner does.** Brought across from Room Planner's proven system (v7.17.0–v7.20.0 there) unchanged, rather than solving the same problem a second way. It's not a change to anything client staff see day to day.
+- Bundles the free, MIT-licensed `YahnisElsts/plugin-update-checker` (v5p7, the exact copy Room Planner already runs live, unmodified) at `lib/plugin-update-checker/`, wired up in the new `includes/class-rapm-updater.php`.
+- **Two separate private repos, not two branches.** Production is `ra-license/rapm-promo-manager` and staging is `ra-license/rapm-promo-manager-staging`. This matches Room Planner v7.19.0: the library prefers tags/releases over the configured branch, so only separate repos reliably keep an untested version off live sites.
+- New **Auto-Update Settings** section on Promo Manager > Settings, with an Update Channel dropdown (defaults to Production, the safe choice) and a GitHub Update Key field for sites managed only through wp-admin. The wp-config.php constants `RAPM_UPDATE_CHANNEL` and `RAPM_GITHUB_UPDATE_TOKEN` take priority when set. Both values are stored as their own options, outside `rapm_settings`, so that array's reset-to-defaults sanitizer can never wipe a site's key.
+- Auto-updates are on by default for this plugin (`auto_update_plugin` filter, same as Room Planner v7.20.0). Promoting a version to the production repo is the real gate, and once that's done every live site should pick it up with zero clicks.
+- **The token must cover BOTH repos.** A token scoped to only one of them fails silently on the other channel. That's exactly the bug Room Planner hit in v7.19.1.
+- **Not yet verified live.** No PHP runtime is available here (standing constraint), so this was checked by matching Room Planner's working code line for line plus a brace/paren balance check. A site only starts checking GitHub once it has this version installed manually one last time and a key entered. Until then, it behaves exactly as before.
+
 ## 1.22.2
 
 **Fix: on Promo Manager > All Assets, the post title and the default "Edit" row action silently opened a different, useless screen than the plugin's own "Edit" button in the same row.** Surfaced by the user noticing a calendar promotion had no destination link and asking why — investigation traced it to this: `rapm_asset` deliberately supports only `title` (no image/editor meta boxes — real fields live entirely on this plugin's own custom form, per `class-rapm-post-types.php`), but WordPress's *default* title link and "Edit" row action always point at the native `post.php?action=edit` screen regardless. That screen shows nothing but a bare title field — no image, headline, destination, or schedule — so anyone using the standard, more prominent "Edit" entry point (rather than the small button in the dedicated "Edit" column added for exactly this reason) landed somewhere that looks like editing but silently can't touch any real field.

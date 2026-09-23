@@ -62,6 +62,11 @@ class RAPM_Admin_Settings {
 
 	public static function register_settings() {
 		register_setting( self::OPTION, self::OPTION, array( __CLASS__, 'sanitize' ) );
+		// Stored as their own options, not inside rapm_settings, so the
+		// updater can read them at plugin load and so sanitize()'s reset-to-
+		// defaults behavior can never wipe a site's token.
+		register_setting( self::OPTION, RAPM_Updater::OPTION_TOKEN, array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		register_setting( self::OPTION, RAPM_Updater::OPTION_CHANNEL, array( 'sanitize_callback' => array( 'RAPM_Updater', 'sanitize_channel' ) ) );
 	}
 
 	public static function sanitize( $input ) {
@@ -263,6 +268,40 @@ class RAPM_Admin_Settings {
 						</tr>
 					</table>
 				<?php endif; ?>
+
+				<h2><?php esc_html_e( 'Auto-Update Settings', 'rapm' ); ?></h2>
+				<?php
+				$channel_locked = defined( 'RAPM_UPDATE_CHANNEL' ) && RAPM_UPDATE_CHANNEL;
+				$token_locked   = defined( 'RAPM_GITHUB_UPDATE_TOKEN' ) && RAPM_GITHUB_UPDATE_TOKEN;
+				?>
+				<p class="description"><?php esc_html_e( 'Lets this site find and install new versions of Promo Manager on its own, instead of someone uploading a zip file every time. Needs a one-time GitHub access key — ask R&A Marketing for it if you don\'t have it.', 'rapm' ); ?></p>
+				<table class="form-table">
+					<tr>
+						<th><label for="rapm_update_channel"><?php esc_html_e( 'Update Channel', 'rapm' ); ?></label></th>
+						<td>
+							<select id="rapm_update_channel" name="<?php echo esc_attr( RAPM_Updater::OPTION_CHANNEL ); ?>" <?php disabled( $channel_locked ); ?>>
+								<option value="production" <?php selected( RAPM_Updater::channel(), 'production' ); ?>><?php esc_html_e( 'Production (default — only gets updates that were already tested)', 'rapm' ); ?></option>
+								<option value="staging" <?php selected( RAPM_Updater::channel(), 'staging' ); ?>><?php esc_html_e( 'Staging (gets new updates first, for testing)', 'rapm' ); ?></option>
+							</select>
+							<?php if ( $channel_locked ) : ?>
+								<p class="description"><?php esc_html_e( 'Set in wp-config.php, which takes priority — this dropdown can\'t be changed here.', 'rapm' ); ?></p>
+							<?php else : ?>
+								<p class="description"><strong><?php esc_html_e( 'Leave this on "Production" for every real, live website.', 'rapm' ); ?></strong> <?php esc_html_e( 'Only pick "Staging" on the one test site used to check an update before it goes out to everyone else.', 'rapm' ); ?></p>
+							<?php endif; ?>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="rapm_github_token"><?php esc_html_e( 'GitHub Update Key', 'rapm' ); ?></label></th>
+						<td>
+							<input type="password" class="regular-text" id="rapm_github_token" name="<?php echo esc_attr( RAPM_Updater::OPTION_TOKEN ); ?>" value="<?php echo esc_attr( get_option( RAPM_Updater::OPTION_TOKEN, '' ) ); ?>" autocomplete="off" placeholder="github_pat_..." />
+							<?php if ( $token_locked ) : ?>
+								<p class="description"><?php esc_html_e( 'A key set in wp-config.php is already active and is used instead of this field.', 'rapm' ); ?></p>
+							<?php else : ?>
+								<p class="description"><?php esc_html_e( 'Paste the key here once. It can only read Promo Manager\'s own code — it can\'t see or change anything else.', 'rapm' ); ?></p>
+							<?php endif; ?>
+						</td>
+					</tr>
+				</table>
 
 				<?php submit_button(); ?>
 			</form>
