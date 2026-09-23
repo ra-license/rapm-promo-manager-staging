@@ -4,6 +4,10 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.23.1
+
+**Test release only, no functional change.** This is a version-number bump, pushed to the staging repo only, to prove the new GitHub self-update from 1.23.0 really delivers an "Update Available" notice and installs on a real WordPress site. Room Planner followed the same precedent with v7.19.1: the mechanism isn't trusted just because the code looks right. It needs a live, watched test first.
+
 ## 1.23.0
 
 **Infrastructure: RA Promo Manager can now update itself from GitHub, the same way Universal Room Planner does.** Brought across from Room Planner's proven system (v7.17.0–v7.20.0 there) unchanged, rather than solving the same problem a second way. It's not a change to anything client staff see day to day.
