@@ -102,6 +102,17 @@ class RAPM_Sync {
 
 		$result = RAPM_Link_Source::fetch_and_validate( $url, $slot, $asset_id, $which );
 
+		if ( 'mobile' === $which && RAPM_Link_Source::is_folder_url( $url ) && RAPM_Link_Source::is_waiting_for_picture( $result ) ) {
+			// No tall picture in the folder (yet) — not a failure; phones
+			// keep showing whatever they showed before (the desktop picture
+			// if there's never been a mobile one). No email.
+			update_post_meta( $asset_id, '_rapm_image_' . $which . '_waiting', 1 );
+			update_post_meta( $asset_id, '_rapm_image_' . $which . '_synced_at', current_time( 'mysql' ) );
+			delete_post_meta( $asset_id, '_rapm_image_' . $which . '_sync_error' );
+			return;
+		}
+		delete_post_meta( $asset_id, '_rapm_image_' . $which . '_waiting' );
+
 		if ( is_wp_error( $result ) ) {
 			$had_error_already = (bool) get_post_meta( $asset_id, '_rapm_image_' . $which . '_sync_error', true );
 			update_post_meta( $asset_id, '_rapm_image_' . $which . '_sync_error', $result->get_error_message() );

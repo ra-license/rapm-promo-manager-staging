@@ -87,6 +87,18 @@ class RAPM_Link_Source {
 	}
 
 	/**
+	 * True when a folder check found nothing usable only because the folder
+	 * has no picture of the right shape (or none at all) yet — as opposed to
+	 * a real problem like the folder not being shared. For the optional
+	 * mobile slot that just means "no phone picture yet": phones show the
+	 * desktop picture, and a tall picture added later is picked up
+	 * automatically, so it must never block saving or email the admin.
+	 */
+	public static function is_waiting_for_picture( $error ) {
+		return is_wp_error( $error ) && in_array( $error->get_error_code(), array( 'rapm_folder_no_match', 'rapm_folder_empty' ), true );
+	}
+
+	/**
 	 * Downloads $url, validates it against $slot, converts/compresses it,
 	 * and sideloads it into the Media Library. Returns the new attachment
 	 * ID, or a WP_Error explaining what went wrong — including a

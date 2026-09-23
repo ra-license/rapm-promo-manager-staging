@@ -110,6 +110,7 @@ class RAPM_Upload_Handler {
 		$mobile_url     = $m( '_rapm_image_mobile_url' );
 		$mobile_synced  = $m( '_rapm_image_mobile_synced_at' );
 		$mobile_error   = $m( '_rapm_image_mobile_sync_error' );
+		$mobile_waiting = (bool) $m( '_rapm_image_mobile_waiting' );
 		$slots       = RAPM_Slots::all();
 		$kinds       = RAPM_Slots::kinds();
 
@@ -423,6 +424,9 @@ class RAPM_Upload_Handler {
 								<p class="description rapm-link-status" id="rapm-mobile-link-status" aria-live="polite"></p>
 								<?php if ( $is_edit && 'link' === $mobile_source && 'link' !== $desktop_source ) : ?>
 									<p><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rapm_check_link_now&asset_id=' . $asset_id ), 'rapm_check_link_now_' . $asset_id ) ); ?>"><?php esc_html_e( 'Check link now', 'rapm' ); ?></a></p>
+								<?php endif; ?>
+								<?php if ( $mobile_waiting && ! $mobile_error ) : ?>
+									<p class="description"><?php esc_html_e( 'There\'s no tall picture in this folder yet, so phones show the desktop picture. Add a tall picture to the folder any time and it\'s picked up automatically.', 'rapm' ); ?></p>
 								<?php endif; ?>
 								<?php if ( $mobile_error ) : ?>
 									<p class="description" style="color:#b32d2e;"><?php echo esc_html( sprintf( __( 'Couldn\'t update from this link: %s Still showing the last picture that worked — nothing is broken on the live site.', 'rapm' ), $mobile_error ) ); ?></p>
@@ -1114,7 +1118,8 @@ class RAPM_Upload_Handler {
 									.then( function ( res ) {
 										if ( mine !== seq ) { return; } // a newer link was typed since
 										if ( ! res || ! res.success ) {
-											show( ( res && res.data && res.data.message ) || <?php echo wp_json_encode( __( 'Couldn\'t check that link.', 'rapm' ) ); ?>, true );
+											show( ( res && res.data && res.data.message ) || <?php echo wp_json_encode( __( 'Couldn\'t check that link.', 'rapm' ) ); ?>, ! ( res && res.data && res.data.soft ) );
+											if ( res && res.data && res.data.soft ) { mobileSrc = ''; updateImageDisplay(); }
 											return;
 										}
 										var d = res.data;
@@ -1355,6 +1360,7 @@ class RAPM_Upload_Handler {
 		$new_mobile_id  = null;
 		$desktop_source = 'upload';
 		$mobile_source  = 'upload';
+		$mobile_waiting = false;
 		$desktop_url    = '';
 		$mobile_url     = '';
 
@@ -1384,10 +1390,15 @@ class RAPM_Upload_Handler {
 				$mobile_url = isset( $_POST['rapm_image_mobile_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_mobile_url'] ) ) : '';
 				if ( $mobile_url ) {
 					$result = RAPM_Link_Source::fetch_and_validate( $mobile_url, $slots[ $kind['mobile'] ], $asset_id ?: 0, 'mobile' );
-					if ( is_wp_error( $result ) ) {
+					if ( RAPM_Link_Source::is_folder_url( $mobile_url ) && RAPM_Link_Source::is_waiting_for_picture( $result ) ) {
+						// No tall picture in the folder yet — fine, the mobile
+						// picture is optional (see is_waiting_for_picture()).
+						$mobile_waiting = true;
+					} elseif ( is_wp_error( $result ) ) {
 						self::fail( $back, $result->get_error_message() );
+					} else {
+						$new_mobile_id = $result;
 					}
-					$new_mobile_id = $result;
 				}
 			} elseif ( ! empty( $_FILES['rapm_image_mobile']['tmp_name'] ) ) {
 				$mobile_crop_anchor = isset( $_POST['rapm_image_mobile_crop_anchor'] ) ? sanitize_text_field( wp_unslash( $_POST['rapm_image_mobile_crop_anchor'] ) ) : '';
@@ -1467,11 +1478,17 @@ class RAPM_Upload_Handler {
 		}
 
 		update_post_meta( $asset_id, '_rapm_image_mobile_source', $mobile_source );
-		if ( 'link' === $mobile_source && null !== $new_mobile_id ) {
+		if ( 'link' === $mobile_source && ( null !== $new_mobile_id || $mobile_waiting ) ) {
 			update_post_meta( $asset_id, '_rapm_image_mobile_url', $mobile_url );
 			update_post_meta( $asset_id, '_rapm_image_mobile_synced_at', current_time( 'mysql' ) );
 			delete_post_meta( $asset_id, '_rapm_image_mobile_sync_error' );
+			if ( $mobile_waiting ) {
+				update_post_meta( $asset_id, '_rapm_image_mobile_waiting', 1 );
+			} else {
+				delete_post_meta( $asset_id, '_rapm_image_mobile_waiting' );
+			}
 		} elseif ( 'upload' === $mobile_source ) {
+			delete_post_meta( $asset_id, '_rapm_image_mobile_waiting' );
 			delete_post_meta( $asset_id, '_rapm_image_mobile_url' );
 			delete_post_meta( $asset_id, '_rapm_image_mobile_synced_at' );
 			delete_post_meta( $asset_id, '_rapm_image_mobile_sync_error' );
@@ -1733,6 +1750,14 @@ class RAPM_Upload_Handler {
 		$slot = $slots[ $kind[ $which ] ];
 
 		$picked = RAPM_Link_Source::resolve_to_tmp( $url, $slot, $asset_id, $which, false );
+		if ( 'mobile' === $which && RAPM_Link_Source::is_folder_url( $url ) && RAPM_Link_Source::is_waiting_for_picture( $picked ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'There\'s no tall picture in this folder yet. That\'s fine: phones will show the desktop picture, and a tall picture added to the folder later is picked up automatically.', 'rapm' ),
+					'soft'    => true,
+				)
+			);
+		}
 		if ( is_wp_error( $picked ) ) {
 			wp_send_json_error( array( 'message' => $picked->get_error_message() ) );
 		}

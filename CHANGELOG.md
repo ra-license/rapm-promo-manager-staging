@@ -4,6 +4,13 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.24.2
+
+**Fix: pasting a Drive folder into the Mobile image box blocked saving when the folder had no tall picture yet.** Phil hit this setting up the England demo. The folder held only the wide desktop picture, so the Mobile slot found nothing its shape, and the save bounced back to the form with "None of the newest pictures in that Google Drive folder are the right shape for Hero — Mobile". A mobile picture has always been optional for normal uploads (phones fall back to the desktop picture), so a folder with no tall picture yet shouldn't be treated as an error either.
+- **Mobile folder links now save even with no tall picture in the folder.** Phones show the desktop picture, and the hourly sync (or "Check link now") picks up a tall picture automatically as soon as one is added. The hourly sync treats "no tall picture yet" as a normal state, not a failure: no error and no admin email. The form shows a plain note instead of a red error: "There's no tall picture in this folder yet, so phones show the desktop picture…". The live preview shows the same note, in normal text rather than red.
+- Only "folder has no picture of that shape" / "folder is empty" counts as waiting (`RAPM_Link_Source::is_waiting_for_picture()`). Real problems, like the folder not being shared or Drive unreachable, still show as errors, and the **desktop** picture is still required.
+- Checked with the PHP-aware syntax checker (zero issues across every file) and Chrome's JS parser for the preview script. Not yet run in real PHP; staging is the confirmation: paste the England folder into both boxes and save.
+
 ## 1.24.1
 
 **Fix: the Add/Edit Asset live preview showed a broken image whenever "Use a link" had a Google Drive link.** Phil pasted the England folder link and got an empty dark box. The preview set the pasted text directly as the picture's address. That only ever worked for direct image links: a Drive folder link, and even a normal Drive file share link (`…/file/d/…/view`), is a web page rather than an image. This is preview-only; saving always fetched the link server-side correctly.
