@@ -4,6 +4,24 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.23.2
+
+**Three fixes found while building the demo pages on the staging site (gbh0yydkkp.wpdns.site), each root-caused on the real Woodmart theme rather than a mock.**
+
+**1. Hero: on phones, the headline and button sat below the fold.** Phil caught this on the new Home page. A slide with a dedicated mobile picture takes that picture's 9:16 shape, so at full phone width it's about as tall as the whole screen (≈667px at 375px wide). With the site header above it, the bottom-anchored copy started around 713px down the page, off-screen on most phones.
+- Mobile slides are now capped at 75% of the visible screen height (`max-height: 75svh`, with `75vh` first as a fallback). The picture is pinned to the slide box and cover-cropped, so it trims evenly top and bottom. Mobile pictures carry no baked-in text, so nothing important is lost.
+- **Found along the way:** the theme's own image rules outranked the plugin's `.rapm-slide-img { height: 100% }`, so the picture kept its natural height instead of filling the slide. It was invisible until now because the two heights happened to match. Hero image rules are now scoped under `.rapm-hero .rapm-slide`. The "shrink to fit" rule for slides with no mobile picture (1.21.2) got the same bump so it still wins.
+- Verified on the live staging Home page in 390px-wide frames at 667, 740 and 844px tall. Before: the button was off-screen at 667 and 740. After: on screen at all three, with the picture exactly filling the slide. The desktop hero (1270×397) and the mobile Fold Banner (375×139) are unchanged.
+
+**2. Promotions Calendar: automatic brand-color matching never worked on any site.** The plugin declared `--rapm-calendar-accent: var(--e-global-color-accent, …)` on `:root`, but Elementor defines its `--e-global-color-*` variables on the kit class it adds to `<body>`. A var() on `:root` can't see them, so every site fell back to the default orange. The variable is now declared on `body`.
+- **The auto-pick order also changed, from "Accent, then Primary" to "Primary, then Accent, then Secondary",** skipping any color that white text doesn't meet WCAG AA contrast (4.5:1) on (`RAPM_Elementor::auto_accent_id()`). Many kits, including Indian River's, use Accent for a light neutral (#ECEDED, 1.17:1), which would have made the bars' white text unreadable. No existing site could depend on the old order, since detection never worked.
+- The Settings > Brand Color description, Help & FAQ answer and readme now describe the real behavior. A manual Brand Color still always wins.
+- Verified on the live staging Promotions page: with the variable on `body`, the bars resolve to the kit's Primary (#971819). With the old `:root` declaration they stayed orange. The pick order was checked against three real palettes: Indian River's (picks Primary), ABC's previous one (Primary), and Elementor's out-of-the-box defaults (Secondary, the only readable one).
+
+**3. Marquee: prev/next arrows showed even when every tile fit on one page.** The script already set `hidden` on the arrows correctly, but the arrow's own `display: flex` (and a theme's button styling) outranks the browser's built-in `[hidden]` rule. Added `.rapm-marquee-arrow[hidden] { display: none !important; }`. Verified on the live Living Room page: 4 tiles with 4 per row, and both arrows are now hidden.
+
+- **No PHP runtime available here** (standing constraint). The CSS fixes were verified by injecting the exact shipped rules into the real published staging pages. The PHP changes (the contrast helper, `body` scoping, settings wording) were checked by porting the contrast math to a script and running a brace/paren balance check. Final confirmation is on staging after this updates.
+
 ## 1.23.1
 
 **Test release only, no functional change.** This is a version-number bump, pushed to the staging repo only, to prove the new GitHub self-update from 1.23.0 really delivers an "Update Available" notice and installs on a real WordPress site. Room Planner followed the same precedent with v7.19.1: the mechanism isn't trusted just because the code looks right. It needs a live, watched test first.

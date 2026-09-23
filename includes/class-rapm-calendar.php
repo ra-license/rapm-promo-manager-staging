@@ -361,10 +361,13 @@ class RAPM_Calendar {
 		// Defines the one custom property the stylesheet above reads for
 		// its accent color — see RAPM_Elementor::resolve_accent_color_css()
 		// for the manual-override / Elementor-auto-detect / fallback
-		// precedence this value comes from.
+		// precedence this value comes from. Declared on body, not :root:
+		// Elementor defines its --e-global-color-* variables on the kit
+		// class it adds to <body>, so a var() declared on :root can never
+		// see them and always fell back to the default orange.
 		wp_add_inline_style(
 			'rapm-calendar-css',
-			':root{--rapm-calendar-accent:' . RAPM_Elementor::resolve_accent_color_css( '#b5651d' ) . ';}'
+			'body{--rapm-calendar-accent:' . RAPM_Elementor::resolve_accent_color_css( '#b5651d' ) . ';}'
 		);
 	}
 }

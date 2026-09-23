@@ -31,9 +31,10 @@ class RAPM_Admin_Settings {
 			// Simon at all, should leave this blank.
 			'search_results_base_url'   => '',
 			'search_results_query_param' => 's',
-			// Empty = auto-detect from Elementor's Global "Accent" or
-			// "Primary" color when available, else a neutral default —
-			// see RAPM_Elementor::resolve_accent_color_css(). Only needs
+			// Empty = auto-detect from Elementor's Global "Primary",
+			// "Accent" or "Secondary" color (the first one white text is
+			// readable on), else a neutral default — see
+			// RAPM_Elementor::resolve_accent_color_css(). Only needs
 			// setting here if that auto-detected color isn't the one a
 			// site actually wants used (or the site doesn't run
 			// Elementor at all).
@@ -176,7 +177,7 @@ class RAPM_Admin_Settings {
 				<?php
 				$elementor_colors = RAPM_Elementor::color_value_map();
 				$elementor_titles = RAPM_Elementor::global_colors();
-				$auto_id          = isset( $elementor_titles['accent'] ) ? 'accent' : ( isset( $elementor_titles['primary'] ) ? 'primary' : '' );
+				$auto_id          = RAPM_Elementor::auto_accent_id();
 				?>
 				<p class="description">
 					<?php if ( $auto_id ) : ?>

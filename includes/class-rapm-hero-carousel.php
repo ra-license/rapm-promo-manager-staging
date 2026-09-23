@@ -82,8 +82,17 @@ class RAPM_Hero_Carousel {
 			   the carousel to match whichever shape the active slide is
 			   actually using. */
 			.<?php echo esc_attr( $instance_id ); ?> .rapm-slide { aspect-ratio: <?php echo esc_html( $desktop_slot['width'] . ' / ' . $desktop_slot['height'] ); ?>; }
+			/* A tall (9:16) mobile picture at full phone width is about as
+			   tall as the whole screen, so with the site header above it the
+			   bottom-anchored headline and button landed below the fold. Cap
+			   the slide at 75% of the visible screen height; the picture is
+			   cover-cropped to fit (it has no baked-in text to lose), and the
+			   copy stays on screen. vh first as a fallback for browsers
+			   without svh. The picture is pinned to the slide's box so it
+			   crops evenly top and bottom instead of just losing its bottom. */
 			@media (max-width: 768px) {
-				.<?php echo esc_attr( $instance_id ); ?> .rapm-slide.has-mobile-img { aspect-ratio: <?php echo esc_html( $mobile_slot['width'] . ' / ' . $mobile_slot['height'] ); ?>; }
+				.<?php echo esc_attr( $instance_id ); ?> .rapm-slide.has-mobile-img { aspect-ratio: <?php echo esc_html( $mobile_slot['width'] . ' / ' . $mobile_slot['height'] ); ?>; max-height: 75vh; max-height: 75svh; }
+				.<?php echo esc_attr( $instance_id ); ?> .rapm-slide.has-mobile-img picture { position: absolute; inset: 0; }
 			}
 		</style>
 		<div class="swiper rapm-hero <?php echo esc_attr( $instance_id ); ?>" style="display:none;" data-rapm-carousel>

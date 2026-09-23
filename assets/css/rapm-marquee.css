@@ -42,6 +42,14 @@
 	background: rgba(0, 0, 0, 0.06);
 }
 
+/* The script sets the `hidden` attribute when every tile fits on one page,
+   but `display: flex` above (and a theme's own `button { display: ... }`)
+   outranks the browser's built-in [hidden] rule, so the arrows stayed
+   visible anyway. Spell it out, with !important so a theme can't undo it. */
+.rapm-marquee-arrow[hidden] {
+	display: none !important;
+}
+
 .rapm-marquee-tile {
 	display: flex;
 	flex-direction: column;

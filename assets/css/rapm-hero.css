@@ -18,13 +18,16 @@
 	width: 100%;
 }
 
-.rapm-slide picture {
+/* Scoped under .rapm-hero so a theme's own `img { height: auto }`-style
+   rule can't outrank these (found on Woodmart: with a bare .rapm-slide-img
+   the picture kept its natural height instead of filling the slide). */
+.rapm-hero .rapm-slide picture {
 	display: block;
 	width: 100%;
 	height: 100%;
 }
 
-.rapm-slide-img {
+.rapm-hero .rapm-slide .rapm-slide-img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
@@ -39,7 +42,7 @@
    shape on purpose, so it's excluded from this rule and keeps filling
    the frame edge-to-edge as normal. */
 @media (max-width: 768px) {
-	.rapm-fallback-desktop-on-mobile {
+	.rapm-hero .rapm-slide .rapm-fallback-desktop-on-mobile {
 		object-fit: contain;
 		background: #111;
 	}

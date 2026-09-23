@@ -195,21 +195,64 @@ class RAPM_Elementor {
 	 *    deliberate human choice always wins, since Elementor's "Accent"
 	 *    or "Primary" slot isn't guaranteed to be the color a site
 	 *    actually wants used here;
-	 * 2) Elementor's own Global "Accent" color if set, else "Primary" —
-	 *    auto-detected via a live var() reference (not a resolved hex),
-	 *    so it keeps tracking Elementor if that color is ever changed;
-	 * 3) $fallback, on any site with neither.
+	 * 2) the first of Elementor's Global "Primary", "Accent", "Secondary"
+	 *    colors that white text is readable on (see auto_accent_id()) —
+	 *    referenced via a live var() (not a resolved hex), so it keeps
+	 *    tracking Elementor if that color is ever changed;
+	 * 3) $fallback, on any site with none of those.
+	 *
+	 * The var() only resolves where Elementor defines it: on the kit class
+	 * it adds to <body>, never :root — so callers must declare the result
+	 * on body or deeper (see RAPM_Calendar::enqueue()).
 	 */
 	public static function resolve_accent_color_css( $fallback = '#b5651d' ) {
 		$manual = trim( (string) RAPM_Admin_Settings::get( 'accent_color' ) );
 		if ( $manual ) {
 			return $manual;
 		}
-		$colors  = self::global_colors();
-		$auto_id = isset( $colors['accent'] ) ? 'accent' : ( isset( $colors['primary'] ) ? 'primary' : '' );
+		$auto_id = self::auto_accent_id();
 		if ( $auto_id ) {
 			return 'var(--e-global-color-' . sanitize_html_class( $auto_id ) . ', ' . $fallback . ')';
 		}
 		return $fallback;
+	}
+
+	/**
+	 * Which Elementor Global color the calendar picks up automatically, or
+	 * '' if none qualifies. The calendar puts white text on this color, so
+	 * a color only qualifies if white text on it meets WCAG AA contrast
+	 * (4.5:1) — many kits use "Accent" for a light neutral (e.g. #ECEDED),
+	 * which would leave the bars' text unreadable. Primary is tried first
+	 * since it's the brand color on most kits.
+	 */
+	public static function auto_accent_id() {
+		$values = self::color_value_map();
+		foreach ( array( 'primary', 'accent', 'secondary' ) as $id ) {
+			if ( ! empty( $values[ $id ] ) && self::contrast_with_white( $values[ $id ] ) >= 4.5 ) {
+				return $id;
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * WCAG contrast ratio between white and a #rgb / #rrggbb color, or 0
+	 * for anything that isn't a plain hex value.
+	 */
+	public static function contrast_with_white( $hex ) {
+		$hex = ltrim( trim( (string) $hex ), '#' );
+		if ( 3 === strlen( $hex ) ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		}
+		if ( ! preg_match( '/^[0-9a-fA-F]{6}$/', $hex ) ) {
+			return 0;
+		}
+		$lum = 0;
+		foreach ( array( 0.2126, 0.7152, 0.0722 ) as $i => $weight ) {
+			$c    = hexdec( substr( $hex, $i * 2, 2 ) ) / 255;
+			$c    = $c <= 0.03928 ? $c / 12.92 : pow( ( $c + 0.055 ) / 1.055, 2.4 );
+			$lum += $weight * $c;
+		}
+		return 1.05 / ( $lum + 0.05 );
 	}
 }

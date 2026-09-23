@@ -97,7 +97,7 @@ class RAPM_Help {
 			</details>
 			<details>
 				<summary><?php esc_html_e( 'Does the calendar match the colors on our website?', 'rapm' ); ?></summary>
-				<p><?php esc_html_e( 'Yes, automatically, on sites built with Elementor — it uses whichever color is set as this site\'s Elementor "Accent" color (or "Primary" if there\'s no Accent color set), with no setup needed. If it\'s using the wrong color, or the site doesn\'t use Elementor, whoever manages the website can set an exact color for it under Promo Manager > Settings > Brand Color.', 'rapm' ); ?></p>
+				<p><?php esc_html_e( 'Yes, automatically, on sites built with Elementor — it uses this site\'s main Elementor brand color (its "Primary" color, or "Accent" or "Secondary" if white text wouldn\'t be easy to read on Primary), with no setup needed. If it\'s using the wrong color, or the site doesn\'t use Elementor, whoever manages the website can set an exact color for it under Promo Manager > Settings > Brand Color.', 'rapm' ); ?></p>
 			</details>
 
 			<h2><?php esc_html_e( 'Pictures — Questions and Answers', 'rapm' ); ?></h2>
