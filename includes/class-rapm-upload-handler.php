@@ -159,6 +159,16 @@ class RAPM_Upload_Handler {
 				<div class="notice notice-error"><p><?php echo esc_html( $error_message ); ?></p></div>
 			<?php endif; ?>
 
+			<?php if ( isset( $_GET['rapm_checked'] ) && ! $desktop_error && ! $mobile_error ) : ?>
+				<div class="notice notice-success is-dismissible"><p>
+					<?php if ( 'updated' === $_GET['rapm_checked'] ) : ?>
+						<strong><?php esc_html_e( 'Updated.', 'rapm' ); ?></strong> <?php esc_html_e( 'A new picture was found at the link and is now live.', 'rapm' ); ?>
+					<?php else : ?>
+						<strong><?php esc_html_e( 'Checked.', 'rapm' ); ?></strong> <?php esc_html_e( 'The link still has the same picture, so nothing needed to change.', 'rapm' ); ?>
+					<?php endif; ?>
+				</p></div>
+			<?php endif; ?>
+
 			<?php if ( isset( $_GET['rapm_saved'] ) ) : ?>
 				<div class="notice notice-success is-dismissible"><p><strong><?php esc_html_e( 'Saved.', 'rapm' ); ?></strong> <?php esc_html_e( 'This promotion is saved. If its start date has arrived, it\'s already live anywhere the shortcode below has been added.', 'rapm' ); ?></p></div>
 			<?php endif; ?>
@@ -360,7 +370,11 @@ class RAPM_Upload_Handler {
 							</div>
 							<div id="rapm-desktop-link-row" style="margin-top:8px;<?php echo 'link' === $desktop_source ? '' : 'display:none;'; ?>">
 								<input type="url" id="rapm_image_desktop_url" name="rapm_image_desktop_url" class="regular-text" value="<?php echo esc_attr( $desktop_url ); ?>" placeholder="https://…" />
-								<p class="description"><?php esc_html_e( 'Paste a direct link to the picture, or a Google Drive share link (set the file\'s sharing setting to "Anyone with the link"). We\'ll check this link every hour and automatically update the picture if it changes — you never have to come back and re-upload it yourself.', 'rapm' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Paste a link to a Google Drive folder, a Google Drive link to one picture, or a direct link to a picture. Set its sharing to "Anyone with the link."', 'rapm' ); ?></p>
+								<p class="description"><?php esc_html_e( 'With a folder, the newest picture in it that is the right shape is used. To change the promotion, just add a new picture to the folder. It can have any file name. You can paste the same folder in both Desktop and Mobile: wide pictures go to Desktop and tall ones to Mobile. We check every hour, or use "Check link now" below.', 'rapm' ); ?></p>
+								<?php if ( $is_edit && 'link' === $desktop_source ) : ?>
+									<p><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rapm_check_link_now&asset_id=' . $asset_id ), 'rapm_check_link_now_' . $asset_id ) ); ?>"><?php esc_html_e( 'Check link now', 'rapm' ); ?></a></p>
+								<?php endif; ?>
 								<?php if ( $desktop_error ) : ?>
 									<p class="description" style="color:#b32d2e;"><?php echo esc_html( sprintf( __( 'Couldn\'t update from this link: %s Still showing the last picture that worked — nothing is broken on the live site.', 'rapm' ), $desktop_error ) ); ?></p>
 								<?php elseif ( $desktop_synced ) : ?>
@@ -404,7 +418,10 @@ class RAPM_Upload_Handler {
 							</div>
 							<div id="rapm-mobile-link-row" style="margin-top:8px;<?php echo 'link' === $mobile_source ? '' : 'display:none;'; ?>">
 								<input type="url" id="rapm_image_mobile_url" name="rapm_image_mobile_url" class="regular-text" value="<?php echo esc_attr( $mobile_url ); ?>" placeholder="https://…" />
-								<p class="description"><?php esc_html_e( 'Paste a direct link to the picture, or a Google Drive share link (set the file\'s sharing setting to "Anyone with the link"). We\'ll check this link every hour and automatically update the picture if it changes.', 'rapm' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Paste a link to a Google Drive folder (it can be the same folder as Desktop — the newest tall picture in it is used here), a Google Drive link to one picture, or a direct link to a picture. Set its sharing to "Anyone with the link." We check every hour.', 'rapm' ); ?></p>
+								<?php if ( $is_edit && 'link' === $mobile_source && 'link' !== $desktop_source ) : ?>
+									<p><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rapm_check_link_now&asset_id=' . $asset_id ), 'rapm_check_link_now_' . $asset_id ) ); ?>"><?php esc_html_e( 'Check link now', 'rapm' ); ?></a></p>
+								<?php endif; ?>
 								<?php if ( $mobile_error ) : ?>
 									<p class="description" style="color:#b32d2e;"><?php echo esc_html( sprintf( __( 'Couldn\'t update from this link: %s Still showing the last picture that worked — nothing is broken on the live site.', 'rapm' ), $mobile_error ) ); ?></p>
 								<?php elseif ( $mobile_synced ) : ?>
@@ -1304,7 +1321,7 @@ class RAPM_Upload_Handler {
 			if ( 'link' === $desktop_source ) {
 				$desktop_url = isset( $_POST['rapm_image_desktop_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_desktop_url'] ) ) : '';
 				if ( $desktop_url ) {
-					$result = RAPM_Link_Source::fetch_and_validate( $desktop_url, $slots[ $kind['desktop'] ], $asset_id ?: 0 );
+					$result = RAPM_Link_Source::fetch_and_validate( $desktop_url, $slots[ $kind['desktop'] ], $asset_id ?: 0, 'desktop' );
 					if ( is_wp_error( $result ) ) {
 						self::fail( $back, $result->get_error_message() );
 					}
@@ -1322,7 +1339,7 @@ class RAPM_Upload_Handler {
 			if ( 'link' === $mobile_source ) {
 				$mobile_url = isset( $_POST['rapm_image_mobile_url'] ) ? esc_url_raw( wp_unslash( $_POST['rapm_image_mobile_url'] ) ) : '';
 				if ( $mobile_url ) {
-					$result = RAPM_Link_Source::fetch_and_validate( $mobile_url, $slots[ $kind['mobile'] ], $asset_id ?: 0 );
+					$result = RAPM_Link_Source::fetch_and_validate( $mobile_url, $slots[ $kind['mobile'] ], $asset_id ?: 0, 'mobile' );
 					if ( is_wp_error( $result ) ) {
 						self::fail( $back, $result->get_error_message() );
 					}
@@ -1381,6 +1398,10 @@ class RAPM_Upload_Handler {
 					wp_update_post( array( 'ID' => $attachment_id, 'post_parent' => $asset_id ) );
 				}
 			}
+			// Same timing problem for folder links: which folder files were
+			// already seen can only be stored now that the post exists.
+			RAPM_Link_Source::remember_folder_state( $asset_id, 'desktop' );
+			RAPM_Link_Source::remember_folder_state( $asset_id, 'mobile' );
 		}
 
 		if ( null !== $new_desktop_id ) {

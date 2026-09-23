@@ -55,6 +55,41 @@ class RAPM_Sync {
 		}
 	}
 
+	/**
+	 * Checks one asset's linked pictures right away, instead of waiting for
+	 * the hourly run — behind the "Check link now" button on the Add/Edit
+	 * Asset screen, so a swap in a Drive folder can be shown live.
+	 */
+	public static function sync_asset( $asset_id ) {
+		$kinds = RAPM_Slots::kinds();
+		$slots = RAPM_Slots::all();
+		foreach ( array( 'desktop', 'mobile' ) as $which ) {
+			if ( 'link' === get_post_meta( $asset_id, '_rapm_image_' . $which . '_source', true ) ) {
+				self::sync_one( $asset_id, $which, $kinds, $slots );
+			}
+		}
+	}
+
+	public static function handle_check_now() {
+		$asset_id = isset( $_GET['asset_id'] ) ? absint( $_GET['asset_id'] ) : 0;
+		if ( ! $asset_id || ! current_user_can( 'edit_post', $asset_id ) || 'rapm_asset' !== get_post_type( $asset_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to do that.', 'rapm' ) );
+		}
+		check_admin_referer( 'rapm_check_link_now_' . $asset_id );
+		$before = array(
+			(int) get_post_meta( $asset_id, '_rapm_image_desktop_id', true ),
+			(int) get_post_meta( $asset_id, '_rapm_image_mobile_id', true ),
+		);
+		self::sync_asset( $asset_id );
+		$after   = array(
+			(int) get_post_meta( $asset_id, '_rapm_image_desktop_id', true ),
+			(int) get_post_meta( $asset_id, '_rapm_image_mobile_id', true ),
+		);
+		$outcome = $before !== $after ? 'updated' : 'same';
+		wp_safe_redirect( admin_url( 'edit.php?post_type=rapm_asset&page=rapm-add-asset&edit=' . $asset_id . '&rapm_checked=' . $outcome ) );
+		exit;
+	}
+
 	private static function sync_one( $asset_id, $which, $kinds, $slots ) {
 		$url = get_post_meta( $asset_id, '_rapm_image_' . $which . '_url', true );
 		if ( ! $url ) {
@@ -65,7 +100,7 @@ class RAPM_Sync {
 		$slot     = $slots[ $kind[ $which ] ];
 		$old_id   = (int) get_post_meta( $asset_id, '_rapm_image_' . $which . '_id', true );
 
-		$result = RAPM_Link_Source::fetch_and_validate( $url, $slot, $asset_id );
+		$result = RAPM_Link_Source::fetch_and_validate( $url, $slot, $asset_id, $which );
 
 		if ( is_wp_error( $result ) ) {
 			$had_error_already = (bool) get_post_meta( $asset_id, '_rapm_image_' . $which . '_sync_error', true );

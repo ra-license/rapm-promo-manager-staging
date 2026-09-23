@@ -4,6 +4,17 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## 1.24.0
+
+**Feature: "Use a link" now accepts a Google Drive folder, so clients can change a promotion by just dropping a new picture into a folder, under any file name.** Phil's request, while setting up a link-swap demo: file links only swap when the new picture replaces the old file under the same link, which in Drive means re-uploading with the exact same file name and choosing "Replace". That's not realistic to expect from a client every time.
+- Paste a Drive folder link (`drive.google.com/drive/folders/…`) into either image's link box. **The newest picture in the folder that fits that slot's shape is used.** "Newest" is decided in two steps: a file the slot has never seen before always wins, so a new upload takes over whatever it's named or dated. After that, files are ordered by Drive's last-modified date. The seen-file list is stored per slot (`_rapm_image_{desktop|mobile}_folder_seen`).
+- **One folder can feed both slots.** Wrong-shape pictures are skipped rather than treated as errors, so the same folder pasted into Desktop and Mobile gives the wide picture to Desktop and the tall one to Mobile. Every picture still goes through the same size/format checks as a normal upload. At most 5 candidates are downloaded per check, so a folder full of old pictures stays cheap to sync hourly.
+- **No Google login or API key needed** (Phil's choice over the official Drive API, which would need a key pasted into every site). The folder is read from Drive's own embeddable folder view (`embeddedfolderview?id=…`). That's a public page, not an official API, so Google could change it. If that happens, the existing behavior applies: the last good picture stays up, the error shows on the asset, and the admin is emailed.
+- **New "Check link now" button** on the Add/Edit Asset screen for any linked asset. It re-checks immediately instead of waiting for the hourly sync, for showing a swap live. It shows "Updated" or "Checked, nothing changed".
+- Form help text, a new Help & FAQ entry ("Can I use a Google Drive folder instead of one picture?") and the readme explain it in plain language.
+- **Verified against real Drive, not a mock.** A shared test folder (Phil's Drive, "England - Hero Slider") was fetched with no login, the same position a WordPress server is in. The listing returned the file's ID, name and date. The file downloaded byte-for-byte identical to what was uploaded. The picking logic (ported to a script) chose the 1920×600 picture for Desktop, correctly found no tall picture for Mobile, and put a never-seen file ahead of an already-seen one. **One bug was caught by that test before shipping:** the page check first looked for a marker (`flip-view`) that Drive's real response doesn't contain, which would have rejected every folder. It now checks for `flip-embedded`, which is present in real folder listings and absent from Drive's 404/sign-in pages.
+- **Not yet run in PHP** (standing constraint). The full end-to-end swap happens on staging after this updates: point an asset at the folder, drop in a new picture, click "Check link now".
+
 ## 1.23.2
 
 **Three fixes found while building the demo pages on the staging site (gbh0yydkkp.wpdns.site), each root-caused on the real Woodmart theme rather than a mock.**

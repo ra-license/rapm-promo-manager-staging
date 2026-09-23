@@ -176,6 +176,11 @@ class RAPM_Help {
 			</details>
 
 			<details>
+				<summary><?php esc_html_e( 'Can I use a Google Drive folder instead of one picture?', 'rapm' ); ?></summary>
+				<p><?php esc_html_e( 'Yes, and it is the easiest way to keep a promotion up to date. Make one folder for each promotion (for example "England - Hero Slider"), share it as "Anyone with the link," and paste the folder\'s link into the box. The newest picture in the folder is used. To change the promotion, just add a new picture to the folder — the file name doesn\'t matter. You can put the wide desktop picture and the tall phone picture in the same folder and paste that folder into both boxes; each one picks the picture that fits its shape.', 'rapm' ); ?></p>
+			</details>
+
+			<details>
 				<summary><?php esc_html_e( 'How do I link to a Google Drive file?', 'rapm' ); ?></summary>
 				<p><?php esc_html_e( 'In Google Drive, right-click the file, choose Share, and change the setting to "Anyone with the link." Then copy that link and paste it into the box. If the setting is left more restricted than that, the link won\'t work.', 'rapm' ); ?></p>
 			</details>
