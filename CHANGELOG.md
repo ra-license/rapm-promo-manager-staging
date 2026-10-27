@@ -4,6 +4,33 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## Plugin Monitor 1.5.4 (help desk only)
+
+**Update all.** Phil, Oct 27: "Yes, build the Update all button as 1.5.4."
+
+- **What it does:**
+  - **"Update all out of date (N)"** sits above the lists. It leaves an "Update now" request for every out-of-date R&A plugin that can take one, the same request as clicking each row.
+  - **"Update these (N)"** under each plugin in By plugin does the same for one plugin. For example, push a new Woo Native Dimensions everywhere.
+  - Each website picks the request up at its next check (every 15 minutes) and installs the newest release on its own channel: live websites get the live release, staging websites the staging one. It asks "OK?" first, with the count.
+- **Left out, and counted next to the button:**
+  - plugins too old for Update now (update by hand once);
+  - websites with automatic updates turned off;
+  - plugins already being updated;
+  - websites silent for 3 days;
+  - plugins no longer on a website.
+- **Not covered:** a website on an older copy can still answer "WordPress skipped the update" when its own auto-update switch is off. That's the one-time hop by hand for the six Dimensions sites; after it, Update all reaches them.
+- **Without clicking:** since 1.67.0, plugins update themselves within about 12 hours. Update all is for when that's too long.
+- **Tested:**
+  - **On the bench (PHP 8.3):** twelve rows across live and staging. It asked for exactly the three that could update: a live Dimensions 1.33, a live Promo Manager 1.66.1, and a staging Dimensions 1.36 when staging's newest was 1.37.
+  - It left out, and named, one each of: already updating, too old, automatic updates off, and silent. It skipped a current plugin and a plugin no longer on its website.
+  - The message read "Update requested for 3 plugins on 2 websites…". A second click added nothing ("Nothing was out of date that Update now can reach").
+  - An expired link was refused. A single row's Update now still works through the same code.
+  - Both changed files parse on 7.4 and 8.3.
+  - **On staging (2026-10-27):** installed over 1.5.3, and the monitor loads. Staging's only website is current, so the button rightly doesn't show there; the real click is proven on the bench only.
+- **Still to do:** Phil installs `ra-plugin-monitor-1.5.4.zip` on the help desk. It includes 1.5.3, so 1.5.3 can be skipped.
+
+---
+
 ## Plugin Monitor 1.5.3 (help desk only; Promo Manager stays 1.67.0)
 
 **The help desk wakes a website whose scheduler stopped.** Phil, Oct 27: "Check why Revolutionary Retail stopped checking in," then "Build 1.5.3."
