@@ -19,6 +19,7 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 - **Tested:**
   - **On the bench,** WordPress's own `should_update()` with the site toggle off: R&A plugins yes, other plugins no. With the opt-out: no for Promo Manager, yes again during "Update now". The twice-daily job is scheduled. All changed PHP parses on 7.4 and 8.3.
   - **On staging (2026-10-27),** with Promo Manager 1.67.0 installed, Dimensions shows "Auto-updates enabled" with no toggle, like Promo Manager and Room Planner. "Update now" for Dimensions installed 1.35 → 1.36. Staging's old toggle for Dimensions was on, so the toggle-off case is proven on the bench only.
+- **In production (2026-10-27).** Phil pushed Promo Manager main (30a713d) with tag v1.67.0, Woo Native Dimensions main (33ffe82) with v1.36, and Universal Room Planner main (28e6634) with v7.26.0.
 
 ---
 
