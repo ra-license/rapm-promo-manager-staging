@@ -4,6 +4,23 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## Plugin Monitor 1.5.3 (help desk only; Promo Manager stays 1.67.0)
+
+**The help desk wakes a website whose scheduler stopped.** Phil, Oct 27: "Check why Revolutionary Retail stopped checking in," then "Build 1.5.3."
+
+- **Root cause:** Revolutionary Retail's R&A plugins were fine (Woo Native Dimensions' table showed on its product pages). WordPress's scheduler (wp-cron) wasn't running. WordPress runs scheduled jobs only when a page load reaches WordPress. This quiet build site's few visitors get cached pages, and nobody had opened its admin. So for about two weeks it sent no daily check-in, made no checks for Update now, and ran no self-updates. Loading its `wp-cron.php` once brought it back: "checked in 36 seconds ago."
+- **What 1.5.3 does:**
+  - **Wakes quiet websites on its own.** The hourly round loads `https://<website>/wp-cron.php` for any website not heard from (check-in or check for requests) in more than a day. That only runs jobs the website was already due to run.
+  - **Keeps trying, but not forever.** It tries again 6 hours later while the website stays quiet, then once a day after 4 tries. It stops after 30 days. A firewall's browser check is never gotten past; it's shown as the answer.
+  - **A Check-ins card on each website's page** shows when it was last heard from, what the last wake-up found, and a **Wake it now** button. When a website needed waking more than once in 90 days, the card says to ask the host for a server cron. That's the lasting fix.
+  - **A clearer silent message.** The silent row (3 days) now names the scheduler as a cause and says what the wake-up found.
+- **Tested:**
+  - **On the bench (PHP 7.4):** six websites. It woke the three quiet ones (2 weeks, 2 days, 26 hours); a firewall check and a slow answer were each reported as such. It left a website heard from 2 hours ago, one that checked for requests an hour ago, and one quiet for 40 days alone. A second round right after woke nothing. Seven hours later it tried again, but waited a day after 4 tries. A website taken off the list was dropped. All four wordings of the wake-up line were checked. The changed files parse on 7.4 and 8.3.
+  - **On staging (2026-10-27):** installed over 1.5.2. Wake it now on staging's own page loaded its `wp-cron.php` (Answered 200), and the card then read "The help desk woke its scheduler 1 minute ago (Answered (200)), and it checked in again." The first wording said "it hasn't checked in since" for a website that wasn't quiet. Fixed before this record: it now says no check-in was due.
+- **Still to do:** Phil installs `ra-plugin-monitor-1.5.3.zip` on the help desk. Revolutionary Retail's Dimensions 1.33 still needs the one-time hop to 1.36.
+
+---
+
 ## 1.67.0
 
 **R&A plugins update themselves.** Phil, Oct 27, looking at the Plugin Monitor ("This is a problem. We need to make sure we can do automatic updates"): Woo Native Dimensions sat at 1.33 on Andrews, Barron's, Frazier & Son and Indian River. "Update now" said "WordPress skipped the update. Automatic updates may not be allowed for this plugin here." Phil chose automatic updates on by default.
