@@ -16,8 +16,8 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
   - plugins too old for Update now (update by hand once);
   - websites with automatic updates turned off;
   - plugins already being updated;
-  - websites silent for 3 days;
-  - plugins no longer on a website.
+  - websites silent for 3 days.
+  - Plugins no longer on a website are left out without a count.
 - **Not covered:** a website on an older copy can still answer "WordPress skipped the update" when its own auto-update switch is off. That's the one-time hop by hand for the six Dimensions sites; after it, Update all reaches them.
 - **Without clicking:** since 1.67.0, plugins update themselves within about 12 hours. Update all is for when that's too long.
 - **Tested:**
