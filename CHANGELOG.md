@@ -4,6 +4,28 @@ Versions follow semver: PATCH = fixes, MINOR = new backward-compatible features,
 
 ---
 
+## Plugin Monitor 1.5.5 (help desk only)
+
+**Newest versions come from GitHub.** Phil, Oct 27: "Fix the newest-version gap so Update all sees GitHub releases."
+
+- **Root cause:** "newest" was the highest version some website reported, installed or seen by its own update check. After today's push, Update all on the help desk didn't offer Promo Manager 1.67.0 or Room Planner 7.26.0, because no website had reported them yet.
+- **What 1.5.5 does:**
+  - **Reads GitHub itself.** The help desk reads each R&A repo's highest version tag, live and staging: the same tags each website's updater installs from. It does this every hour, when the monitor is opened and the last read is over an hour old, and on **Check GitHub now**. "Newest" is the higher of GitHub's and what websites report, so "Out of date" and Update all count a release right away.
+  - **Shows what it found** under Update all: "Newest on GitHub: …, checked … ago", with a line for any repo it couldn't read.
+  - **Private repos** (Universal Room Planner) need a read-only GitHub token. It uses the one saved under "GitHub token for private repos", or one already set on the site for an R&A plugin. It's only sent to api.github.com and never shown.
+  - **Tags that aren't plain versions** (like "latest" or "-beta") are ignored. A repo that can't be read keeps its last version.
+  - **When GitHub says to slow down** (60 reads an hour without a token, shared with other websites on the same server), it tries the token, then again next hour.
+- **Tested:**
+  - **On the bench (PHP 7.4):** with stand-in GitHub answers, before GitHub, Update all would have asked 0; after, it asked Promo Manager 1.66.1 → 1.67.0 and, with the token, Room Planner 7.25.1 → 7.26.0, and a staging Promo Manager 1.67.0 → 1.67.1 from the staging repo.
+  - Tags were sorted as versions (1.67.0 above 1.10.0 and 1.9.0).
+  - The private repo said "needs a read-only GitHub token" without one. When rate-limited, the public repos were read with the token. A token that doesn't cover the repo said so. Removing the token worked.
+  - It refreshed when over an hour old, and not again right after. It's on the hourly round. The token text never appears on the page.
+  - Both files parse on 7.4 and 8.3.
+  - **On staging (2026-10-27):** installed over 1.5.4. Opening the monitor read GitHub for real: "Newest on GitHub: RA Promo Manager 1.67.0 · Woo Native Dimensions 1.36 · Universal Room Planner 7.26.0." The private repo was read with the token staging already has for Room Planner. Staging's own plugins are current, so Update all rightly doesn't show there.
+- **Still to do:** Phil installs `ra-plugin-monitor-1.5.5.zip` on the help desk. If Room Planner shows "Private: needs a read-only GitHub token", Phil pastes one under "GitHub token for private repos".
+
+---
+
 ## Plugin Monitor 1.5.4 (help desk only)
 
 **Update all.** Phil, Oct 27: "Yes, build the Update all button as 1.5.4."
